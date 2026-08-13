@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Detection Engineering — Learning Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0b1116;--bg2:#0e151c;--surface:#131c24;--surface2:#18232d;--line:#25333f;--line2:#31424f;
+    --text:#e7eef4;--muted:#93a4b2;--muted2:#6d7f8d;--accent:#2dd4bf;--radius:14px;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,sans-serif;
+    --display:'Space Grotesk',var(--sans);
+    --p0:#94a3b8;--p1:#2dd4bf;--p2:#38bdf8;--p3:#fbbf24;--p4:#34d399;--p5:#818cf8;--p6:#c084fc;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto} *{transition:none!important;animation:none!important}}
+  body{margin:0;background:
+      radial-gradient(1100px 500px at 12% -8%, rgba(45,212,191,.07), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(129,140,248,.06), transparent 55%),
+      var(--bg);
+    color:var(--text);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;}
+  a{color:inherit}
+  .wrap{max-width:920px;margin:0 auto;padding:0 18px 96px}
+  .statusbar{position:sticky;top:0;z-index:40;background:rgba(11,17,22,.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .statusbar .inner{max-width:920px;margin:0 auto;padding:9px 18px;display:flex;align-items:center;gap:14px}
+  .pct{font-family:var(--mono);font-weight:600;font-size:13px;color:var(--accent);white-space:nowrap}
+  .track{flex:1;height:6px;background:var(--surface2);border-radius:99px;overflow:hidden;min-width:60px}
+  .track > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--p1),var(--p4),var(--p6));border-radius:99px;transition:width .4s ease}
+  .nextbtn{font-family:var(--mono);font-size:11px;letter-spacing:.02em;color:var(--bg);background:var(--accent);border:0;border-radius:8px;padding:6px 10px;cursor:pointer;font-weight:600;white-space:nowrap}
+  .nextbtn:hover{filter:brightness(1.08)}
+  header.hero{padding:46px 0 20px}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 14px}
+  h1.title{font-family:var(--display);font-weight:700;font-size:clamp(30px,7vw,50px);line-height:1.04;margin:0 0 14px;letter-spacing:-.01em}
+  h1.title span{color:var(--accent)}
+  .lede{color:var(--muted);font-size:16px;max-width:60ch;margin:0 0 26px}
+  .meterwrap{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 16px 14px}
+  .meterhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:12px}
+  .meterhead .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2)}
+  .meterhead .big{font-family:var(--display);font-weight:600;font-size:22px}
+  .meterhead .big b{color:var(--accent)}
+  .segs{display:flex;gap:5px}
+  .seg{flex:1;height:26px;border-radius:6px;background:var(--surface2);position:relative;overflow:hidden;border:1px solid var(--line)}
+  .seg > i{position:absolute;left:0;bottom:0;top:0;width:0;transition:width .5s ease;opacity:.9}
+  .seg .n{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;color:var(--muted);z-index:2}
+  .segrow2{display:flex;gap:5px;margin-top:6px}
+  .segrow2 .cap{flex:1;text-align:center;font-family:var(--mono);font-size:9px;color:var(--muted2);letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  nav.phasenav{display:flex;gap:8px;overflow-x:auto;padding:20px 0 6px;margin:0 -2px;scrollbar-width:thin}
+  nav.phasenav::-webkit-scrollbar{height:6px}
+  nav.phasenav::-webkit-scrollbar-thumb{background:var(--line2);border-radius:9px}
+  .pchip{flex:0 0 auto;font-family:var(--mono);font-size:12px;padding:8px 12px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--muted);cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:7px;white-space:nowrap}
+  .pchip:hover{border-color:var(--line2);color:var(--text)}
+  .pchip .dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+  .phase{margin-top:38px;scroll-margin-top:70px}
+  .phasehead{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+  .phasehead .tag{font-family:var(--mono);font-size:12px;font-weight:600;padding:3px 9px;border-radius:6px;color:var(--bg)}
+  .phasehead h2{font-family:var(--display);font-weight:600;font-size:clamp(20px,4.6vw,27px);margin:0;letter-spacing:-.01em}
+  .phasesub{color:var(--muted);font-size:14px;margin:2px 0 18px;padding-left:2px}
+  .week{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:12px;overflow:hidden;position:relative}
+  .week::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--wc,var(--accent))}
+  .wkhead{width:100%;text-align:left;background:none;border:0;color:inherit;cursor:pointer;padding:15px 16px 15px 19px;display:flex;align-items:center;gap:13px;font-family:inherit}
+  .wkhead:hover{background:var(--surface2)}
+  .wknum{font-family:var(--mono);font-weight:600;font-size:12px;color:var(--wc,var(--accent));border:1px solid var(--line2);border-radius:7px;padding:5px 7px;min-width:44px;text-align:center;flex:0 0 auto}
+  .wkmeta{flex:1;min-width:0}
+  .wktitle{font-family:var(--display);font-weight:600;font-size:16px;line-height:1.25}
+  .wkgoal{color:var(--muted);font-size:12.5px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .wkright{display:flex;align-items:center;gap:10px;flex:0 0 auto}
+  .wkprog{font-family:var(--mono);font-size:11px;color:var(--muted2)}
+  .wkprog.done{color:var(--wc,var(--accent))}
+  .chev{width:10px;height:10px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .25s;flex:0 0 auto;margin-right:2px}
+  .week.open .chev{transform:rotate(225deg)}
+  .wkbody{display:none;padding:2px 16px 18px 19px;border-top:1px solid var(--line)}
+  .week.open .wkbody{display:block}
+  .checkpoint{margin:10px 0 2px;padding:11px 13px;border-radius:10px;background:rgba(45,212,191,.09);border:1px solid rgba(45,212,191,.28);font-size:13px}
+  .checkpoint b{color:var(--accent);font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:3px}
+  .topic{padding:14px 0;border-bottom:1px dashed var(--line)}
+  .topic:last-of-type{border-bottom:0}
+  .topicname{font-family:var(--display);font-weight:600;font-size:14.5px;display:flex;gap:9px;align-items:baseline}
+  .topicname .mk{font-family:var(--mono);font-size:11px;color:var(--wc,var(--accent));flex:0 0 auto}
+  .subs{list-style:none;margin:9px 0 0;padding:0}
+  .subs li{position:relative;padding:2px 0 2px 16px;color:var(--muted);font-size:13.5px}
+  .subs li::before{content:"";position:absolute;left:2px;top:11px;width:5px;height:5px;border-radius:50%;background:var(--line2)}
+  .reslabel{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);margin:11px 0 6px}
+  .res{display:flex;flex-wrap:wrap;gap:6px}
+  .res a{display:inline-flex;align-items:center;gap:7px;text-decoration:none;background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12.5px;color:var(--text);max-width:100%}
+  .res a:hover{border-color:var(--wc,var(--accent))}
+  .res a .lab{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .badge{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.05em;padding:2px 5px;border-radius:4px;flex:0 0 auto}
+  .b-read{background:rgba(56,189,248,.16);color:#7dd3fc}
+  .b-watch{background:rgba(244,114,182,.16);color:#f9a8d4}
+  .b-do{background:rgba(52,211,153,.16);color:#6ee7b7}
+  .b-tool{background:rgba(251,191,36,.16);color:#fcd34d}
+  .b-repo{background:rgba(192,132,252,.18);color:#d8b4fe}
+  .b-docs{background:rgba(148,163,184,.18);color:#cbd5e1}
+  .exlabel{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);margin:11px 0 6px}
+  .ex{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+  .ex li{display:flex;gap:9px;font-size:13px;color:var(--text);align-items:flex-start}
+  .ex li .m{font-family:var(--mono);font-size:11px;color:#6ee7b7;flex:0 0 auto;margin-top:2px}
+  .gate{margin-top:16px;background:var(--bg2);border:1px solid var(--line);border-radius:11px;padding:13px 14px}
+  .gatehead{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--wc,var(--accent));margin-bottom:9px;display:flex;align-items:center;gap:8px}
+  .gatehead::before{content:"▚";font-size:12px}
+  .gitem{display:flex;gap:11px;align-items:flex-start;padding:6px 0;cursor:pointer}
+  .gitem input{position:absolute;opacity:0;width:0;height:0}
+  .box{flex:0 0 auto;width:19px;height:19px;border:1.5px solid var(--line2);border-radius:5px;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:.15s}
+  .box::after{content:"";width:9px;height:5px;border-left:2px solid var(--bg);border-bottom:2px solid var(--bg);transform:rotate(-45deg) scale(0);transition:transform .15s;margin-top:-2px}
+  .gitem input:checked + .box{background:var(--wc,var(--accent));border-color:var(--wc,var(--accent))}
+  .gitem input:checked + .box::after{transform:rotate(-45deg) scale(1)}
+  .gitem input:focus-visible + .box{outline:2px solid var(--accent);outline-offset:2px}
+  .gitem .gt{font-size:13px;color:var(--text)}
+  .gitem input:checked ~ .gt{color:var(--muted2);text-decoration:line-through}
+  .lib{margin-top:44px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+  .lib h2{font-family:var(--display);font-weight:600;font-size:20px;margin:0 0 4px}
+  .lib p.k{color:var(--muted);font-size:13.5px;margin:0 0 16px}
+  .libgroup{margin-top:16px}
+  .libgroup h3{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);margin:0 0 8px}
+  .foot{margin-top:38px;color:var(--muted2);font-size:12.5px;text-align:center;font-family:var(--mono)}
+  .foot .reset{background:none;border:1px solid var(--line);color:var(--muted);font-family:var(--mono);font-size:11px;padding:6px 12px;border-radius:8px;cursor:pointer;margin-top:10px}
+  .foot .reset:hover{border-color:#f87171;color:#fca5a5}
+  .note{background:rgba(129,140,248,.08);border:1px solid rgba(129,140,248,.25);border-radius:10px;padding:11px 13px;font-size:12.5px;color:var(--muted);margin-top:6px}
+  .note b{color:#c7cbff}
+  @media (max-width:560px){.meterhead .big{font-size:19px}.segrow2 .cap{font-size:8px}.statusbar .inner{gap:9px}}
+</style>
+</head>
+<body>
+<div class="statusbar"><div class="inner">
+  <span class="pct" id="pctLabel">0%</span>
+  <span class="track"><i id="trackFill"></i></span>
+  <button class="nextbtn" id="nextBtn" title="Jump to your next unfinished step">▸ NEXT</button>
+</div></div>
+
+<div class="wrap">
+  <header class="hero">
+    <p class="eyebrow">Passenger → Pilot · 41-week track</p>
+    <h1 class="title">Defensive <span>Detection</span> Engineering</h1>
+    <p class="lede">Your route from "I ship things I don't understand" to a detection engineer whose edge is having lived on the attacker's side of the wall. The plan is 41 numbered modules over roughly 43 calendar weeks: Weeks 11 and 18 each intentionally budget about two weeks. Work top to bottom. Tap a week to open it. Under each topic: what to study, one strong resource, and an exercise. Check a gate only when you can pass it <em>unassisted</em> — and every gate must produce a saved artifact (a diagram, script, query, or one-page writeup), never just a verbal "I get it." Any gate that starts with "Explain…" means write it down or whiteboard it on video — "I get it" in your head is exactly the passenger failure mode this breaks. That's the whole point.</p>
+    <div class="meterwrap">
+      <div class="meterhead"><span class="lbl">Signal acquired</span><span class="big"><b id="gCount">0</b> / <span id="gTotal">0</span> gates</span></div>
+      <div class="segs" id="segRow"></div>
+      <div class="segrow2" id="segCaps"></div>
+    </div>
+  </header>
+  <nav class="phasenav" id="phaseNav"></nav>
+  <main id="phases"></main>
+  <section class="lib">
+    <h2>Resource library</h2>
+    <p class="k">Cross-cutting repositories worth keeping open the whole way. Phase-specific resources live under each topic above.</p>
+    <div id="libGroups"></div>
+    <div class="note" style="margin-top:18px"><b>On the offensive repos (Phase 3):</b> browser-fingerprinting analyses and anti-bot detectors are your fastest route to understanding how Cloudflare/Akamai/DataDome decide you're a bot. You read them <em>as a defender</em> — to learn the signals you'll detect, not to build evasion.</div>
+  </section>
+  <div class="foot">
+    <div>Progress saves in this browser only. Open the same file on your phone to track separately.</div>
+    <button class="reset" id="resetBtn">Reset all progress</button>
+    <div style="margin-top:14px">Detection is never "done." Neither is the learning — that's what makes it AI-durable.</div>
+  </div>
+</div>
+
+<script>
+const R=(t,l,u)=>({t,l,u});
+const PHASES=[
+{ id:"p0", name:"Diagnostic & de-passengering", tag:"Phase 0", sub:"Find your real gaps by behaviour, not by how confident you feel.", color:"var(--p0)", weeks:[
+  { n:0, title:"Unprepared Diagnostic", goal:"Produce an honest map of what you can do with no AI and no studying. A high score here is bad information.",
+    topics:[
+      {name:"Python build-from-blank", mk:"0.1", subs:["Log analyzer from an empty folder: parse access logs, top-N IPs, error rate, requests/min","Package it, add an argparse CLI, write ≥5 tests"], resources:[], ex:["Time-box 4–6h. Whatever you can't do, STOP and write it down — don't look it up"]},
+      {name:"SQL build-from-blank", mk:"0.2", subs:["Tiny users/orders schema; from blank: 2-table join, GROUP BY + HAVING, orders-per-user sorted","One query you expect to be slow + a sentence on why"], resources:[], ex:["Note which ones you had to guess at — that's your Week 5–6 target list"]},
+      {name:"Git recovery drills", mk:"0.3", subs:["Commit, branch, merge; manufacture and resolve a conflict","Lose a commit and recover via reflog; enter and exit detached HEAD"], resources:[R("tool","Learn Git Branching","https://learngitbranching.js.org/")], ex:["Record a transcript; note steps you didn't understand"]},
+      {name:"Written mental models (no notes, no AI)", mk:"0.4", subs:["1 page: what happens between typing a URL and your handler running","1 page: how does Cloudflare decide you're a bot? — SAVE this, you compare it in Week 14"], resources:[], ex:["Keep both files; they're a before/after measurement"]}
+    ], gate:["All four artifacts exist","An honest gaps.md naming what you couldn't do","You did NOT go back and fix the score"] }
+]},
+{ id:"p1", name:"Fundamentals under the hood", tag:"Phase 1", sub:"Where \"I use Python daily\" becomes \"I know what Python does.\" Passing these unassisted is what makes you interview-proof.", color:"var(--p1)", weeks:[
+  { n:1, title:"Shell, OS, and Git", goal:"Understand the environment your code runs in as a model, not memorised commands.",
+    topics:[
+      {name:"The shell & command execution", mk:"1.1", subs:["What a shell is; PATH and command lookup (which, type)","Quoting & word-splitting; expansion order; globbing","Startup files: what runs when"], resources:[R("watch","MIT Missing Semester — Shell + lectures","https://missing.csail.mit.edu/")], ex:["Trace how the shell finds python via PATH","Write an idempotent setup+test script"]},
+      {name:"Filesystem, paths, permissions", mk:"1.2", subs:["Absolute vs relative paths; . .. ~","Inodes; hard vs symbolic links","user/group/other + rwx; chmod, chown; shebang"], resources:[R("read","Missing Semester — course-shell","https://missing.csail.mit.edu/2020/course-shell/")], ex:["Make a script executable, run it, remove the bit, read the exact error"]},
+      {name:"Processes & signals", mk:"1.3", subs:["PID/PPID; fg/bg (& jobs fg bg)","ps/top/pgrep; lsof; /proc/<pid>/","SIGINT/TERM/KILL/HUP; exit codes & $?"], resources:[R("read","Missing Semester — CLI environment","https://missing.csail.mit.edu/2020/command-line/")], ex:["Find your analyzer's PID, list open files, SIGTERM it, check exit code"]},
+      {name:"Streams, pipes, redirection", mk:"1.4", subs:["stdin/stdout/stderr (0/1/2)","> >> < 2> 2>&1 /dev/null","Filters: grep/cut/sort/uniq -c/awk"], resources:[R("watch","Missing Semester — Data Wrangling","https://missing.csail.mit.edu/2020/data-wrangling/")], ex:["Compute top-10 IPs using ONLY shell pipes — feel the difference from your Python"]},
+      {name:"Software installation & environments", mk:"1.5", subs:["System (apt) vs language (pip) vs isolated (venv)","What a venv is; how activation changes PATH"], resources:[R("docs","Python venv","https://docs.python.org/3/library/venv.html")], ex:["echo $PATH before/after activating a venv; explain the change"]},
+      {name:"Git: the object model", mk:"1.6", subs:["Working tree, index, repository","blob/tree/commit/tag; content-addressing by SHA","Refs & HEAD; a branch is a movable pointer"], resources:[R("read","Pro Git — ch.10 Internals","https://git-scm.com/book/en/v2/Git-Internals-Plumbing-and-Porcelain"),R("tool","Learn Git Branching","https://learngitbranching.js.org/")], ex:["git cat-file -p HEAD → tree → blob; trace the chain by hand"]},
+      {name:"Git: branching, merging, remotes", mk:"1.7", subs:["Fast-forward vs three-way merge","Conflict markers; resolving & completing","fetch/pull/push; rebase vs merge concept"], resources:[R("read","Pro Git — ch.3 Branching","https://git-scm.com/book/en/v2/Git-Branching-Branches-in-a-Nutshell")], ex:["Manufacture a conflict, resolve it, explain each marker"]},
+      {name:"Git: recovery & safety", mk:"1.8", subs:["reflog: the safety net","reset --soft/--mixed/--hard","restore/checkout; detached HEAD; revert vs reset"], resources:[R("read","Pro Git — Reset Demystified","https://git-scm.com/book/en/v2/Git-Tools-Reset-Demystified")], ex:["Redo the 5 recovery drills, now explaining WHY each works"]}
+    ], gate:["From memory: working tree → index → commit → branch → HEAD diagram","Transcript of 5 Git recovery tasks WITH why each works","Rebuild your Week 0 environment from a blank shell","Explain (no notes): a signal, a pipe, and what a venv changes about PATH","First de-passenger drill on one of your own scrapers"] },
+  { n:2, title:"Python Internals I: The Data Model", goal:"Understand what Python does when you assign, pass, and iterate — the source of mystery bugs and interview probes.",
+    topics:[
+      {name:"Objects, names, references", mk:"2.1", subs:["A variable is a name bound to an object","is vs ==, id()","b = a for a list vs an int; ref counting/GC"], resources:[R("repo","fluentpython/example-code-2e","https://github.com/fluentpython/example-code-2e"),R("read","Real Python — names & values","https://realpython.com/python-variables/")], ex:["Two names, one list; mutate through one, observe the other; explain with id()"]},
+      {name:"Mutability & classic traps", mk:"2.2", subs:["Mutable vs immutable types","Mutable-default-argument trap","Shallow vs deep copy"], resources:[R("docs","Python copy module","https://docs.python.org/3/library/copy.html")], ex:["Reproduce the mutable-default bug, explain exactly why, fix it two ways"]},
+      {name:"Object model & dunder methods", mk:"2.3", subs:["__init__ __repr__ __eq__ __hash__ __len__ __iter__","The __eq__/__hash__ contract","Truthiness"], resources:[R("read","Python data model reference","https://docs.python.org/3/reference/datamodel.html")], ex:["Write a RequestKey class usable as a dict key; break the eq/hash contract and watch the dict break"]},
+      {name:"Iterators & generators", mk:"2.4", subs:["The iterator protocol; StopIteration","What a for loop actually does","yield, generator expressions, lazy eval; streaming vs loading"], resources:[R("read","Python — iterators & generators","https://docs.python.org/3/howto/functional.html#iterators")], ex:["From blank: an iterator class AND a generator that stream file records","Rewrite your Week 0 analyzer to stream via a generator"]},
+      {name:"Scope & closures", mk:"2.5", subs:["LEGB; global/nonlocal","Closures; late-binding-in-a-loop gotcha"], resources:[R("read","Real Python — inner functions/closures","https://realpython.com/inner-functions-what-are-they-good-for/")], ex:["Write a closure counter; reproduce & fix the late-binding loop bug"]},
+      {name:"Binary data: bytes, bytearray, struct", mk:"2.6", subs:["bytes vs str; encoding/decoding; reading hex","bytearray, memoryview; slicing fixed-width fields","struct.pack/unpack; endianness — this is exactly what you need to parse a raw TLS ClientHello in Week 9 without falling back on AI"], resources:[R("docs","Python — struct module","https://docs.python.org/3/library/struct.html")], ex:["From blank: parse a real binary header (PNG or WAV) with struct and print each field with its byte offset"]}
+    ], gate:["Explain (no notes) a = b for a list vs an int using id()","From blank: an iterator class and a generator that stream records","Explain the __eq__/__hash__ contract and demonstrate breaking it","Explain the mutable-default and late-binding-closure traps","From blank: parse a fixed binary format with struct and label each field's byte offset (prep for the Week-9 ClientHello parser)"] },
+  { n:3, title:"Python Internals II: Production Code, Testing, Debugging", goal:"Turn code-that-runs into code you'd deploy and someone else could maintain.",
+    topics:[
+      {name:"Modules, packages, imports", mk:"3.1", subs:["Modules vs packages; import system & sys.path","Absolute vs relative; breaking circular imports","Installable package + CLI entry point"], resources:[R("docs","Python Packaging tutorial","https://packaging.python.org/en/latest/tutorials/packaging-projects/")], ex:["Restructure the analyzer into a package; pip install -e . ; run by name"]},
+      {name:"Exceptions & error handling", mk:"3.2", subs:["Exception hierarchy; try/except/else/finally","Never bare except:; raise ... from ...","Errors as user-facing behaviour (exit codes)"], resources:[R("read","Python — Errors & Exceptions","https://docs.python.org/3/tutorial/errors.html")], ex:["Add 3 failure modes, each with a clear message + correct exit code + tests"]},
+      {name:"Context managers", mk:"3.3", subs:["with and __enter__/__exit__ (behaviour on exceptions)","Class-based and contextlib.contextmanager"], resources:[R("docs","Python contextlib","https://docs.python.org/3/library/contextlib.html")], ex:["Write a timing context manager (reused for latency later); prove cleanup runs on error"]},
+      {name:"Typing & static checks", mk:"3.4", subs:["Hints: list[str], Optional, dict, Callable","What a type checker can/can't prove","Inspect, don't blindly obey"], resources:[R("docs","mypy — Getting Started","https://mypy.readthedocs.io/en/stable/getting_started.html")], ex:["Type-hint the analyzer; run mypy; fix or justify each finding in writing"]},
+      {name:"Logging & configuration", mk:"3.5", subs:["logging vs print; levels/handlers/formatters","Structured logging (foundation for Phase 4 telemetry)","Config precedence: default < file < env < flag"], resources:[R("docs","Python Logging HOWTO","https://docs.python.org/3/howto/logging.html")], ex:["Replace prints with structured logs + run ID; demo flag>env>default precedence"]},
+      {name:"Testing with pytest", mk:"3.6", subs:["Fixtures, parametrization","Unit vs integration; testing failure paths","Coverage as a signal not a target"], resources:[R("docs","pytest — Get Started","https://docs.pytest.org/en/stable/getting-started.html")], ex:["≥20 meaningful tests: normal/boundary/failure, with a fixture + parametrized parser tests"]},
+      {name:"Debugging & profiling", mk:"3.7", subs:["pdb/breakpoint(): stepping, inspecting","Reading a traceback bottom-up","cProfile: find the real hot path"], resources:[R("docs","Python pdb","https://docs.python.org/3/library/pdb.html")], ex:["Seed one bug + one perf regression; find with pdb and cProfile; fix both"]}
+    ], gate:["Clean-environment install + run from your own README","≥20 meaningful tests incl. 3 failure paths with correct exit codes","From blank: a context manager; explain __enter__/__exit__ guarantees","Demonstrate finding a seeded bug (pdb) and regression (cProfile)"] },
+  { n:4, title:"Data Structures, Complexity & the Detection Primitive", goal:"Know the structures cold, reason about cost, and build the sliding-window counter you'll reuse for velocity detection.",
+    topics:[
+      {name:"Core structures & their costs", mk:"4.1", subs:["list; dict/set (hash tables); tuple","deque: O(1) both ends — right for windows","Counter, defaultdict, heapq"], resources:[R("docs","Python collections","https://docs.python.org/3/library/collections.html")], ex:["For each: one line on cost + when to choose it; verify one by benchmark"]},
+      {name:"Hashing", mk:"4.2", subs:["What a hash function does; how dict/set use it","Collisions; bad __hash__ → O(n)","Never mutate a key after insertion"], resources:[R("watch","Computerphile — Hashing","https://www.youtube.com/results?search_query=computerphile+hashing")], ex:["Dict keyed by your RequestKey; show mutating a key corrupts lookups"]},
+      {name:"Big-O for real", mk:"4.3", subs:["O(1)/log/n/n log n/n² — how each feels as data grows","Average vs worst case; space complexity"], resources:[R("repo","trekhleb/javascript-algorithms","https://github.com/trekhleb/javascript-algorithms")], ex:["Write the complexity of every operation in your analyzer; find the worst; say if it matters"]},
+      {name:"The sliding-window counter (detection primitive)", mk:"4.4", subs:["Fixed vs sliding vs tumbling windows","Bounded memory: expire old events","Per-entity counting with a dict of deques"], resources:[R("do","Build it yourself — no copy","")], ex:["From blank: per-IP count in last 60s, expiring old entries; test burst + quiet. KEEP for Week 21"]},
+      {name:"Top-N, done right", mk:"4.5", subs:["Full sort vs Counter.most_common vs streaming heap","Which at which data size"], resources:[], ex:["Implement 3 ways; benchmark; state which for a 10 GB log and why"]}
+    ], gate:["No-notes complexity analysis of your core operations","From blank: per-IP sliding-window counter with bounded memory + tests","Explain & demonstrate how a bad __hash__ degrades a dict","Justify your top-N choice for a large log from your benchmark"] },
+  { n:5, title:"SQL Depth I: Relational Model, Joins, Transactions", goal:"Your weak spot — two full weeks. Move from basic SQL to genuine fluency. Detection engineers live in SQL.",
+    topics:[
+      {name:"Relational model & schema design", mk:"5.1", subs:["Tables/keys; PK/FK & referential integrity","Normalization 1NF→3NF; deliberate denormalization","Constraints: NOT NULL/UNIQUE/CHECK/FK"], resources:[R("read","PostgreSQL tutorial","https://www.postgresql.org/docs/current/tutorial.html"),R("tool","PGExercises","https://pgexercises.com/")], ex:["Design a normalized schema for access logs + rejected requests + accounts; load data"]},
+      {name:"Joins — and above all, cardinality", mk:"5.2", subs:["INNER/LEFT/RIGHT/FULL/CROSS — what rows each yields","Predicting row count BEFORE running","Self-joins; multi-column; N+1"], resources:[R("tool","PGExercises — Joins","https://pgexercises.com/questions/joins/")], ex:["For each join type: predict row count first, then verify","Self-join: accounts sharing an IP"]},
+      {name:"Aggregation & grouping", mk:"5.3", subs:["GROUP BY, COUNT/SUM/AVG/MIN/MAX","HAVING vs WHERE","DISTINCT, COUNT(DISTINCT)"], resources:[R("tool","PGExercises — Aggregation","https://pgexercises.com/questions/aggregates/")], ex:["Requests per IP; error rate per path; accounts with > N failed logins (HAVING)"]},
+      {name:"Transactions & integrity", mk:"5.4", subs:["ACID; BEGIN/COMMIT/ROLLBACK","Isolation levels at a high level"], resources:[R("read","PostgreSQL — Transactions","https://www.postgresql.org/docs/current/tutorial-transactions.html")], ex:["In a transaction: insert valid, trigger a constraint violation, roll back, prove no change"]},
+      {name:"Safe SQL (parameterization)", mk:"5.5", subs:["Why string-built SQL is injection","Parameterized queries; link to OWASP Top 10"], resources:[R("read","OWASP — SQL Injection Prevention","https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html")], ex:["Same query safe vs unsafe; explain exactly why the unsafe one is exploitable"]}
+    ], gate:["From blank: 6 queries incl. a 3-table join and GROUP BY ... HAVING","Predict the row count of each join type before running — correctly","Constraint failure + rollback in a transaction","Explain why a parameterized query is safe and a formatted one isn't"] },
+  { n:6, title:"SQL Depth II: Indexes, Query Plans, Window Functions", goal:"The performance + analytics half. Window functions are the backbone of behavioural detection. When you finish, the interview-killer SQL gap is closed.",
+    topics:[
+      {name:"Indexes: what they actually are", mk:"6.1", subs:["B-tree structure; why lookups become O(log n)","When an index helps vs is ignored","Cost of indexes; composite & column order"], resources:[R("read","Use The Index, Luke","https://use-the-index-luke.com/")], ex:["Three slow queries → justified indexes → measure the improvement"]},
+      {name:"Reading query plans", mk:"6.2", subs:["EXPLAIN vs EXPLAIN ANALYZE; estimated vs actual","Plan nodes: seq/index scan, nested loop, hash join, sort","Spotting the problem"], resources:[R("read","Use The Index, Luke — Execution Plans","https://use-the-index-luke.com/sql/explain-plan")], ex:["EXPLAIN ANALYZE before/after an index; explain each node and why the plan changed"]},
+      {name:"Window functions (detection backbone)", mk:"6.3", subs:["OVER (PARTITION BY ... ORDER BY ...) vs GROUP BY","ROW_NUMBER/RANK/DENSE_RANK","LAG/LEAD (inter-arrival); rolling aggregates; frames"], resources:[R("read","PostgreSQL — Window Functions","https://www.postgresql.org/docs/current/tutorial-window.html")], ex:["From blank: per-IP velocity in rolling 1-min windows; LAG inter-arrival; rank failed-login bursts. SAVE these"]},
+      {name:"CTEs & query organization", mk:"6.4", subs:["WITH for readable multi-step queries","Subqueries vs CTEs vs joins"], resources:[R("read","PostgreSQL — WITH Queries","https://www.postgresql.org/docs/current/queries-with.html")], ex:["Rewrite one window query using a CTE; compare readability"]}
+    ], gate:["Read an EXPLAIN ANALYZE output and explain each node","Explain why one index helps a query and another doesn't","From blank: a windowed per-IP velocity query and a LAG inter-arrival query","Explain GROUP BY vs window function in one clear sentence"] },
+  { n:7, title:"Networking From the Wire Up", goal:"Understand what's observable at the network layer — the bottom of the detection stack. Capture real packets so TLS/HTTP fingerprints aren't abstract later.",
+    topics:[
+      {name:"Layered model & encapsulation", mk:"7.1", subs:["TCP/IP layers and what each adds","Encapsulation: Ethernet → IP → TCP → HTTP","Where a signal lives at each layer"], resources:[R("read","Beej's Network Concepts","https://beej.us/guide/bgnet0/"),R("watch","Kurose & Ross lectures","https://gaia.cs.umass.edu/kurose_ross/online_lectures.htm")], ex:["Draw the encapsulation of one HTTP request down the layers"]},
+      {name:"IP addressing & routing", mk:"7.2", subs:["IPv4, CIDR, subnets; public vs private","Routing & NAT (why home devices share one IP)","ASN concept — reused for reputation"], resources:[R("read","Beej's — addressing","https://beej.us/guide/bgnet0/")], ex:["Predict 3 CIDR membership cases","Look up your own IP's ASN; explain what it reveals and doesn't"]},
+      {name:"TCP & UDP", mk:"7.3", subs:["TCP: 3-way handshake, teardown, seq/ack, reliability","UDP: connectionless (DNS, QUIC)","Ports & sockets; the 4-tuple"], resources:[R("read","Beej's — TCP/UDP","https://beej.us/guide/bgnet0/")], ex:["Capture a TCP handshake in Wireshark; annotate flags & sequence numbers"]},
+      {name:"DNS", mk:"7.4", subs:["Resolver → root/TLD/authoritative","Record types (A/AAAA/CNAME/MX/TXT)","Visible metadata even under HTTPS"], resources:[R("read","MDN — What is DNS","https://developer.mozilla.org/en-US/docs/Glossary/DNS")], ex:["dig a domain and trace the answer; capture one DNS lookup and explain it"]},
+      {name:"Diagnostic tools & packet capture", mk:"7.5", subs:["ping/traceroute/dig/ss/lsof — what each proves","tcpdump & Wireshark on your own traffic","Know your evidence's limits"], resources:[R("read","Wireshark — capturing packets","https://www.wireshark.org/docs/wsug_html_chunked/ChapterCapture.html"),R("read","Wireshark — display filters","https://www.wireshark.org/docs/wsug_html_chunked/ChWorkBuildDisplayFilterSection.html")], ex:["Capture loading a page; isolate DNS, TCP handshake, start of TLS; packet-by-packet explanation"]}
+    ], gate:["From memory: DNS resolution and TCP 3-way-handshake diagrams","Annotated (sanitized) capture of one DNS lookup and one TCP handshake","One-pager: what an IP and an ASN do and don't tell you about a client, with a concrete false-positive example (CGNAT / shared corporate IP)","Table: what each diagnostic tool can and cannot prove"] }
+]},
+{ id:"p2", name:"How the web actually works + build what you'll defend", tag:"Phase 2", sub:"Understand the protocols deeply, then build AbuseGuard — the app you attack and then defend for the rest of the track.", color:"var(--p2)", weeks:[
+  { n:8, title:"HTTP, deeply", goal:"HTTP as a protocol, not a black box — including the header-order and HTTP/2 details you'll weaponise in Phase 3.",
+    topics:[
+      {name:"HTTP messages & semantics", mk:"8.1", subs:["Methods (GET/POST/PUT/PATCH/DELETE/HEAD/OPTIONS)","Status code families; safety & idempotency","Request/response structure"], resources:[R("read","MDN — HTTP overview","https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Overview")], ex:["Hand-write a raw request/response; classify 10 status codes with meaning"]},
+      {name:"Headers, cookies, caching", mk:"8.2", subs:["Request/response/representation headers; header ORDER & casing (weaponised in Phase 3)","Set-Cookie attributes (HttpOnly/Secure/SameSite)","Cache-Control/ETag/conditional requests; proxies & X-Forwarded-For"], resources:[R("read","MDN — HTTP caching","https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Caching")], ex:["Inspect a real site's headers in devtools; explain each cache header"]},
+      {name:"HTTP/1.1 framing", mk:"8.3", subs:["Connection lifecycle, keep-alive","Content-Length vs Transfer-Encoding: chunked","Framing ambiguity → request smuggling concept"], resources:[R("read","High Performance Browser Networking (chapter: HTTP/1.x)","https://hpbn.co/")], ex:["Build a raw HTTP/1.1 client parsing chunked + content-length; test malformed/empty bodies"]},
+      {name:"HTTP/2 & HTTP/3", mk:"8.4", subs:["Multiplexing, streams, HPACK, SETTINGS frames, pseudo-headers","Head-of-line blocking","QUIC / HTTP/3 — UDP-based, changes what the network can observe"], resources:[R("read","HPBN (chapter: HTTP/2)","https://hpbn.co/"),R("read","Cloudflare — what is HTTP/3 / QUIC","https://www.cloudflare.com/learning/performance/what-is-http3/")], ex:["Capture HTTP/2 in devtools; explain multiplexing and what the server observes about a client"]},
+      {name:"Beyond request/response: WebSockets & GraphQL", mk:"8.5", subs:["WebSocket upgrade handshake; persistent bidirectional frames","GraphQL: single endpoint, client-shaped queries — why per-route rules don't map","Both are detection blind spots: abuse often rides them to bypass REST-oriented controls"], resources:[R("read","MDN — WebSockets API","https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API"),R("read","GraphQL — Learn","https://graphql.org/learn/")], ex:["Add a WebSocket or GraphQL endpoint to AbuseGuard; note what per-route telemetry breaks and how you'd observe it instead"]}
+    ], gate:["Raw client parses headers, content-length, chunked, malformed lengths, empty bodies","From-memory request/response diagram","Explain HTTP/2 multiplexing and what the server observes about a client","One-pager: how observability differs for a WebSocket / GraphQL endpoint vs a REST route, and where abuse hides"] },
+  { n:9, title:"TLS, deeply", goal:"Fold in your hello_dissect.py / JA3-JA4 ladder here. This is where 'how does Cloudflare know' starts to click visually.",
+    topics:[
+      {name:"Handshake & record protocol", mk:"9.1", subs:["TLS 1.3 full handshake; key exchange; record layer","What's encrypted, and when"], resources:[R("read","The Illustrated TLS 1.3 Connection","https://tls13.xargs.org/"),R("read","HPBN (chapter: TLS)","https://hpbn.co/")], ex:["Annotate a captured handshake packet by packet"]},
+      {name:"Certificates & trust", mk:"9.2", subs:["X.509, chains, CAs, validation","SNI; what SNI leaks; revocation"], resources:[R("read","HPBN (chapter: TLS — certs)","https://hpbn.co/")], ex:["openssl s_client to inspect a cert chain; explain each cert's role"]},
+      {name:"ClientHello structure", mk:"9.3", subs:["Version, cipher suites, extensions & extension ORDER","Supported groups, ALPN, GREASE","Use RFC 8446 as a reference after the Illustrated TLS walkthrough, not as the primary teacher"], resources:[R("docs","RFC 8446 (TLS 1.3 reference)","https://www.rfc-editor.org/rfc/rfc8446.html")], ex:["Parse a ClientHello with your hello_dissect.py; list extensions in order"]},
+      {name:"JA3/JA4 from first principles", mk:"9.4", subs:["How the fingerprint hash is built","JA3 vs JA4 improvements; the JA4 family"], resources:[R("repo","FoxIO-LLC/ja4","https://github.com/FoxIO-LLC/ja4")], ex:["Compute JA3 & JA4 by hand from your capture; compare curl/python/chrome/playwright"]}
+    ], gate:["Save tls-handshake.md plus a sanitized PCAP: reconcile a from-memory TLS 1.3 diagram against one real handshake, naming each flight and the exact encryption boundary","Save tls-visibility.md: client / on-path observer / TLS terminator / origin visibility table, including one tempting inference the evidence cannot support","Save clienthello-corpus/: captures + parser output for Chrome, curl, Python, and Playwright; hand-compute one JA4, compare all four clients, and include one legitimate same-client/version variation or collision-style negative case"] },
+  { n:10, title:"Web application internals: build AbuseGuard", goal:"Build the app you'll attack and defend. Use FastAPI (adjacent to your Django; you'll need async detection APIs later).",
+    topics:[
+      {name:"Request lifecycle & routing", mk:"10.1", subs:["ASGI vs WSGI; path operations; dependency injection","Request/response objects"], resources:[R("docs","FastAPI tutorial","https://fastapi.tiangolo.com/tutorial/")], ex:["Build register/login/product routes; diagram the lifecycle tied to your code"]},
+      {name:"Data validation & models", mk:"10.2", subs:["Pydantic models, validation, serialization","Structured error responses"], resources:[R("docs","Pydantic — models","https://docs.pydantic.dev/latest/concepts/models/")], ex:["Define request/response schemas with validation; test invalid input"]},
+      {name:"Sessions & persistence boundary", mk:"10.3", subs:["Cookies/sessions; DB layer behind a repository boundary","SQLite for this week only"], resources:[R("docs","FastAPI — SQL databases","https://fastapi.tiangolo.com/tutorial/sql-databases/")], ex:["Implement a login session; keep persistence behind a boundary; test it"]},
+      {name:"Templates & the protected page", mk:"10.4", subs:["Server-rendered vs API responses","A protected account page; a basic authz gate"], resources:[R("docs","FastAPI — templates","https://fastapi.tiangolo.com/advanced/templates/")], ex:["Protected account page requiring login; rebuild one full feature from a blank module"]}
+    ], gate:["Request-lifecycle diagram tied to exact parts of your app","Tests for routes, sessions, invalid input, persistence boundary","Clean rebuild of one full feature from a blank module"] },
+  { n:11, title:"Auth, authz & secure deployment", goal:"The controls you'll later reason about as an attacker and defender. Budget ~2 weeks: AppSec (11.1–11.4) first, then deployment (11.5) — don't cram it into one week and relapse into AI.",
+    topics:[
+      {name:"Authentication & password storage", mk:"11.1", subs:["authn vs authz; session vs token auth","For new FastAPI code use pwdlib[argon2]; passlib is mainly for compatibility with legacy hashes","Never roll your own password hashing"], resources:[R("read","OWASP — Password Storage Cheat Sheet","https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html"),R("docs","FastAPI — password hashing with pwdlib + Argon2","https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/")], ex:["Hash + verify passwords with pwdlib[argon2]; explain your KDF choice and legacy-hash migration path in writing"]},
+      {name:"Sessions, cookies, CSRF, CORS", mk:"11.2", subs:["Secure cookie attributes","CSRF tokens; CORS policy & preflight"], resources:[R("read","OWASP — Session Management Cheat Sheet","https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html"),R("read","MDN — CORS","https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS")], ex:["Add CSRF protection; configure a narrow CORS policy; test both"]},
+      {name:"Authorization models", mk:"11.3", subs:["RBAC; tenant isolation; server-side checks","IDOR / broken access control"], resources:[R("read","PortSwigger — Access control","https://portswigger.net/web-security/access-control")], ex:["Role boundary + tests proving users can't reach each other's data"]},
+      {name:"Secrets & crypto choices", mk:"11.4", subs:["CSPRNG vs KDF vs MAC vs signature vs encryption vs AEAD","Secrets handling; nothing in logs/git"], resources:[R("read","OWASP — Cryptographic Storage Cheat Sheet","https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html")], ex:["Write which primitive for which job; verify no secrets are logged or committed"]},
+      {name:"Deployment boundary", mk:"11.5", subs:["Reverse proxy (Nginx); Docker/Compose; TLS termination","How the client IP survives the proxy chain: X-Forwarded-For / X-Real-IP across Docker bridge networks and Nginx — a misconfig here makes every IP-based signal a lie","Migrate SQLite → PostgreSQL intentionally"], resources:[R("docs","Docker — security","https://docs.docker.com/engine/security/"),R("docs","FastAPI — behind a proxy","https://fastapi.tiangolo.com/advanced/behind-a-proxy/"),R("docs","Nginx — real IP module","https://nginx.org/en/docs/http/ngx_http_realip_module.html")], ex:["Write Dockerfile/Compose + Nginx yourself; deploy from a clean checkout","Prove which client IP your app actually sees through the proxy chain, and configure trusted proxies correctly"]}
+    ], gate:["Draw & explain URL → DNS → TCP → TLS → HTTP → reverse proxy → app → DB → response","Deploy locally from a clean checkout using only your own docs","Demonstrate authz/CSRF/cookie/secret tests"] },
+  { n:12, title:"Threat modeling & AppSec foundations — v1 + Checkpoint 1", goal:"Ship AbuseGuard v1. You can now defend the fundamentals in an interview.",
+    checkpoint:"After this week: start applying to scraping / anti-bot / data-eng roles in parallel. Don't pause the curriculum — run both.",
+    topics:[
+      {name:"Threat modeling", mk:"12.1", subs:["Assets, actors, trust boundaries, data flows","STRIDE; abuse cases; security requirements"], resources:[R("read","OWASP — Threat Modeling Cheat Sheet","https://cheatsheetseries.owasp.org/cheatsheets/Threat_Modeling_Cheat_Sheet.html")], ex:["Context/container/data-flow diagrams; STRIDE per element"]},
+      {name:"OWASP Top 10 & API Top 10", mk:"12.2", subs:["The categories, mapped to AbuseGuard","API-specific risks (BOLA, mass assignment)"], resources:[R("read","OWASP Top 10","https://owasp.org/www-project-top-ten/"),R("read","OWASP API Security Top 10","https://owasp.org/www-project-api-security/")], ex:["Map each Top-10 risk to a concrete control in your app"]},
+      {name:"ASVS L1 verification", mk:"12.3", subs:["Requirement / applicability / pass-fail / evidence matrix"], resources:[R("read","OWASP ASVS","https://owasp.org/www-project-application-security-verification-standard/")], ex:["Build an ASVS L1 matrix; defend one N/A and one accepted risk"]},
+      {name:"Source-to-sink review", mk:"12.4", subs:["Trace one input path: transformations, validation, sink, encodings"], resources:[R("tool","PortSwigger Web Security Academy","https://portswigger.net/web-security")], ex:["Manual source-to-sink of one path; convert 5 threats into security tests"]},
+      {name:"v1 release", mk:"12.5", subs:["≥40 meaningful tests; clean Docker; README","Article: what happens between a URL and my handler"], resources:[R("do","Portfolio release checklist","")], ex:["Ship v1; a stranger deploys it from the README alone"]}
+    ], gate:["Walk three attacker paths from entry to protected asset","Convert five threats into security tests","Record a 15-minute unedited whiteboard video tracing a request URL → DNS → TCP → TLS → HTTP → proxy → app → DB → response, naming one threat at each layer","A stranger can deploy v1 from the README"] }
+]},
+{ id:"p3", name:"The offense you must master to defend", tag:"Phase 3", sub:"Your edge — but right now it's intuition, not knowledge. This converts 'I know the tricks' into 'I understand the detection stack from both sides.' This phase answers your Cloudflare question.", color:"var(--p3)", weeks:[
+  { n:13, title:"Web-abuse taxonomy", goal:"Name and structure the abuse types — and separate intent from traffic shape.",
+    topics:[
+      {name:"The attack catalogue", mk:"13.1", subs:["Scraping, credential stuffing, ATO, enumeration","Fake accounts, inventory/denial-of-inventory, carding, API abuse"], resources:[R("read","OWASP — Automated Threats to Web Apps","https://owasp.org/www-project-automated-threats-to-web-applications/")], ex:["For each threat, write preconditions / observable signals / possible controls for AbuseGuard"]},
+      {name:"Intent vs traffic shape", mk:"13.2", subs:["Why the same shape = bot or power user","Facts observed at request time vs inferences vs labels"], resources:[R("read","MITRE CAPEC (auth/resource abuse)","https://capec.mitre.org/")], ex:["Table separating request-time facts from inferences; two ambiguous-signal cases"]},
+      {name:"Mapping to your app", mk:"13.3", subs:["Normal vs abusive journeys with observable signals"], resources:[R("do","Your AbuseGuard journeys","")], ex:["Turn five journeys into controlled experiment specs"]}
+    ], gate:["One-pager: two cases where one signal means bot OR legitimate user, with the disambiguating context","A committed abuse-taxonomy table for AbuseGuard: threat → preconditions → observable signals → candidate controls","Turn five journeys into written experiment specs"] },
+  { n:14, title:"How anti-bot detection actually works (the crux)", goal:"Answer your Week-0 Cloudflare question for real. The layered detection stack, and how vendors fuse it.",
+    topics:[
+      {name:"The detection stack overview", mk:"14.1", subs:["Layers: network → TLS → HTTP → browser → behavioral → reputation","Defense in depth; why no single signal is trusted"], resources:[R("repo","niespodd/browser-fingerprinting","https://github.com/niespodd/browser-fingerprinting")], ex:["Write the REAL answer to your Week-0 Cloudflare guess, layer by layer"]},
+      {name:"Network & IP signals", mk:"14.2", subs:["IP reputation; ASN; datacenter/residential/mobile","Proxy/VPN detection; rate & distribution"], resources:[R("repo","niespodd/browser-fingerprinting (IP section)","https://github.com/niespodd/browser-fingerprinting")], ex:["Classify these signals; find a legit user case that trips each"]},
+      {name:"TLS & HTTP signals", mk:"14.3", subs:["JA3/JA4; cipher & extension order","HTTP/2 fingerprint; header order & consistency"], resources:[R("repo","FoxIO-LLC/ja4","https://github.com/FoxIO-LLC/ja4")], ex:["Relate each to your Week-9 captures; note which your own scraper would fail"]},
+      {name:"Browser & behavioral signals", mk:"14.4", subs:["Headless tells; navigator; CDP artifacts; canvas/WebGL/audio","Mouse/timing behaviour"], resources:[R("repo","scrapfly/Antibot-Detector","https://github.com/scrapfly/Antibot-Detector")], ex:["Install the detector; run it on sites; log which signals fire"]},
+      {name:"Vendor systems", mk:"14.5", subs:["How Cloudflare / Akamai / DataDome / PerimeterX / Kasada layer","Challenge / risk-scoring behaviour"], resources:[R("repo","niespodd (vendor analyses)","https://github.com/niespodd/browser-fingerprinting")], ex:["Profile three vendors' observable behaviour from the writeups"]},
+      {name:"TCP/OS-level fingerprinting", mk:"14.6", subs:["Below TLS, a TCP peer's stack exposes TTL, MSS, window size, and option ordering that can support a passive OS inference","Observation point matters: behind a CDN or terminating proxy, p0f may fingerprint the edge/proxy peer rather than the end user's machine","A User-Agent / TCP-stack mismatch is evidence to investigate, not proof of a proxy, a particular OS, or malicious intent"], resources:[R("read","p0f v3 — passive OS fingerprinting","https://lcamtuf.coredump.cx/p0f3/")], ex:["Run p0f on your own captures; for each result record the observation point, TCP peer, inferred property, confidence, and possible intermediary"]}
+    ], gate:["Produce a one-page layer diagram of the full detection stack from memory","Per layer: name a signal, what it proves, and how it's evaded (as a table)","Explain why layering beats any single signal","Produce an observer → TCP peer → inferred property → possible intermediary evidence table, acknowledging which endpoint generated each fingerprint and why a UA/OS mismatch is evidence rather than proof","Compare your real answer to your Week-0 guess"] },
+  { n:15, title:"TLS & HTTP fingerprinting, deep", goal:"The fingerprint layer in depth, on your own captures.",
+    topics:[
+      {name:"ClientHello & extension ordering", mk:"15.1", subs:["Full structure; GREASE; extension-order stability","Use RFC 8446 as a reference after the Illustrated TLS walkthrough"], resources:[R("docs","RFC 8446 (TLS 1.3 reference)","https://www.rfc-editor.org/rfc/rfc8446.html")], ex:["Diff ClientHellos across clients; explain GREASE's purpose"]},
+      {name:"JA3 limits & the JA4 family", mk:"15.2", subs:["JA3 weaknesses; JA4/JA4H/JA4T/JA4S/JA4L","Licensing is per method: the JA4 TLS-client method has its own permissive LICENSE-JA4; other JA4+ methods use the repository's separate license — verify the exact method and implementation before use","uTLS is a BSD-licensed Go TLS fork for ClientHello mimicry / fingerprint resistance, not an alternative fingerprint algorithm"], resources:[R("repo","FoxIO-LLC/ja4 (spec + per-method licenses)","https://github.com/FoxIO-LLC/ja4"),R("repo","refraction-networking/utls — ClientHello mimicry / fingerprint resistance","https://github.com/refraction-networking/utls")], ex:["Compute JA4+ variants from a capture; record the exact method, implementation, and applicable license before using it","Use or inspect uTLS to change a ClientHello, then measure rather than assume what the resulting fingerprint imitates"]},
+      {name:"HTTP/2 fingerprinting", mk:"15.3", subs:["SETTINGS, WINDOW_UPDATE, pseudo-header order","The Akamai HTTP/2 fingerprint format"], resources:[R("read","HPBN (chapter: HTTP/2)","https://hpbn.co/")], ex:["Capture & compute an HTTP/2 fingerprint for curl vs chrome"]},
+      {name:"Intermediaries", mk:"15.4", subs:["How proxies/CDNs/TLS-terminators alter fingerprints"], resources:[R("read","HPBN","https://hpbn.co/")], ex:["Capture through a proxy; show precisely what changed"]}
+    ], gate:["Explain: a fingerprint is evidence, not identity or intent","Explain what a proxy changes and what it can't","Compute a JA4 by hand from a capture"] },
+  { n:16, title:"Browser fingerprinting & automation detection", goal:"Why headless browsers and automation get caught — and how each tell is masked.",
+    topics:[
+      {name:"JavaScript essentials for the browser layer", mk:"16.0", subs:["Just enough JS to read detection scripts: types, objects, functions, promises/async, the DOM, events, fetch","How a fingerprinting script runs in the page and what it can access","You're Python-strong but the browser layer is JS — close this gap before reading detector source"], resources:[R("read","MDN — JavaScript Guide","https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide")], ex:["Read a small fingerprinting script and explain each line; add a first-party JS probe to AbuseGuard"]},
+      {name:"Reading obfuscated detector scripts", mk:"16.1", subs:["Real anti-bot scripts (Cloudflare, DataDome) are heavily obfuscated — as a defender you must read enough to understand what telemetry they collect, not fully reverse them","Browser debugger, pretty-print/beautify, breakpoints; the AST view of code","Scoped goal: trace one collected signal from source to the request that ships it — understanding, not full reversing"], resources:[R("tool","AST Explorer","https://astexplorer.net/"),R("docs","Chrome DevTools — debug JavaScript","https://developer.chrome.com/docs/devtools/javascript/")], ex:["Beautify one minified detector snippet; trace one collected signal from source to the request that exfiltrates it"]},
+      {name:"The fingerprint surface", mk:"16.2", subs:["navigator, screen, timezone, fonts, plugins","UA & Client Hints; entropy vs stability","Open-source FingerprintJS is currently v5: use it as a client-side educational baseline for the mechanics, with explicit spoofing and reverse-engineering limitations — not as the frontier of production device intelligence"], resources:[R("repo","fingerprintjs/fingerprintjs","https://github.com/fingerprintjs/fingerprintjs")], ex:["Enumerate your browser's exposed surface; reason about each signal's entropy"]},
+      {name:"Canvas / WebGL / audio", mk:"16.3", subs:["How rendering entropy is collected","Stability vs uniqueness vs privacy cost"], resources:[R("repo","fingerprintjs (canvas source)","https://github.com/fingerprintjs/fingerprintjs")], ex:["Read the canvas fingerprint source; explain the signal in your own words"]},
+      {name:"Headless & automation tells", mk:"16.4", subs:["navigator.webdriver; CDP artifacts","Missing/altered properties; headless-chrome differences"], resources:[R("repo","niespodd (headless section)","https://github.com/niespodd/browser-fingerprinting")], ex:["Compare headed vs headless properties on your app"]},
+      {name:"CDP & WebDriver", mk:"16.5", subs:["How automation frameworks drive the browser","Page-side automation artifacts and first-party probes vs ordinary HTTP-visible signals — the server does not observe CDP directly"], resources:[R("docs","Chrome DevTools Protocol","https://chromedevtools.github.io/devtools-protocol/"),R("docs","Playwright","https://playwright.dev/docs/intro")], ex:["Automate your app; trace page-side automation artifacts / probe results into first-party telemetry, and distinguish them from ordinary HTTP-visible signals"]},
+      {name:"Mobile app attestation & API abuse", mk:"16.6", subs:["The other half of the battle: advanced abuse rides mobile-app APIs, not browsers — browser fingerprinting misses it entirely","Play Integrity (Android) & App Attest / DeviceCheck (iOS): hardware-backed keystores and attestation tokens","How attackers spoof, relay, or farm attestation — and what a defender can and can't trust from a token"], resources:[R("read","Android — Play Integrity API","https://developer.android.com/google/play/integrity"),R("read","Apple — DeviceCheck / App Attest","https://developer.apple.com/documentation/devicecheck")], ex:["One-pager: what a valid Play Integrity / App Attest token proves, what it doesn't, and how a determined attacker defeats it"]}
+    ], gate:["Write a Python/CDP script that masks navigator.webdriver, and document the exact detection vector it defeats","Explain what a fingerprint's entropy means and why it's a privacy cost","Beautify and trace one obfuscated detector snippet: what signal it collects and where it sends it","One-pager: browser fingerprinting vs mobile attestation — what each proves and how each is bypassed"] },
+  { n:17, title:"Behavioral & network-reputation signals", goal:"The signals that are powerful but easy to get wrong.",
+    topics:[
+      {name:"Behavioral biometrics", mk:"17.1", subs:["Mouse/keystroke/scroll/touch dynamics; timing"], resources:[R("repo","niespodd (behavioral notes)","https://github.com/niespodd/browser-fingerprinting")], ex:["Capture behavioral features from your human vs scraper generators"]},
+      {name:"Navigation & session coherence", mk:"17.2", subs:["Navigation graphs; referer chains; session consistency"], resources:[R("read","OWASP — Automated Threats","https://owasp.org/www-project-automated-threats-to-web-applications/")], ex:["Build a navigation-graph feature; show scraper vs human difference"]},
+      {name:"IP / ASN reputation", mk:"17.3", subs:["Reputation feeds; ASN classification","Residential/DC/mobile; proxy detection"], resources:[R("read","niespodd (IP section)","https://github.com/niespodd/browser-fingerprinting")], ex:["Enrich requests with ASN; explain the false-positive risks"]}
+    ], gate:["Save behavioral-features.csv plus a comparison plot/table for ≥20 human and ≥20 automation sessions; show the expected distribution difference and one accessibility/power-user/mobile lookalike","Save navigation-coherence.md plus code/output for ≥10 human and ≥10 automation sessions; identify one scraper-like legitimate journey that the feature must not block","Save reputation-evidence.md for ≥20 enriched requests: record IP/ASN fact vs inference, missing/stale values, and one legitimate residential/mobile/shared-network case that trips each candidate rule"] },
+  { n:18, title:"Authorized attack lab", goal:"Assemble a labeled, SAFE attacker toolkit against your OWN AbuseGuard — reusing your existing scrapers, not rebuilding. Budget ~2 weeks; this is real engineering.",
+    topics:[
+      {name:"Traffic generators (repurpose, don't rebuild)", mk:"18.1", subs:["Reuse your existing scrapers as the high-rate and human-like generators — this is your unfair advantage; don't rebuild from scratch","Add only the ones you lack: slow-distributed, cred-stuffing, enumeration, legit-API","Make load / identity pool / duration / seed configurable"], resources:[R("do","Adapt your own scraper code","")], ex:["Point your existing scraper at local AbuseGuard as generator #1; build only the missing generators"]},
+      {name:"Safety engineering", mk:"18.2", subs:["Target loopback/localhost ONLY — all traffic stays on the box. Never point load at your ISP, a cloud VM's public IP, or any third party (you'll trip upstream blocks or throttle yourself)","Scope allowlist; hard rate caps; emergency stop wired before any load","No real credentials or third-party targets"], resources:[R("do","Design safety rails first","")], ex:["A test proving a safety limit blocks an out-of-scope target","Confirm with a capture that no attack traffic ever leaves localhost"]},
+      {name:"Labeling & manifests", mk:"18.3", subs:["Label sessions outside the request stream (avoid leakage)","Reproducible manifest; cleanup"], resources:[R("do","Experiment manifest","")], ex:["Reproducible experiment manifest + cleanup steps"]}
+    ], gate:["Reproducible experiment manifest + cleanup steps","A test proving a safety limit blocks an out-of-scope target","Explain why 'distributed' here is only a controlled simulation"] },
+  { n:19, title:"Consolidation: the attacker's-eye report — Checkpoint 2", goal:"Write the bridge artifact: how you'd detect each attack you built, and how each evades naive detection.",
+    checkpoint:"After this week: you understand attack AND defense at the signal level — a strong interview position for anti-bot and detection roles. Keep applying.",
+    topics:[
+      {name:"Detection-vs-evasion writeup", mk:"19.1", subs:["Per attack: how you'd detect it, how it evades naive detection"], resources:[R("do","Your Phase 3 work","")], ex:["Produce a portfolio-quality document"]},
+      {name:"Present & defend", mk:"19.2", subs:["A 10-minute technical presentation"], resources:[R("do","Practice out loud","")], ex:["Present the stack + lab; defend which signals you'd trust and which you wouldn't"]}
+    ], gate:["Present the detection stack and your attack lab in 10 minutes","Defend which signals you'd trust and which you wouldn't"] }
+]},
+{ id:"p4", name:"Detection engineering core", tag:"Phase 4", sub:"The heart. Where you become a detection ENGINEER — telemetry, evaluation, false-positive cost, explainability — not someone who ships a classifier and calls it done.", color:"var(--p4)", weeks:[
+  { n:20, title:"Telemetry & signal design", goal:"Decide what to observe, what never to store, and how to keep it honest.",
+    topics:[
+      {name:"What to collect / never collect", mk:"20.1", subs:["Fields worth collecting; PII/secrets exclusion","No unbounded bodies or raw tokens"], resources:[R("read","OWASP — Logging Cheat Sheet","https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html"),R("read","SANS SEC555 — Detection Engineering poster","https://www.sans.org/posters/detection-engineering/")], ex:["Define collect / never-collect lists for AbuseGuard"]},
+      {name:"Schema & redaction", mk:"20.2", subs:["Versioned schema; pseudonymization/hashing","Normalized routes before storage"], resources:[R("read","Splunk — Detection Engineering guide","https://www.splunk.com/en_us/blog/learn/detection-engineering.html")], ex:["Versioned telemetry schema + validation; redaction before storage"]},
+      {name:"Data quality & retention", mk:"20.3", subs:["Counters: missing/invalid/late/duplicate","Retention & deletion policy"], resources:[R("do","Data-quality counters","")], ex:["Add counters; write a retention note; trace one request → decision"]},
+      {name:"Querying telemetry: SIEM & log-analytics", mk:"20.4", subs:["Log query languages detection engineers use daily: Elastic KQL / ES|QL and Splunk SPL — not just SQL","ClickHouse is an optional comparison for high-volume columnar log analytics; use the focused observability learning path rather than treating its whole documentation site as a course","Stand up a local Elastic (ELK) stack; ingest your AbuseGuard telemetry as JSON","Filter, aggregate, and time-window over raw logs; think in ECS-style fields"], resources:[R("read","Elastic — KQL (Kibana Query Language)","https://www.elastic.co/docs/explore-analyze/query-filter/languages/kql"),R("read","ClickHouse — observability learning path (optional)","https://clickhouse.com/learn/observability"),R("repo","st0pp3r/awesome-detection-engineer (SIEM/query section)","https://github.com/st0pp3r/awesome-detection-engineer")], ex:["Ingest AbuseGuard logs into a local Elastic stack; write 5 detection queries in KQL over them"]},
+      {name:"Upstream data quality is the real enemy", mk:"20.5", subs:["A production truth: most detection failures are upstream — a service rewrite silently drops X-Forwarded-For, a header changes, and your model goes blind without ever erroring","Contract-test your telemetry: schema checks, presence/shape assertions, and an alert on field-drop","Trust boundaries on inputs: know which fields can be spoofed or mangled before they reach you"], resources:[R("do","Wire schema/contract tests on ingest","")], ex:["Add a telemetry contract test that fails loudly when a critical field (e.g. client IP / X-Forwarded-For) goes missing or malformed"]},
+      {name:"Label lifecycle & provenance", mk:"20.6", subs:["Label sources: controlled-generator truth, analyst review, user reports, challenge outcomes, chargebacks, and delayed downstream events","Sources disagree and arrive at different times: record source, observed_at, available_at, confidence, and adjudication status","Keep labels outside request-time features and preserve provenance through training exports"], resources:[R("do","Design the label contract before training","")], ex:["Create a versioned label schema and two conflicting/delayed-label examples; prove a label unavailable at decision time cannot enter a feature"]}
+    ], gate:["Tests proving secrets/identifiers are excluded or transformed","Trace one request: app log → event store → feature → decision","Ingest AbuseGuard logs into a local Elastic/ELK stack and commit 5 working KQL detection queries","A telemetry contract test that alerts when a critical field drops or changes shape (the 'silent blinding' failure)","Commit label-schema.json plus an adjudication example showing two disagreeing sources, a delayed outcome, and the exact time each label became usable"] },
+  { n:21, title:"Feature engineering for detection", goal:"Turn raw telemetry into features — without leaking the future.",
+    topics:[
+      {name:"Per-entity aggregation", mk:"21.1", subs:["Per-IP/session/account/ASN counts, ratios, distinct counts"], resources:[R("read","PostgreSQL — Window Functions","https://www.postgresql.org/docs/current/tutorial-window.html")], ex:["Build per-entity features over your labeled attack data"]},
+      {name:"Velocity & windows", mk:"21.2", subs:["Sliding/tumbling windows (reuse Week-4 primitive) — great for learning, but in-memory only","Rate-limiting algorithms as detection primitives: token bucket, leaky bucket, fixed vs sliding window","GCRA (Generic Cell Rate Algorithm): handles bursts and distributed state elegantly — the production-grade upgrade (what redis-cell implements)","Distributed state: your in-memory deque breaks across load-balanced nodes — do it in Redis with atomic INCR/EXPIRE and Lua (EVAL) for a race-free read-decide-update","Rate features; burst detection"], resources:[R("read","Redis — rate limiter (INCR/EXPIRE/Lua)","https://redis.io/docs/latest/develop/use-cases/rate-limiter/"),R("read","Stripe — scaling your API with rate limiters","https://stripe.com/blog/rate-limiters"),R("tool","Redis — build 5 rate limiters (hands-on)","https://redis.io/tutorials/howtos/ratelimiting/")], ex:["Implement a token bucket in memory, then port it to Redis with an atomic Lua script; prove it holds under two concurrent workers","Read the Stripe write-up; implement a GCRA limiter and compare its burst behaviour to your token bucket"]},
+      {name:"Sessionization & availability-time", mk:"21.3", subs:["Session boundaries","Feature availability at decision time — leakage prevention"], resources:[R("read","Feature stores — concept (Feast docs)","https://docs.feast.dev/")], ex:["Feature dictionary with a leakage-risk column"]}
+    ], gate:["Save feature-dictionary.csv for ≥200 labeled sessions with entity, window, availability time, missing-value behavior, and leakage-risk columns; include one feature deliberately rejected for future leakage","Save window-check.md: hand-compute one windowed feature for a burst and a quiet/lookalike session, then match both results to the implementation","Save rate-limiter-concurrency.txt plus tests for ≥10,000 operations across two workers: the atomic Redis/Lua version loses zero updates, while an intentionally non-atomic negative control demonstrates the race; include the GCRA vs token-bucket burst comparison"] },
+  { n:22, title:"Explainable rule engine", goal:"Build decisions a human can act on — with shadow mode and reason codes.",
+    topics:[
+      {name:"Architecture", mk:"22.1", subs:["Separate feature calc / rules / policy thresholds / enforcement","Deployment ladder: shadow → canary → randomized holdout where ethical → enforce → rollback","A detection's value is the effect of its intervention, not merely its offline score; define conversion/latency/support guardrails before enforcement"], resources:[R("repo","Palantir — Alerting & Detection Strategy framework","https://github.com/palantir/alerting-detection-strategy-framework")], ex:["Build the separated components; prove shadow has no side effects","Write the canary/holdout/enforcement/rollback contract and business guardrails before enabling an action"]},
+      {name:"Decision contract & reason codes", mk:"22.2", subs:["Contract: score + reasons + action","Response actions beyond block: a hard 403 tells the attacker exactly where the tripwire is. Prefer tarpit, stale/cached data, silent rate-limit, a proof-of-work challenge (make them burn CPU), or a step-up challenge — cost their time/compute without confirming how they were caught","Stable, owner-facing reason codes"], resources:[R("repo","SigmaHQ/sigma (rule structure)","https://github.com/SigmaHQ/sigma")], ex:["Implement the decision contract; add at least two graceful-degradation actions (e.g. tarpit, proof-of-work challenge) alongside block"]},
+      {name:"Rules with lookalikes", mk:"22.3", subs:["Per-rule unit tests + legitimate-lookalike tests","Bounded state & expiry semantics"], resources:[R("do","Your rule set","")], ex:["Velocity / auth-failure / enumeration rules, each with a legitimate-lookalike test"]}
+    ], gate:["Shadow decisions have no blocking side-effect","A deterministic replay reproduces identical decisions and reason codes for the same event corpus, rule version, and config","Save decision-contract.json plus tests proving stable reason codes and at least one legitimate-lookalike case for every rule"] },
+  { n:23, title:"Detection evaluation I", goal:"Measure honestly. Learn why accuracy lies on imbalanced data.",
+    topics:[
+      {name:"Confusion matrix & metrics", mk:"23.1", subs:["Precision, recall, FPR, specificity, F1, MCC","When to prefer MCC over F1"], resources:[R("watch","StatQuest — confusion matrix, precision/recall, ROC","https://www.youtube.com/@statquest"),R("read","scikit-learn — model evaluation","https://scikit-learn.org/stable/modules/model_evaluation.html")], ex:["Hand-compute every metric for a small confusion matrix"]},
+      {name:"Curves & imbalance", mk:"23.2", subs:["PR vs ROC; base rates; why 99% accuracy can be worthless","Offline metrics describe prediction quality, not the causal effect of blocking, challenging, delaying, or reviewing traffic"], resources:[R("watch","Google ML Crash Course — Classification","https://developers.google.com/machine-learning/crash-course/classification")], ex:["Plot a PR curve; explain the accuracy trap for abuse detection","For one candidate action, pre-register an intervention outcome and two business guardrails that its offline score cannot measure"]}
+    ], gate:["Hand-compute precision/recall/FPR for a small matrix","Demonstrate on your own data: a high-accuracy but low-recall result, with the confusion matrix behind it","Produce a PR curve on your data and annotate where accuracy would mislead"] },
+  { n:24, title:"Detection evaluation II: the traps", goal:"Split correctly, price false positives, and know your limits.",
+    topics:[
+      {name:"Splitting correctly", mk:"24.1", subs:["Temporal & entity splits; never split one session across train/test","Delayed outcomes require a label-maturity gap: train only on labels that were actually available by the cutoff"], resources:[R("read","scikit-learn — cross-validation","https://scikit-learn.org/stable/modules/cross_validation.html"),R("read","Fraud Detection Handbook — temporal validation with delayed labels","https://fraud-detection-handbook.github.io/fraud-detection-handbook/Chapter_5_ModelValidationAndSelection/ValidationStrategies.html")], ex:["Implement a session/time-aware split with an explicit label-delay period"]},
+      {name:"Leakage & selective labels", mk:"24.2", subs:["Target leakage; train/test contamination; features that encode the label","Selective-label bias: blocked traffic often never yields the outcome you wanted to predict, so enforcement can create a self-confirming dataset","Separate policy decision, intervention, observed outcome, and adjudicated label"], resources:[R("read","scikit-learn — common pitfalls","https://scikit-learn.org/stable/common_pitfalls.html")], ex:["Find leakage in three contrived cases, including one selective-label failure caused by a previous blocking policy"]},
+      {name:"Calibration, costs & intervention thresholds", mk:"24.3", subs:["Reliability diagrams; Brier score; a raw score is not automatically a probability","Cost of a false block vs a missed attack; expected-cost threshold selection on validation data","Shadow → canary → randomized holdout where ethical → enforce → rollback, with business guardrails and predeclared success/failure criteria"], resources:[R("read","Baesens, Van Vlasselaer & Verbeke — Fraud Analytics Using Descriptive, Predictive, and Social Network Techniques (Wiley, 2015)",""),R("read","scikit-learn — probability calibration","https://scikit-learn.org/stable/modules/calibration.html"),R("read","scikit-learn — decision-threshold tuning","https://scikit-learn.org/stable/modules/classification_threshold.html")], ex:["On held-out data, plot a reliability diagram, compute Brier score, choose an expected-cost threshold, and inspect FPs/FNs individually","Run a controlled AbuseGuard intervention experiment or document why a randomized holdout is not ethical/meaningful; preserve a rollback path"]}
+    ], gate:["Save leakage-cases.md plus executable assertions for three failures: session contamination, future-label leakage, and selective-label bias from a previous block policy","Save threshold-analysis.md for a held-out set of ≥200 sessions with ≥20 positive labels: calibration map / reliability diagram converting raw scores into observed abuse rates, Brier score, expected-cost curve, chosen threshold, and at least five inspected FPs plus five FNs/lookalikes","Save validity-and-label-delay.md naming three dataset threats, every label source and delay, the maturity cutoff, and how disagreement was adjudicated","Save enforcement-evaluation.md: shadow/canary/holdout-if-ethical/enforce/rollback plan, assignment method, predeclared intervention outcome, two business guardrails, stop condition, and what offline metrics cannot establish"] },
+  { n:25, title:"Statistics for detection", goal:"Tell a real improvement from noise, and understand drift.",
+    topics:[
+      {name:"Descriptive stats & uncertainty", mk:"25.1", subs:["Distributions, quantiles, sampling, confidence"], resources:[R("watch","StatQuest — statistics fundamentals","https://www.youtube.com/@statquest"),R("tool","Seeing Theory (visual stats)","https://seeing-theory.brown.edu/")], ex:["Quantify uncertainty on your metrics — no single point estimate as truth"]},
+      {name:"Drift & label quality", mk:"25.2", subs:["Data drift vs concept drift","Label noise and its effect"], resources:[R("read","Evidently — data & concept drift guide","https://www.evidentlyai.com/")], ex:["Run a drift check on your traffic; explain data vs concept drift with a bot example"]},
+      {name:"Baselines", mk:"25.3", subs:["Always-majority; rate-threshold; current rules"], resources:[R("do","Baseline discipline","")], ex:["Establish the three baselines; state when a metric difference is not meaningful"]}
+    ], gate:["One-pager: three specific ways your synthetic corpus fails to represent real traffic","Commit a script that simulates data drift and concept drift and plots each","Compute a confidence interval on one metric and show a difference that falls inside it (i.e. not meaningful)"] },
+  { n:26, title:"ML for detection I: supervised, honest", goal:"Fit real models and compare them fairly to rules.",
+    topics:[
+      {name:"Pipelines & splits", mk:"26.1", subs:["sklearn Pipeline, ColumnTransformer","Reproducible preprocessing; split by session/time"], resources:[R("read","scikit-learn — Pipelines & composite estimators","https://scikit-learn.org/stable/modules/compose.html")], ex:["Build a reproducible pipeline with a session/time split"]},
+      {name:"Logistic regression & trees", mk:"26.2", subs:["Fit; interpret coefficients / feature importance cautiously"], resources:[R("watch","StatQuest — logistic regression & decision trees","https://www.youtube.com/@statquest"),R("read","scikit-learn — linear models","https://scikit-learn.org/stable/modules/linear_model.html")], ex:["Fit both; interpret; note instability"]},
+      {name:"Imbalance handling", mk:"26.3", subs:["Class weights; resampling (SMOTE) and its dangers","Cost-sensitive learning"], resources:[R("docs","imbalanced-learn","https://imbalanced-learn.org/stable/")], ex:["Compare class-weighting vs resampling; document the pitfalls"]},
+      {name:"Rules vs ML head-to-head", mk:"26.4", subs:["Identical held-out traffic + cost assumptions","Explicit ship / don't-ship"], resources:[R("do","Your eval harness","")], ex:["Compare fairly; make an explicit decision — keep rules if they're better"]}
+    ], gate:["Reproducible report with leakage checks & baseline comparison","Explicit ship/don't-ship decision — keep rules if they're better"] },
+  { n:27, title:"ML for detection II: unsupervised, discovery & its traps", goal:"Use unsupervised detection where it actually earns its place — discovery and label generation, not blind enforcement.",
+    topics:[
+      {name:"Unsupervised methods", mk:"27.1", subs:["Isolation forest, LOF, DBSCAN clustering; autoencoder reconstruction error (concept)","When each fits high-dimensional traffic vs entity features"], resources:[R("read","scikit-learn — outlier detection","https://scikit-learn.org/stable/modules/outlier_detection.html")], ex:["Run two different unsupervised methods on your traffic and compare what each flags"]},
+      {name:"Anomaly ≠ malicious", mk:"27.2", subs:["Base-rate problem; false-positive explosion at scale","When unsupervised helps: discovery, not enforcement"], resources:[R("read","Fraud Detection Handbook — free practical reference","https://fraud-detection-handbook.github.io/fraud-detection-handbook/Foreword.html"),R("read","Fraud Detection Handbook — validation strategies","https://fraud-detection-handbook.github.io/fraud-detection-handbook/Chapter_5_ModelValidationAndSelection/ValidationStrategies.html")], ex:["Measure how many flagged anomalies are actually legitimate; write up why you wouldn't enforce on it"]},
+      {name:"Evaluating without labels; peer-group profiling", mk:"27.3", subs:["How to judge an unsupervised detector when you have no ground truth","Peer-group / cohort analysis and seasonality (an entity vs its own normal baseline)","Using unsupervised output to generate candidate labels for supervised review"], resources:[R("repo","st0pp3r/awesome-detection-engineer","https://github.com/st0pp3r/awesome-detection-engineer")], ex:["Build a peer-group anomaly detector (entity vs its cohort); hand-validate a sample of its top flags"]}
+    ], gate:["Commit a comparison of two unsupervised methods on your data with the flag counts each produces","Quantify the false-positive rate of your best unsupervised flag against hand-labeled samples","One-pager: the single role unsupervised detection plays in your pipeline, and why not enforcement"] },
+  { n:28, title:"AbuseGuard v2 — Checkpoint 3", goal:"Ship a real detection portfolio with honest evaluation.",
+    checkpoint:"After this week: entry point for detection / abuse / fraud-platform roles with a real portfolio. Apply seriously.",
+    topics:[
+      {name:"Corpus & evaluation", mk:"28.1", subs:["Sanitized labeled corpus (your app only)","Held-out evaluation; honest failure cases"], resources:[R("do","Reproducibility discipline","")], ex:["Reproduce the dataset & report from documented steps"]},
+      {name:"Dashboard & runbook", mk:"28.2", subs:["Shadow-mode dashboard","Credential-stuffing incident runbook"], resources:[R("read","Splunk — Detection Engineering","https://www.splunk.com/en_us/blog/learn/detection-engineering.html")], ex:["Build the dashboard + runbook"]},
+      {name:"Article", mk:"28.3", subs:["'Why a perfect bot detector on a tiny dataset proves nothing'"], resources:[R("do","Write it in your own words","")], ex:["Publish the article; deliver a 5-minute presentation"]}
+    ], gate:["Reproduce the dataset & report from documented steps","Demonstrate a false positive + cause + defensible policy choice","Present v2 in five minutes without overclaiming synthetic results"] }
+]},
+{ id:"p5", name:"Production detection at scale", tag:"Phase 5", sub:"Where your data-engineering background becomes a weapon. Most detection engineers are weak on data infra; you're strong. This makes you the person who can run detection in production.", color:"var(--p5)", weeks:[
+  { n:29, title:"Detection data engineering", goal:"Your home turf — go deep. Build the pipeline that computes features and stores decisions.",
+    topics:[
+      {name:"Batch vs streaming", mk:"29.1", subs:["Event-driven ingestion; lambda/kappa patterns","Where each is appropriate"], resources:[R("read","Designing Data-Intensive Applications (Kleppmann)","https://dataintensive.net/")], ex:["Build an ingest → feature → decision → audit pipeline"]},
+      {name:"Late / duplicate / out-of-order", mk:"29.2", subs:["Idempotent aggregation; watermarks; dedup"], resources:[R("read","DDIA — stream processing","https://dataintensive.net/")], ex:["Handle a duplicate/out-of-order event without corrupting a velocity feature"]},
+      {name:"Storage, partitioning, retention", mk:"29.3", subs:["Partitions; retention; backfills; schema evolution"], resources:[R("docs","PostgreSQL — partitioning","https://www.postgresql.org/docs/current/ddl-partitioning.html")], ex:["Write a retention + safe backfill plan"]}
+    ], gate:["Diagram ingest → feature → decision → audit","Handle a duplicated/out-of-order event without corrupting a velocity feature","Explain your retention & backfill strategy"] },
+  { n:30, title:"Real-time detection systems", goal:"Decide fast without lying to yourself about train/serve skew.",
+    topics:[
+      {name:"Latency budgets", mk:"30.1", subs:["Online decision path; p99; bounded work"], resources:[R("read","HPBN (chapter: latency primer)","https://hpbn.co/")], ex:["Define and measure a latency budget for the online path"]},
+      {name:"Online vs offline features & stores", mk:"30.2", subs:["Feature store concept; train/serve skew","Caching & bounded state","Concept only this week — you build the actual online feature store in Week 31, so it doesn't get crammed in here"], resources:[R("docs","Feast — feature store","https://docs.feast.dev/")], ex:["Prove conceptually that an offline feature == its online version, or document why it can't"]}
+    ], gate:["Explain train/serve skew and how you'd catch it","Justify your latency budget and what you'd sacrifice to hit it"] },
+  { n:31, title:"Distributed & event-driven detection", goal:"Make the pipeline correct under failure.",
+    topics:[
+      {name:"Async & queues", mk:"31.1", subs:["Message queues; at-least-once; ordering; back-pressure"], resources:[R("read","RabbitMQ tutorials","https://www.rabbitmq.com/tutorials")], ex:["Implement a queue-backed detection workflow"]},
+      {name:"Reliability", mk:"31.2", subs:["Idempotency keys; retries with limits","Dead-letter handling; poison messages"], resources:[R("read","RabbitMQ — dead letter exchanges","https://www.rabbitmq.com/docs/dlx")], ex:["Correctness tests: duplicate delivery, retry exhaustion, poison, out-of-order"]},
+      {name:"Auditable playbook", mk:"31.3", subs:["validate → enrich → propose → record → replay/rollback","SOAR-style, mock data only"], resources:[R("repo","st0pp3r/awesome-detection-engineer","https://github.com/st0pp3r/awesome-detection-engineer")], ex:["Build a mock playbook with an audit trail"]},
+      {name:"Online feature store (implementation)", mk:"31.4", subs:["Build the online feature store you designed in Week 30 — the hardest real-time data problem in detection","Serve features with the same values you trained on; catch train/serve skew with a consistency check","Backfill and point-in-time correctness"], resources:[R("docs","Feast — feature store","https://docs.feast.dev/")], ex:["Stand up a minimal online feature store for AbuseGuard; add a check that flags train/serve skew"]}
+    ], gate:["Correctness tests: duplicate delivery, retry exhaustion, poison messages, out-of-order","Explain what the mock playbook teaches about SOAR and what it can't prove","A working online feature store serving the same feature values it was trained on, with a skew check"] },
+  { n:32, title:"Cloud, edge & WAF", goal:"Deploy behind an edge and learn one cloud deeply enough to explain it.",
+    topics:[
+      {name:"Edge & WAF", mk:"32.1", subs:["Cloudflare Free; WAF rules; rate limiting","Cloudflare Free has no WAF log action: validate with an AbuseGuard app-side shadow rule that mirrors the intended edge expression","If you test an actual challenge/block action, scope it safely, document the expected match/non-match traffic, and prove rollback immediately"], resources:[R("docs","Cloudflare WAF","https://developers.cloudflare.com/waf/")], ex:["Deploy behind the edge; replay traffic through an app-side non-enforcing shadow rule that mirrors one intended WAF/rate-limit expression","Optionally run a narrowly scoped challenge/block test only with an explicit rollback procedure"]},
+      {name:"One cloud, deeply", mk:"32.2", subs:["IAM; networking/security groups; secrets; logging; compute; DB"], resources:[R("docs","Your chosen cloud's IAM/networking docs","")], ex:["Explain the whole deployment; use least-privilege IAM"]},
+      {name:"Infrastructure as code", mk:"32.3", subs:["Terraform plan/apply/state/rollback","No secrets in state or Git"], resources:[R("docs","Terraform tutorials","https://developer.hashicorp.com/terraform/tutorials")], ex:["Provision a narrow slice with Terraform; prove rollback"]}
+    ], gate:["Save architecture.svg with DNS/TLS/edge/origin/app/DB trust boundaries, the TLS termination point, and which component supplies each client-identity field","Save waf-shadow-report.md plus the mirrored rule/config and a replay of ≥100 requests including ≥20 legitimate lookalikes: expected result is recorded matches with zero shadow-mode blocks; if a challenge/block test is used, include proof of rollback","Save cloud-edge-evidence.md with redacted Terraform plan/apply/destroy or rollback output, a WAF-control-vs-app-fix example, and a Free-vs-enterprise capability table that makes no claim to enterprise bot scores"] },
+  { n:33, title:"Observability & incident operations", goal:"Run detection like a production system, incidents included.",
+    topics:[
+      {name:"Metrics, logs, traces & SLIs", mk:"33.1", subs:["The three pillars; SLI/SLO; alert thresholds"], resources:[R("read","Google SRE — Service Level Objectives","https://sre.google/sre-book/service-level-objectives/")], ex:["Add latency/error/decision metrics and structured logs"]},
+      {name:"Alerts & runbooks", mk:"33.2", subs:["Actionable alerts linked to runbooks; alert fatigue"], resources:[R("read","Google SRE — Monitoring Distributed Systems","https://sre.google/sre-book/monitoring-distributed-systems/")], ex:["Wire an alert to a runbook; explain when an alert makes ops worse"]},
+      {name:"Incident response", mk:"33.3", subs:["Rehearse incidents; blameless postmortems"], resources:[R("read","Google SRE — Postmortem Culture","https://sre.google/sre-book/postmortem-culture/")], ex:["Run a full incident cycle + a blameless postmortem"]},
+      {name:"Detection is a negotiation, not just math", mk:"33.4", subs:["A technically-correct block gets overruled if it dents conversion or top-line metrics — sometimes bot traffic is quietly counted in growth numbers","Who owns the false-positive cost, and who signs off on enforcement","A detection's value is its intervention effect, not its offline score: operate shadow → canary → randomized holdout where ethical → enforce → rollback","Frame conversion, latency, support load, abuse loss, guardrails, and stop conditions in business terms"], resources:[R("do","Real production lesson — write your own stakeholder memo","")], ex:["Write a one-page enforcement proposal for a non-technical exec: intervention, assignment/holdout plan, expected abuse reduction, conversion risk, guardrails, owner, stop condition, and rollback"]}
+    ], gate:["Timeline + mitigation + recovery + blameless postmortem for one exercise","One-pager: a situation where adding an alert makes operations worse","Stakeholder memo justifying one staged enforcement decision in business terms, with intervention outcome, holdout-if-ethical, two guardrails, decision owner, stop condition, and rollback plan"] },
+  { n:34, title:"Adversarial adaptation", goal:"The AI-durable core: operate under an adversary who adapts to you.",
+    topics:[
+      {name:"The arms race", mk:"34.1", subs:["Adversary adaptation; evasion; why detection is never done","Obfuscation is a speedbump, not a wall: a dedicated attacker reverse-engineers your challenge in ~48h. Raise their maintenance cost until they move to a softer target — don't chase unbreakable","Assume the attacker has better observability than you: scraping rings run Grafana/PagerDuty and often see your mitigation before it fully propagates. You're fighting a rival engineering org, not a lone hacker","Red-team your own detector with your Phase-3 toolkit"], resources:[R("repo","niespodd (attacker's view)","https://github.com/niespodd/browser-fingerprinting")], ex:["Evade your own detector; measure how far you get; then estimate the attacker-hours your best control actually costs them"]},
+      {name:"Feedback loops & poisoning", mk:"34.2", subs:["Label-feedback dangers; poisoning; concept drift under pressure","Selective-label bias: blocked traffic may never produce an outcome, allowing the detector to confirm its own policy","Guardrails against feedback contamination: preserve policy/action metadata, delayed mature holdouts, reviewed samples, source-aware labels, and retraining approval","Retraining cadence"], resources:[R("read","Evidently — model monitoring & drift","https://www.evidentlyai.com/")], ex:["Document a safe retraining cadence and the loop's failure modes","Simulate one self-confirming loop caused by blocked traffic, then specify the data and review guardrails that expose it"]}
+    ], gate:["Demonstrate an evasion of your own detector and the fix","Explain why detection is never 'done'","Save feedback-loop-audit.md: label-source/action/outcome flow diagram, one simulated selective-label failure, contamination checks, mature holdout policy, and an explicit retraining approval gate"] },
+  { n:35, title:"AbuseGuard v3 — Checkpoint 4", goal:"A reproducible, production-like release behind a WAF.",
+    checkpoint:"After this week: competitive for the roles you actually want — Arkose-class detection teams, fraud engineering at fintechs, trust & safety platforms.",
+    topics:[
+      {name:"Production release", mk:"35.1", subs:["Clean deploy from docs; safe shadow↔enforce switch + rollback","Load test with stated hardware/traffic model"], resources:[R("do","Your runbooks","")], ex:["Reproducible prod-like demo behind a WAF, no secrets in repo"]},
+      {name:"Incident + article", mk:"35.2", subs:["Full alert → investigate → mitigate → recover → postmortem","Article on measuring false positives"], resources:[R("do","Write it up","")], ex:["Run the full incident cycle; publish the article"]}
+    ], gate:["Reproducible prod-like demo behind a WAF, no secrets in repo","Held-out results with false-positive costs","Workflow shows versioning, idempotency, bounded retries, dead letters, auditability"] }
+]},
+{ id:"p6", name:"Specialization & mastery", tag:"Phase 6", sub:"Fuse the layers, go deep on fraud, and prove it all. This is where you become genuinely, durably good.", color:"var(--p6)", weeks:[
+  { n:36, title:"Cross-layer correlation", goal:"Fuse network/TLS/HTTP/browser/session/behavioural evidence into one decision.",
+    topics:[
+      {name:"Fusing layers", mk:"36.1", subs:["Pseudonymous IDs; bounded windows","Joining signals from every layer"], resources:[R("do","Your Phase 3–4 signals","")], ex:["Build a cross-layer correlation with explicit reason codes"]},
+      {name:"Inconsistency rules", mk:"36.2", subs:["Cross-layer contradictions (Chrome UA + Python JA4)","Testing proxies/version-changes/legit-automation/mobile/missing signals"], resources:[R("read","niespodd (consistency checks)","https://github.com/niespodd/browser-fingerprinting")], ex:["Add inconsistency rules; show whether cross-layer improves cost-adjusted results"]},
+      {name:"Entity resolution before graphs", mk:"36.3", subs:["An entity link is a weighted, time-bounded hypothesis — not identity truth","Link confidence, temporal edges, identifier churn, and evidence provenance","Shared device / NAT / household / corporate-network false positives; never merge solely on a weak shared identifier"], resources:[R("do","Design the entity-link contract before ring detection","")], ex:["Create an entity-link schema with confidence, valid_from/valid_to, evidence source, and merge policy; include three deliberate non-merge lookalikes"]}
+    ], gate:["Diagram when each signal becomes available and where it can be altered","Show whether cross-layer evidence improves cost-adjusted results on held-out data","Commit entity-link-schema.json with temporal edges, confidence/provenance, merge thresholds, and shared-device/NAT/household non-merge examples"] },
+  { n:37, title:"Fraud & abuse domain depth", goal:"The economics and graph structure of real fraud.",
+    topics:[
+      {name:"ATO & cred-stuffing economics", mk:"37.1", subs:["Attack economics; combo lists; sentry tooling"], resources:[R("read","Stripe — How we built it: Stripe Radar","https://stripe.dev/blog/how-we-built-it-stripe-radar")], ex:["Model the economics; derive detection implications"]},
+      {name:"Fake accounts & payment fraud", mk:"37.2", subs:["Fake-account detection; carding; chargebacks","Device intelligence","Temporally correct validation when outcomes such as chargebacks arrive late"], resources:[R("read","Fraud Detection Handbook — free practical reference","https://fraud-detection-handbook.github.io/fraud-detection-handbook/Foreword.html"),R("read","Fraud Detection Handbook — validation strategies","https://fraud-detection-handbook.github.io/fraud-detection-handbook/Chapter_5_ModelValidationAndSelection/ValidationStrategies.html")], ex:["Build a fake-account detection feature and record when its outcome label becomes mature enough to evaluate"]},
+      {name:"Graph-based detection", mk:"37.3", subs:["Link accounts/devices/IPs/payments through the Week-36 confidence-scored temporal entity links","Connected components and ring features; real-time block vs async investigate","Review top candidates with explicit shared-device/NAT/household lookalikes; report precision-at-K rather than assuming each dense component is malicious"], resources:[R("read","NetworkX tutorial","https://networkx.org/documentation/stable/tutorial.html"),R("repo","infosecB/awesome-detection-engineering","https://github.com/infosecB/awesome-detection-engineering")], ex:["Build connected-component/ring queries over a graph with planted rings and legitimate shared-identifier components; hand-review the top candidates and compute precision-at-K"]},
+      {name:"The economics of defense (CAPTCHA & solver farms)", mk:"37.4", subs:["Bot defense is an economic war: you win by making the attack cost more than the scraped data is worth","How solver farms (2Captcha-class services) add per-request cost and latency — and the latency signature that can reveal them defensively","Modelling the break-even point where the attacker gives up"], resources:[R("read","Baesens, Van Vlasselaer & Verbeke — Fraud Analytics Using Descriptive, Predictive, and Social Network Techniques (Wiley, 2015)","")], ex:["Model the attacker's per-request cost vs payoff for one AbuseGuard abuse; find the control that pushes them past break-even"]}
+    ], gate:["Save graph-corpus.json plus entity-link-schema.json for ≥200 nodes, ≥3 planted rings, and ≥3 legitimate shared-device/NAT/household components; commit the ring-query code, hand-check every planted/lookalike component, and report precision@10 with expected misses/false positives","Save investigate-vs-block.md with reason codes, confidence thresholds, one ring selected for async review, and one dense legitimate component explicitly not blocked","Save defense-economics.md with assumptions, solver latency/cost sensitivity, break-even calculation, the control expected to make one attack unprofitable, and one plausible attacker adaptation"] },
+  { n:38, title:"Threat research method", goal:"Do reproducible, ethical detection research.",
+    topics:[
+      {name:"Experiment design", mk:"38.1", subs:["Falsifiable hypotheses; controls; pre-registration; reproducibility"], resources:[R("repo","Palantir — ADS framework","https://github.com/palantir/alerting-detection-strategy-framework")], ex:["Pre-register one narrow detection experiment; don't change the hypothesis after results"]},
+      {name:"Ethics & disclosure", mk:"38.2", subs:["Authorization; responsible disclosure; negative results"], resources:[R("do","Disclosure norms","")], ex:["Make it reproducible from sanitized artifacts; separate result/inference/speculation"]}
+    ], gate:["Another person can reproduce your result from sanitized artifacts","Cleanly separate result / inference / speculation / open questions"] },
+  { n:39, title:"Portfolio & proof", goal:"Map every target-role requirement to a verifiable artifact.",
+    topics:[
+      {name:"Portfolio index", mk:"39.1", subs:["Requirement → artifact mapping for each target role"], resources:[R("repo","st0pp3r/awesome-detection-engineer","https://github.com/st0pp3r/awesome-detection-engineer")], ex:["Build the requirement → artifact index"]},
+      {name:"Artifacts & writeups", mk:"39.2", subs:["Sanitized corpus, threat model, detection-quality report, runbook","Three polished articles"], resources:[R("do","Portfolio checklist","")], ex:["Assemble every artifact; each résumé claim points to public evidence"]},
+      {name:"Presentations", mk:"39.3", subs:["5-minute executive + 20-minute technical"], resources:[R("do","Rehearse both","")], ex:["Deliver both presentations; a reviewer finds setup/decisions/results/limits fast"]}
+    ], gate:["Every résumé claim points to public evidence or true professional experience","A reviewer finds setup / decisions / results / limitations fast"] },
+  { n:40, title:"Interview mastery & final consolidation", goal:"Be the pilot: defend every choice from evidence, unassisted.",
+    topics:[
+      {name:"Coding & DSA", mk:"40.1", subs:["Timed, no-AI, with tests & complexity"], resources:[R("repo","jwasham/coding-interview-university","https://github.com/jwasham/coding-interview-university")], ex:["Timed unassisted exercises with tests and complexity analysis"]},
+      {name:"System design for detection", mk:"40.2", subs:["Design a bot-detection system end to end","Generic distributed-systems patterns (for standard SWE rounds)","Fraud/abuse-specific patterns: real-time scoring vs async investigation, feature stores, feedback loops (for domain rounds)"], resources:[R("repo","donnemartin/system-design-primer (generic rounds)","https://github.com/donnemartin/system-design-primer"),R("read","Stripe — How we built it: Stripe Radar","https://stripe.dev/blog/how-we-built-it-stripe-radar")], ex:["Whiteboard a full detection system: telemetry → features → rules/ML → eval → serving → adaptation","Sketch a fraud-scoring pipeline distinguishing real-time block from async investigation"]},
+      {name:"SQL & domain deep-dives", mk:"40.3", subs:["SQL schema/query/plan exercises","The detection stack from memory, both sides"], resources:[R("tool","PGExercises","https://pgexercises.com/")], ex:["SQL plan exercises; explain the full stack from a blank page"]},
+      {name:"Behavioral / STAR", mk:"40.4", subs:["Six stories: ambiguity, debugging, security trade-off, false positive, incident, learning from failure"], resources:[R("do","STAR method","")], ex:["Write & rehearse the six stories, grounded in real work"]}
+    ], gate:["Explain all-layer signals & their limits from memory","Reproduce one experiment from a clean checkout","Debug one seeded cross-layer failure","Defend every threshold/privacy/retention/WAF/model choice from evidence"] }
+]}
+];
+
+const LIBRARY=[
+  { h:"Roadmaps & CS fundamentals", items:[
+    R("repo","nilbuild/developer-roadmap","https://github.com/nilbuild/developer-roadmap"),
+    R("repo","jwasham/coding-interview-university","https://github.com/jwasham/coding-interview-university"),
+    R("repo","ossu/computer-science","https://github.com/ossu/computer-science"),
+    R("repo","donnemartin/system-design-primer","https://github.com/donnemartin/system-design-primer"),
+    R("repo","trekhleb/javascript-algorithms","https://github.com/trekhleb/javascript-algorithms")
+  ]},
+  { h:"Bot detection & fingerprinting (Phase 3 core)", items:[
+    R("repo","niespodd/browser-fingerprinting","https://github.com/niespodd/browser-fingerprinting"),
+    R("repo","scrapfly/Antibot-Detector","https://github.com/scrapfly/Antibot-Detector"),
+    R("repo","FoxIO-LLC/ja4","https://github.com/FoxIO-LLC/ja4"),
+    R("repo","fingerprintjs/fingerprintjs","https://github.com/fingerprintjs/fingerprintjs")
+  ]},
+  { h:"Detection engineering & blue team (Phases 4–6)", items:[
+    R("repo","infosecB/awesome-detection-engineering","https://github.com/infosecB/awesome-detection-engineering"),
+    R("repo","st0pp3r/awesome-detection-engineer","https://github.com/st0pp3r/awesome-detection-engineer"),
+    R("repo","SigmaHQ/sigma","https://github.com/SigmaHQ/sigma"),
+    R("read","SANS SEC555 — Detection Engineering poster","https://www.sans.org/posters/detection-engineering/")
+  ]},
+  { h:"AppSec practice", items:[
+    R("tool","PortSwigger Web Security Academy","https://portswigger.net/web-security"),
+    R("repo","OWASP Juice Shop","https://github.com/juice-shop/juice-shop"),
+    R("repo","OWASP CRS (Core Rule Set)","https://github.com/coreruleset/coreruleset"),
+    R("read","OWASP Cheat Sheet Series","https://cheatsheetseries.owasp.org/")
+  ]}
+];
+
+const KEY="abin-detection-progress-v1";
+let state={};
+try{ state=JSON.parse(localStorage.getItem(KEY)||"{}")||{}; }catch(e){ state={}; }
+function save(){ try{ localStorage.setItem(KEY,JSON.stringify(state)); }catch(e){} }
+const badgeClass={read:"b-read",watch:"b-watch",do:"b-do",tool:"b-tool",repo:"b-repo",docs:"b-docs"};
+const badgeText={read:"READ",watch:"WATCH",do:"DO",tool:"TOOL",repo:"REPO",docs:"DOCS"};
+function esc(s){return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function resHTML(list){
+  if(!list||!list.length) return "";
+  const chips=list.map(r=>{
+    const bc=badgeClass[r.t]||"b-docs", bt=badgeText[r.t]||"LINK";
+    if(!r.u) return `<a><span class="badge ${bc}">${bt}</span><span class="lab">${esc(r.l)}</span></a>`;
+    return `<a href="${esc(r.u)}" target="_blank" rel="noopener"><span class="badge ${bc}">${bt}</span><span class="lab">${esc(r.l)}</span></a>`;
+  }).join("");
+  return `<div class="reslabel">Resource</div><div class="res">${chips}</div>`;
+}
+
+const phasesEl=document.getElementById("phases");
+const navEl=document.getElementById("phaseNav");
+const segRow=document.getElementById("segRow");
+const segCaps=document.getElementById("segCaps");
+let TOTAL_GATES=0;
+
+PHASES.forEach((ph,pi)=>{
+  const chip=document.createElement("a");
+  chip.className="pchip"; chip.href="#"+ph.id;
+  chip.innerHTML=`<span class="dot" style="background:${ph.color}"></span>${ph.tag}`;
+  navEl.appendChild(chip);
+  const seg=document.createElement("div"); seg.className="seg";
+  seg.innerHTML=`<i style="background:${ph.color}"></i><span class="n">${ph.tag.replace('Phase ','P')}</span>`;
+  seg.dataset.pi=pi; segRow.appendChild(seg);
+  const cap=document.createElement("div"); cap.className="cap"; cap.textContent=ph.tag.replace('Phase ','P');
+  segCaps.appendChild(cap);
+
+  const sec=document.createElement("section"); sec.className="phase"; sec.id=ph.id;
+  sec.innerHTML=`<div class="phasehead"><span class="tag" style="background:${ph.color}">${ph.tag}</span><h2>${esc(ph.name)}</h2></div><p class="phasesub">${esc(ph.sub)}</p>`;
+
+  ph.weeks.forEach(wk=>{
+    const wid="w"+wk.n; const gate=wk.gate||[]; TOTAL_GATES+=gate.length;
+    const card=document.createElement("div");
+    card.className="week"; card.id=wid; card.style.setProperty("--wc",ph.color);
+    let body="";
+    if(wk.checkpoint){ body+=`<div class="checkpoint"><b>Checkpoint</b>${esc(wk.checkpoint)}</div>`; }
+    (wk.topics||[]).forEach(t=>{
+      body+=`<div class="topic"><div class="topicname"><span class="mk">${esc(t.mk||"")}</span>${esc(t.name)}</div>`;
+      if(t.subs&&t.subs.length){ body+=`<ul class="subs">${t.subs.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>`; }
+      body+=resHTML(t.resources);
+      if(t.ex&&t.ex.length){ body+=`<div class="exlabel">Exercise</div><ul class="ex">${t.ex.map(e=>`<li><span class="m">DO</span><span>${esc(e)}</span></li>`).join("")}</ul>`; }
+      body+=`</div>`;
+    });
+    body+=`<div class="gate"><div class="gatehead">Gate — pass unassisted</div>`;
+    gate.forEach((g,gi)=>{
+      const id=`${wid}-g${gi}`; const on=!!state[id];
+      body+=`<label class="gitem"><input type="checkbox" data-id="${id}" ${on?"checked":""}><span class="box"></span><span class="gt">${esc(g)}</span></label>`;
+    });
+    body+=`</div>`;
+    card.innerHTML=`
+      <button class="wkhead" aria-expanded="false">
+        <span class="wknum">WK ${wk.n}</span>
+        <span class="wkmeta"><span class="wktitle">${esc(wk.title)}</span><span class="wkgoal">${esc(wk.goal||"")}</span></span>
+        <span class="wkright"><span class="wkprog" id="prog-${wid}"></span><span class="chev"></span></span>
+      </button>
+      <div class="wkbody">${body}</div>`;
+    sec.appendChild(card);
+    const head=card.querySelector(".wkhead");
+    head.addEventListener("click",()=>{ const open=card.classList.toggle("open"); head.setAttribute("aria-expanded",open?"true":"false"); });
+  });
+  phasesEl.appendChild(sec);
+});
+
+const libEl=document.getElementById("libGroups");
+LIBRARY.forEach(g=>{
+  const d=document.createElement("div"); d.className="libgroup";
+  d.innerHTML=`<h3>${esc(g.h)}</h3><div class="res">${g.items.map(r=>`<a href="${esc(r.u)}" target="_blank" rel="noopener"><span class="badge ${badgeClass[r.t]||'b-docs'}">${badgeText[r.t]||'LINK'}</span><span class="lab">${esc(r.l)}</span></a>`).join("")}</div>`;
+  libEl.appendChild(d);
+});
+
+document.getElementById("gTotal").textContent=TOTAL_GATES;
+function weekStats(wid){ const b=document.querySelectorAll(`input[data-id^="${wid}-g"]`); let d=0; b.forEach(x=>{if(x.checked)d++;}); return {done:d,total:b.length}; }
+function updateWeek(wid){ const {done,total}=weekStats(wid); const el=document.getElementById("prog-"+wid); if(!el)return; if(total===0){el.textContent="";return;} if(done===total){el.textContent="✓ done";el.classList.add("done");} else {el.textContent=done+"/"+total;el.classList.remove("done");} }
+function updateAll(){
+  const boxes=document.querySelectorAll('input[data-id]'); let done=0; boxes.forEach(b=>{if(b.checked)done++;});
+  const pct=TOTAL_GATES?Math.round(done/TOTAL_GATES*100):0;
+  document.getElementById("gCount").textContent=done;
+  document.getElementById("pctLabel").textContent=pct+"%";
+  document.getElementById("trackFill").style.width=pct+"%";
+  PHASES.forEach((ph,pi)=>{ let pd=0,pt=0; ph.weeks.forEach(wk=>{const s=weekStats("w"+wk.n);pd+=s.done;pt+=s.total;}); const seg=segRow.querySelector(`.seg[data-pi="${pi}"] > i`); if(seg) seg.style.width=(pt?(pd/pt*100):0)+"%"; });
+  PHASES.forEach(ph=>ph.weeks.forEach(wk=>updateWeek("w"+wk.n)));
+}
+phasesEl.addEventListener("change",e=>{ const inp=e.target.closest('input[data-id]'); if(!inp)return; state[inp.dataset.id]=inp.checked; save(); updateAll(); });
+function findNext(){ for(const ph of PHASES){ for(const wk of ph.weeks){ const s=weekStats("w"+wk.n); if(s.total===0)continue; if(s.done<s.total)return "w"+wk.n; } } return null; }
+document.getElementById("nextBtn").addEventListener("click",()=>{ const id=findNext(); if(!id){window.scrollTo({top:0,behavior:"smooth"});return;} const card=document.getElementById(id); if(!card)return; if(!card.classList.contains("open")){card.querySelector(".wkhead").click();} card.scrollIntoView({behavior:"smooth",block:"start"}); });
+document.getElementById("resetBtn").addEventListener("click",()=>{ if(!confirm("Reset all progress? This clears every checked gate."))return; state={}; save(); document.querySelectorAll('input[data-id]').forEach(b=>b.checked=false); updateAll(); });
+updateAll();
+</script>
+</body>
+</html>
