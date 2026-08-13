@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="A practical streams, pipes, redirection, and text-filtering field guide for detection engineers." />
+<title>Streams, Pipes &amp; Redirection — Detection Engineering Learning Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/guide.css" />
+<script src="assets/guide.js" defer></script>
+</head>
+<body>
+<div class="topbar"><div class="topbar-inner">
+  <a class="back" href="../index.html#w1"><span>←</span> Back to curriculum</a>
+  <span class="topic-id">Week 1 · Topic 1.4</span>
+</div></div>
+
+<div class="shell">
+  <header class="hero">
+    <p class="eyebrow">Practical field guide · Streams</p>
+    <h1>Compose tools into an <span>investigation.</span></h1>
+    <p class="lede">Standard streams let small programs work together. Once you can route bytes deliberately, you can turn raw logs into fast, reviewable answers while keeping results separate from diagnostics.</p>
+    <div class="hero-grid" aria-label="Guide summary">
+      <div class="hero-stat"><b>20 commands</b><span>Core working set</span></div>
+      <div class="hero-stat"><b>5 scenarios</b><span>Detection work</span></div>
+      <div class="hero-stat"><b>3 drills</b><span>Run unassisted</span></div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <a href="#why">Why it matters</a>
+      <a href="#model">Stream model</a>
+      <a href="#redirect">Redirection</a>
+      <a href="#pipes">Pipelines</a>
+      <a href="#filters">Core filters</a>
+      <a href="#structured">Structured data</a>
+      <a href="#scenarios">Work scenarios</a>
+      <a class="toc-practice" href="#drills">Hands-on drills</a>
+      <a href="#cheatsheet">Cheat sheet</a>
+    </nav>
+
+    <main>
+      <section id="why">
+        <p class="section-kicker">01 · Purpose</p>
+        <h2>Why streams matter in detection work</h2>
+        <div class="cards">
+          <article class="card"><span class="num">01 · TRIAGE</span><h4>Answer questions in seconds</h4><p>Filter a log, select a field, count values, and rank the result without pausing to build a full parser.</p></article>
+          <article class="card"><span class="num">02 · COMPOSITION</span><h4>Each tool does one transformation</h4><p>A pipeline exposes each step, making it easy to inspect intermediate data and replace weak assumptions.</p></article>
+          <article class="card"><span class="num">03 · AUTOMATION</span><h4>Separate result from diagnostics</h4><p>stdout can feed the next stage while stderr remains visible or goes to a dedicated operational log.</p></article>
+          <article class="card"><span class="num">04 · SCALE</span><h4>Process incrementally</h4><p>Many filters stream line by line rather than loading an entire capture into memory.</p></article>
+        </div>
+        <div class="callout"><b>The useful definition</b>A stream is an ordered sequence of bytes. Programs commonly start with three open file descriptors: stdin <code>0</code>, stdout <code>1</code>, and stderr <code>2</code>. The shell can connect each descriptor to a terminal, file, pipe, or device.</div>
+      </section>
+
+      <section id="model">
+        <p class="section-kicker">02 · Mental model</p>
+        <h2>Programs read and write file descriptors</h2>
+        <div class="model">
+          <div class="model-track">
+            <div class="model-box"><b>Input</b><span>Bytes arrive through stdin or a file explicitly opened by the program.</span><code>0 &lt; access.log</code></div>
+            <div class="arrow">→</div>
+            <div class="model-box"><b>Transform</b><span>A process parses, filters, maps, counts, or formats the byte stream.</span><code>awk '{print $1}'</code></div>
+            <div class="arrow">→</div>
+            <div class="model-box"><b>Output</b><span>Result bytes leave on stdout; diagnostics should leave on stderr.</span><code>1 &gt; report.txt</code></div>
+          </div>
+          <p class="model-caption">A pipe connects the stdout descriptor of one process to the stdin descriptor of another. The shell creates both processes and the kernel transports the bytes.</p>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Descriptor</th><th>Name</th><th>Intended role</th><th>Default</th></tr></thead>
+            <tbody>
+              <tr><td><code>0</code></td><td>stdin</td><td>Data consumed by the program</td><td>Terminal keyboard/session input</td></tr>
+              <tr><td><code>1</code></td><td>stdout</td><td>Successful result data</td><td>Terminal display</td></tr>
+              <tr><td><code>2</code></td><td>stderr</td><td>Diagnostics and errors</td><td>Terminal display</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <pre><code>python3 -c 'import sys
+print("result", file=sys.stdout)
+print("diagnostic", file=sys.stderr)' \
+  > result.txt 2> diagnostic.txt</code></pre>
+        <div class="callout warn"><b>Lines are a convention, not the transport</b>Pipes carry bytes and apply back-pressure. Line-oriented tools may buffer when stdout is no longer a terminal, and binary or multi-line records can break “one line equals one event” assumptions.</div>
+      </section>
+
+      <section id="redirect">
+        <p class="section-kicker">03 · Routing</p>
+        <h2>Redirection is evaluated left to right</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Syntax</th><th>Meaning</th><th>Caution</th></tr></thead>
+            <tbody>
+              <tr><td><code>cmd &lt; input</code></td><td>Open file as stdin</td><td>The command may also accept a filename argument; these are different interfaces.</td></tr>
+              <tr><td><code>cmd &gt; output</code></td><td>Open/truncate file as stdout</td><td>Existing content is replaced before the command runs.</td></tr>
+              <tr><td><code>cmd &gt;&gt; output</code></td><td>Open file for append as stdout</td><td>Concurrent writers may interleave multi-write records.</td></tr>
+              <tr><td><code>cmd 2&gt; errors</code></td><td>Send stderr to a file</td><td>Do not hide diagnostics before confirming expected behavior.</td></tr>
+              <tr><td><code>cmd 2&gt;&amp;1</code></td><td>Duplicate current stdout onto stderr</td><td>Order matters because it copies the current destination.</td></tr>
+              <tr><td><code>cmd &gt; all 2&gt;&amp;1</code></td><td>Send both streams to one file</td><td>Correct order for one combined file.</td></tr>
+              <tr><td><code>cmd &gt; /dev/null</code></td><td>Discard stdout</td><td>Use sparingly; missing output can hide an operational clue.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Why order changes behavior</h3>
+        <pre><code># Both stdout and stderr go to combined.log
+command > combined.log 2>&amp;1
+
+# stderr keeps the terminal destination; only stdout goes to output.log
+command 2>&amp;1 > output.log</code></pre>
+        <p>In the second form, stderr first duplicates stdout's current terminal destination. stdout is redirected afterward, but stderr remains connected to the terminal.</p>
+
+        <h3><code>tee</code>: save and continue</h3>
+        <pre><code># Display output and write the same bytes to a file
+command | tee output.log
+
+# Include stderr in the stream first
+command 2>&amp;1 | tee combined.log</code></pre>
+        <div class="callout danger"><b>Do not overwrite source evidence</b>Never redirect a command's output to the same file it is reading with <code>&gt;</code>; the shell truncates the destination before the program reads it. Write to a new file, validate it, then perform an explicit replacement if intended.</div>
+      </section>
+
+      <section id="pipes">
+        <p class="section-kicker">04 · Composition</p>
+        <h2>Build pipelines one verified stage at a time</h2>
+        <pre><code># Question: which IPs appear most often in a simple access log?
+awk '{print $1}' access.log \
+  | sort \
+  | uniq -c \
+  | sort -nr \
+  | head -10</code></pre>
+        <ol class="steps">
+          <li><b>State the input contract.</b> This example assumes the first whitespace-delimited field is an IP and each request is one line.</li>
+          <li><b>Verify extraction.</b> Run only <code>awk '{print $1}'</code> and sample its output.</li>
+          <li><b>Group identical values.</b> <code>uniq -c</code> counts adjacent equal lines, so <code>sort</code> must group them first.</li>
+          <li><b>Rank numerically.</b> <code>sort -nr</code> sorts counts as numbers, descending.</li>
+          <li><b>Limit presentation.</b> <code>head -10</code> changes display, not the upstream calculation.</li>
+        </ol>
+
+        <h3>Pipeline status</h3>
+        <p>Without <code>pipefail</code>, a shell normally reports the final command's status. An early parser can fail while <code>head</code> exits successfully.</p>
+        <pre><code>set -o pipefail
+generate_events | parse_events | write_summary
+status=$?
+printf 'pipeline status=%s\n' "$status"</code></pre>
+        <div class="callout warn"><b>SIGPIPE can be normal</b>A limiting command such as <code>head</code> exits after receiving enough data. An upstream writer may then receive a broken-pipe signal. Under strict <code>pipefail</code>, understand whether that status reflects expected early termination or a real failure.</div>
+      </section>
+
+      <section id="filters">
+        <p class="section-kicker">05 · Text toolkit</p>
+        <h2>Know each filter's contract</h2>
+        <div class="command-list">
+          <div class="command"><code>grep -nE '5[0-9]{2}' file</code><p><b>Select matching lines.</b><code>-n</code> preserves line numbers; <code>-E</code> selects extended regular expressions. Use <code>-F</code> for literal strings.</p></div>
+          <div class="command"><code>cut -d, -f1,4 file.csv</code><p><b>Select delimited fields.</b>Only safe for simple delimiters; quoted CSV with embedded commas needs a CSV parser.</p></div>
+          <div class="command"><code>sort</code><p><b>Order lines.</b>Use <code>-n</code> for numeric, <code>-r</code> for reverse, <code>-k</code> for fields, and consider <code>LC_ALL=C</code> for stable byte-order behavior.</p></div>
+          <div class="command"><code>uniq -c</code><p><b>Count adjacent identical lines.</b>Usually pair with <code>sort</code>; it does not count equal lines scattered through input.</p></div>
+          <div class="command"><code>awk '{count[$1]++} END {...}'</code><p><b>Field-aware transform and aggregate.</b>Powerful for whitespace/delimited text; document field assumptions.</p></div>
+          <div class="command"><code>sed -n '20,40p' file</code><p><b>Select or transform text ranges.</b>Prefer non-destructive output while exploring; in-place flags differ across platforms.</p></div>
+          <div class="command"><code>wc -l</code><p><b>Count newline characters.</b>A file lacking a final newline may contain more logical data than the line count suggests.</p></div>
+          <div class="command"><code>head -n 20</code> / <code>tail -n 20</code><p><b>Sample boundaries.</b><code>tail -f</code> follows growth; rotation behavior depends on implementation and flags.</p></div>
+        </div>
+
+        <h3>Locale and reproducibility</h3>
+        <pre><code># Stable byte-wise sort/group behavior for an artifact
+LC_ALL=C awk '{print $1}' access.log \
+  | LC_ALL=C sort \
+  | uniq -c \
+  | sort -nr</code></pre>
+        <p>Locale can affect collation, character classes, case conversion, and numeric formatting. Record it when exact output must be reproduced.</p>
+      </section>
+
+      <section id="structured">
+        <p class="section-kicker">06 · Honest parsing</p>
+        <h2>Use structure-aware tools for structured data</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Input</th><th>Prefer</th><th>Avoid assuming</th></tr></thead>
+            <tbody>
+              <tr><td>Whitespace access log</td><td><code>awk</code> after verifying format</td><td>User-agent or quoted fields never contain spaces.</td></tr>
+              <tr><td>JSON Lines</td><td><code>jq</code></td><td>Fields appear in a fixed textual order.</td></tr>
+              <tr><td>CSV</td><td>Python <code>csv</code>, Miller, or another CSV parser</td><td><code>cut -d,</code> handles quoted commas/newlines.</td></tr>
+              <tr><td>NUL-delimited paths</td><td><code>find -print0</code> plus compatible consumer</td><td>Filenames cannot contain whitespace or newlines.</td></tr>
+              <tr><td>Binary capture</td><td><code>tcpdump</code>, <code>tshark</code>, format library</td><td>Text filters preserve binary record boundaries.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <pre><code># Count JSONL events by source IP, ignoring null/missing values
+jq -r 'select(.source_ip != null) | .source_ip' events.jsonl \
+  | sort \
+  | uniq -c \
+  | sort -nr \
+  | head -10</code></pre>
+        <div class="callout"><b>Fast does not mean careless</b>Shell pipelines are excellent for exploration and operational glue. Promote the logic to a tested parser when input structure is complex, correctness is security-sensitive, or the transformation becomes a production dependency.</div>
+      </section>
+
+      <section id="scenarios">
+        <p class="section-kicker">07 · On the job</p>
+        <h2>Detection-engineering scenarios</h2>
+
+        <article class="scenario">
+          <div class="scenario-head"><span class="tag">TOP TALKERS</span><div><h4>Find top source IPs in an access log</h4></div></div>
+          <pre><code>LC_ALL=C awk '{print $1}' access.log \
+  | sort | uniq -c | sort -nr | head -10</code></pre>
+          <p><strong>Validate first:</strong> sample records, confirm field 1 is the client identity, and account for trusted-proxy headers before treating it as a source IP.</p>
+        </article>
+
+        <article class="scenario">
+          <div class="scenario-head"><span class="tag">ERROR RATE</span><div><h4>Calculate 5xx percentage for a known log format</h4></div></div>
+          <pre><code>awk '
+  { total++; if ($9 ~ /^5[0-9][0-9]$/) errors++ }
+  END {
+    if (total == 0) { print "no records" > "/dev/stderr"; exit 2 }
+    printf "5xx=%d total=%d rate=%.2f%%\n",
+           errors, total, 100 * errors / total
+  }' access.log</code></pre>
+          <p><strong>Why awk:</strong> one pass avoids separate counts drifting across different filters. The field assumption remains the critical part to document.</p>
+        </article>
+
+        <article class="scenario">
+          <div class="scenario-head"><span class="tag">DUAL OUTPUT</span><div><h4>Save machine-readable findings while preserving errors</h4></div></div>
+          <pre><code>python3 analyzer.py access.log \
+  > findings.json \
+  2> analyzer-errors.log
+status=$?
+printf 'status=%s\n' "$status"</code></pre>
+          <p><strong>Why it matters:</strong> downstream tools receive clean JSON, while humans retain warnings and stack traces separately.</p>
+        </article>
+
+        <article class="scenario">
+          <div class="scenario-head"><span class="tag">LIVE WATCH</span><div><h4>Watch matching events without modifying the log</h4></div></div>
+          <pre><code>tail -F application.log \
+  | grep --line-buffered -E 'login_failed|credential_stuffing'</code></pre>
+          <p><strong>Caution:</strong> <code>-F</code> and <code>--line-buffered</code> are not uniformly portable. Live tails are observation aids, not durable ingestion; rotation and disconnects can lose events.</p>
+        </article>
+
+        <article class="scenario">
+          <div class="scenario-head"><span class="tag">SAFE PATHS</span><div><h4>Hash every capture even when filenames contain spaces</h4></div></div>
+          <pre><code>find captures -type f -print0 \
+  | xargs -0 shasum -a 256</code></pre>
+          <p><strong>Why NUL delimiters:</strong> newline-delimited filename pipelines cannot represent every valid Unix pathname safely.</p>
+        </article>
+      </section>
+
+      <section id="drills">
+        <p class="section-kicker">08 · Practice</p>
+        <h2>Hands-on drills</h2>
+
+        <article class="drill">
+          <div class="drill-head"><h3>1. Top ten IPs using only pipes</h3><span class="time">20 min</span></div>
+          <p>Using your Week 0 access-log fixture, compute top ten IPs without Python. Inspect the output after every pipeline stage.</p>
+          <ul class="checklist"><li>Write the input format assumption above the command.</li><li>Explain why <code>sort</code> comes before <code>uniq -c</code>.</li><li>Compare the result with your Python analyzer and explain any mismatch.</li></ul>
+        </article>
+
+        <article class="drill">
+          <div class="drill-head"><h3>2. Route all three streams</h3><span class="time">15 min</span></div>
+          <pre><code>python3 -c 'import sys
+print("input=" + sys.stdin.read().strip())
+print("warning", file=sys.stderr)' \
+  &lt; input.txt \
+  > result.txt \
+  2> errors.txt
+printf 'status=%s\n' "$?"</code></pre>
+          <ul class="checklist"><li>Predict each file's content before running.</li><li>Repeat with combined stdout/stderr and explain redirection order.</li><li>Replace <code>&gt;</code> with <code>&gt;&gt;</code> and explain repeat-run behavior.</li></ul>
+        </article>
+
+        <article class="drill">
+          <div class="drill-head"><h3>3. Make failures observable</h3><span class="time">20 min</span></div>
+          <p>Create a three-stage pipeline whose first command fails. Compare its exit status with and without <code>set -o pipefail</code>, then capture the relevant status in a script.</p>
+          <ul class="checklist"><li>Explain why the default pipeline status can lie.</li><li>Observe what changes when the final consumer is <code>head</code>.</li><li>Document stdout, stderr, and exit-status contracts for your analyzer.</li></ul>
+        </article>
+      </section>
+
+      <section id="cheatsheet">
+        <p class="section-kicker">09 · Desk reference</p>
+        <h2>One-screen cheat sheet</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Intent</th><th>Syntax</th></tr></thead>
+            <tbody>
+              <tr><td>Read stdin from file</td><td><code>cmd &lt; input</code></td></tr>
+              <tr><td>Replace / append stdout file</td><td><code>cmd &gt; out</code> · <code>cmd &gt;&gt; out</code></td></tr>
+              <tr><td>Write stderr separately</td><td><code>cmd 2&gt; errors</code></td></tr>
+              <tr><td>Combine stdout and stderr</td><td><code>cmd &gt; all 2&gt;&amp;1</code></td></tr>
+              <tr><td>Connect processes</td><td><code>producer | consumer</code></td></tr>
+              <tr><td>Save and continue stream</td><td><code>cmd | tee out</code></td></tr>
+              <tr><td>Expose early pipeline failure</td><td><code>set -o pipefail</code></td></tr>
+              <tr><td>Literal line search</td><td><code>grep -F 'text' file</code></td></tr>
+              <tr><td>Regex line search</td><td><code>grep -nE 'pattern' file</code></td></tr>
+              <tr><td>Extract whitespace field</td><td><code>awk '{print $1}'</code></td></tr>
+              <tr><td>Count grouped values</td><td><code>sort | uniq -c | sort -nr</code></td></tr>
+              <tr><td>Parse JSON Lines</td><td><code>jq -r '.field' file.jsonl</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Ready to pass Topic 1.4?</h3>
+        <div class="exit-grid">
+          <div class="exit-item"><b>Explain</b>stdin/stdout/stderr, file descriptors 0/1/2, pipes, buffering, and back-pressure.</div>
+          <div class="exit-item"><b>Predict</b>Route all streams correctly and explain why redirection order changes the outcome.</div>
+          <div class="exit-item"><b>Compose</b>Build and validate a top-N pipeline one transformation at a time.</div>
+          <div class="exit-item"><b>Choose honestly</b>Know when grep/awk is sufficient and when JSON, CSV, paths, or binary data need a real parser.</div>
+        </div>
+
+        <h3>Continue learning</h3>
+        <div class="resources">
+          <a class="resource" href="https://missing.csail.mit.edu/2020/data-wrangling/" target="_blank" rel="noopener"><b>Missing Semester: Data Wrangling</b><span>Practical pipeline patterns</span></a>
+          <a class="resource" href="https://www.gnu.org/software/bash/manual/html_node/Redirections.html" target="_blank" rel="noopener"><b>Bash redirections</b><span>Descriptor semantics</span></a>
+          <a class="resource" href="https://jqlang.org/manual/" target="_blank" rel="noopener"><b>jq manual</b><span>Structure-aware JSON filtering</span></a>
+        </div>
+      </section>
+
+      <footer class="footer">Part of the <a href="../index.html#w1">Detection Engineering Learning Console</a> · Week 1, Topic 1.4</footer>
+    </main>
+  </div>
+</div>
+</body>
+</html>

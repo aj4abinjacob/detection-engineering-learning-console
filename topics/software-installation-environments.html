@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="A practical software installation and Python virtual-environment field guide for detection engineers." />
+<title>Software Installation &amp; Environments — Detection Engineering Learning Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/guide.css" />
+<script src="assets/guide.js" defer></script>
+</head>
+<body>
+<div class="topbar"><div class="topbar-inner">
+  <a class="back" href="../index.html#w1"><span>←</span> Back to curriculum</a>
+  <span class="topic-id">Week 1 · Topic 1.5</span>
+</div></div>
+
+<div class="shell">
+  <header class="hero">
+    <p class="eyebrow">Practical field guide · Environments</p>
+    <h1>Make the runtime <span>reproducible.</span></h1>
+    <p class="lede">The code is only half the system. Interpreter choice, native libraries, package versions, PATH, and configuration determine what actually runs—and whether another engineer can reproduce it safely.</p>
+    <div class="hero-grid" aria-label="Guide summary">
+      <div class="hero-stat"><b>16 commands</b><span>Core working set</span></div>
+      <div class="hero-stat"><b>4 scenarios</b><span>Detection work</span></div>
+      <div class="hero-stat"><b>3 drills</b><span>Run unassisted</span></div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <a href="#why">Why it matters</a>
+      <a href="#layers">Installation layers</a>
+      <a href="#venv">What a venv is</a>
+      <a href="#workflow">Daily workflow</a>
+      <a href="#reproduce">Reproducibility</a>
+      <a href="#supply-chain">Supply-chain safety</a>
+      <a href="#scenarios">Work scenarios</a>
+      <a class="toc-practice" href="#drills">Hands-on drills</a>
+      <a href="#cheatsheet">Cheat sheet</a>
+    </nav>
+
+    <main>
+      <section id="why">
+        <p class="section-kicker">01 · Purpose</p>
+        <h2>Why environments matter in detection work</h2>
+        <div class="cards">
+          <article class="card"><span class="num">01 · REPRODUCIBILITY</span><h4>The same commit should mean the same behavior</h4><p>Pinning and recording dependencies separates a code change from a silent library or interpreter change.</p></article>
+          <article class="card"><span class="num">02 · ISOLATION</span><h4>Projects need independent constraints</h4><p>A parser requiring one library version should not change the runtime of an unrelated collector.</p></article>
+          <article class="card"><span class="num">03 · RESPONSE</span><h4>Tools must be deployable under pressure</h4><p>A documented environment can be rebuilt on a clean host instead of relying on one analyst's laptop.</p></article>
+          <article class="card"><span class="num">04 · SUPPLY CHAIN</span><h4>Dependencies execute trusted code</h4><p>Package names, versions, indexes, build steps, and hashes are security decisions—not setup trivia.</p></article>
+        </div>
+        <div class="callout"><b>The useful definition</b>An environment is the complete runtime context: interpreter, installed packages, native libraries, executable search path, environment variables, working directory, and platform. A Python virtual environment isolates the interpreter-facing Python packages and scripts for one project; it is not a container or OS sandbox.</div>
+      </section>
+
+      <section id="layers">
+        <p class="section-kicker">02 · Mental model</p>
+        <h2>Choose the correct installation layer</h2>
+        <div class="model">
+          <div class="model-track">
+            <div class="model-box"><b>Operating system</b><span>Shared interpreter, native libraries, headers, services, and command-line tools.</span><code>apt / brew</code></div>
+            <div class="arrow">→</div>
+            <div class="model-box"><b>Project environment</b><span>Project-specific Python interpreter link/copy, packages, and console scripts.</span><code>python -m venv</code></div>
+            <div class="arrow">→</div>
+            <div class="model-box"><b>Application config</b><span>Non-secret defaults plus externally supplied runtime settings and secrets.</span><code>env / config</code></div>
+          </div>
+          <p class="model-caption">Install native capabilities at the OS layer, Python dependencies inside the project environment, and keep secrets out of both package metadata and version control.</p>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Mechanism</th><th>Owns</th><th>Use for</th><th>Avoid</th></tr></thead>
+            <tbody>
+              <tr><td>OS package manager</td><td>System files and shared dependency graph</td><td>System Python, compilers, libpcap, jq, service packages</td><td>Replacing managed files with <code>sudo pip</code></td></tr>
+              <tr><td><code>pip</code> in venv</td><td>Python distributions inside one environment</td><td>Application libraries and project CLI tools</td><td>Assuming native system dependencies are isolated</td></tr>
+              <tr><td><code>pipx</code></td><td>One isolated environment per Python CLI</td><td>User-facing tools such as linters</td><td>Application dependency management</td></tr>
+              <tr><td>Container</td><td>Image filesystem and process runtime contract</td><td>Deployment isolation and repeatable OS+app layers</td><td>Treating an unpinned image as reproducible</td></tr>
+              <tr><td>Version manager</td><td>User-selected language runtime versions</td><td>Multiple Python versions for development</td><td>Confusing interpreter selection with package isolation</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout danger"><b>Avoid sudo pip</b>Writing Python packages into an OS-managed interpreter can overwrite distribution-owned files, bypass dependency policy, and create upgrades neither package manager understands. Use the OS manager for the system and a venv/pipx for user/project Python code.</div>
+      </section>
+
+      <section id="venv">
+        <p class="section-kicker">03 · Isolation</p>
+        <h2>What a virtual environment changes</h2>
+        <p class="intro">A venv is a directory containing configuration, a Python executable (often linked to a base interpreter), an isolated site-packages directory, and console-script entry points.</p>
+        <pre><code>python3 -m venv .venv
+
+# POSIX shells:
+source .venv/bin/activate
+
+# Inspect the selected runtime:
+command -v python
+python -c 'import sys; print(sys.executable); print(sys.prefix); print(sys.base_prefix)'</code></pre>
+
+        <h3>Activation is a convenience, not magic</h3>
+        <p>The activation script modifies the current shell—primarily by prepending the venv's executable directory to PATH, setting <code>VIRTUAL_ENV</code>, and changing the prompt. It does not start a new shell, container, or security boundary.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Before activation</th><th>After activation</th><th>Why</th></tr></thead>
+            <tbody>
+              <tr><td><code>python</code> resolves through normal PATH</td><td><code>python</code> resolves to <code>.venv/bin/python</code></td><td>The venv bin directory is prepended to PATH.</td></tr>
+              <tr><td><code>pip</code> may be system/user pip</td><td><code>pip</code> normally resolves inside venv</td><td>The venv installs its console scripts in that same bin directory.</td></tr>
+              <tr><td><code>VIRTUAL_ENV</code> unset</td><td><code>VIRTUAL_ENV</code> names venv path</td><td>Activation exports a marker for tools/prompts.</td></tr>
+              <tr><td>Base site-packages rules</td><td>Venv site-packages used by default</td><td><code>pyvenv.cfg</code> controls base-package visibility.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <pre><code># Activation is optional; explicit paths are excellent in automation
+.venv/bin/python analyzer.py
+.venv/bin/python -m pytest
+.venv/bin/python -m pip list
+
+# Leave the activated environment
+deactivate</code></pre>
+        <div class="callout warn"><b>A venv is not portable as a directory</b>It records paths and contains generated scripts. Rebuild it from a dependency specification on the target system rather than copying or committing <code>.venv/</code>.</div>
+      </section>
+
+      <section id="workflow">
+        <p class="section-kicker">04 · Core working set</p>
+        <h2>A reliable daily workflow</h2>
+        <pre><code>python3 --version
+python3 -m venv .venv
+source .venv/bin/activate
+
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python -m pip check
+python -m pytest</code></pre>
+        <div class="command-list">
+          <div class="command"><code>python -m pip ...</code><p><b>Bind pip to the selected Python.</b>Safer than assuming a bare <code>pip</code> belongs to the interpreter you intend.</p></div>
+          <div class="command"><code>python -m pip list</code><p><b>List installed distributions.</b>Useful for orientation, not by itself a curated dependency specification.</p></div>
+          <div class="command"><code>python -m pip show package</code><p><b>Inspect version and install location.</b>Confirms which environment supplies a distribution.</p></div>
+          <div class="command"><code>python -m pip check</code><p><b>Check declared dependency compatibility.</b>It does not prove runtime behavior or supply-chain trust.</p></div>
+          <div class="command"><code>python -c 'import pkg; print(pkg.__file__)'</code><p><b>Locate an imported module.</b>Names for import packages and install distributions can differ.</p></div>
+          <div class="command"><code>deactivate</code><p><b>Undo activation's shell changes.</b>The environment directory and installed packages remain.</p></div>
+        </div>
+
+        <h3>Diagnose interpreter confusion</h3>
+        <pre><code>type -a python python3 pip
+command -v python
+python -m pip --version
+python -c 'import sys; print(sys.executable); print(*sys.path, sep="\n")'
+python -m pip show requests</code></pre>
+        <p>These commands connect shell lookup, interpreter identity, pip identity, import path, and distribution location. Run them before reinstalling anything.</p>
+      </section>
+
+      <section id="reproduce">
+        <p class="section-kicker">05 · Rebuildability</p>
+        <h2>Specify direct dependencies and resolve deliberately</h2>
+        <p class="intro">A reproducible environment needs more than <code>pip freeze</code>. Record the Python version, platform/native prerequisites, source index policy, direct dependencies, and a reviewed lock or constraints output.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Artifact</th><th>Purpose</th><th>Trade-off</th></tr></thead>
+            <tbody>
+              <tr><td><code>pyproject.toml</code></td><td>Project metadata and direct dependency intent</td><td>Ranges may resolve differently over time without locking.</td></tr>
+              <tr><td><code>requirements.in</code></td><td>Small list of direct requirements</td><td>Needs a resolver step to capture transitives.</td></tr>
+              <tr><td>Locked requirements</td><td>Exact resolved versions, often hashes</td><td>May be platform-specific and needs controlled refresh.</td></tr>
+              <tr><td>Constraints file</td><td>Limit versions while another input declares requirements</td><td>Does not itself cause packages to be installed.</td></tr>
+              <tr><td><code>pip freeze</code></td><td>Snapshot everything installed now</td><td>Includes incidental packages and loses direct/transitive intent.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <pre><code># Record runtime evidence with an evaluation artifact
+python --version
+python -m pip --version
+python -m pip freeze --all > reports/environment-freeze.txt
+python -m pip check
+git rev-parse HEAD</code></pre>
+        <div class="callout"><b>Clean-room test</b>The real test is to create a fresh venv from the documented Python version and dependency artifacts, install without relying on an old cache, run tests, and reproduce the report. “Works in my existing venv” is not evidence of rebuildability.</div>
+      </section>
+
+      <section id="supply-chain">
+        <p class="section-kicker">06 · Security</p>
+        <h2>Treat installation as code execution</h2>
+        <div class="cards">
+          <article class="card"><span class="num">NAME</span><h4>Verify what you are installing</h4><p>Typosquatting and dependency-confusion attacks exploit package names and index precedence. Copy names from reviewed project metadata.</p></article>
+          <article class="card"><span class="num">SOURCE</span><h4>Control indexes</h4><p>Know whether packages come from public PyPI, an internal mirror, a local artifact, Git, or an arbitrary URL.</p></article>
+          <article class="card"><span class="num">VERSION</span><h4>Pin and review updates</h4><p>Ranges are useful for authoring, but production resolutions should be explicit and updated through review with tests.</p></article>
+          <article class="card"><span class="num">INTEGRITY</span><h4>Use hashes where practical</h4><p>Hash-checked lock files detect altered artifacts, though they do not establish that the original package was trustworthy.</p></article>
+        </div>
+        <div class="callout danger"><b>Never install unknown code casually</b>Build backends and installation steps can execute code. Do not paste <code>pip install</code> commands from untrusted issue text or run mystery requirements with privileged credentials. Inspect the source, provenance, requested version, and destination environment first.</div>
+
+        <h3>Secrets and configuration</h3>
+        <p>Keep secrets out of requirements, command histories, package-index URLs, committed <code>.env</code> files, and diagnostic output. Supply them through the deployment platform's secret mechanism and document only the required variable names.</p>
+      </section>
+
+      <section id="scenarios">
+        <p class="section-kicker">07 · On the job</p>
+        <h2>Detection-engineering scenarios</h2>
+
+        <article class="scenario">
+          <div class="scenario-head"><span class="tag">WRONG PYTHON</span><div><h4>A module is installed but import fails</h4></div></div>
+          <pre><code>command -v python
+python -m pip --version
+python -m pip show &lt;distribution&gt;
+python -c 'import sys; print(sys.executable); print(*sys.path, sep="\n")'</code></pre>
+          <p><strong>Likely cause:</strong> installation and execution used different interpreters or the install distribution and import package names differ.</p>
+        </article>
+
+        <article class="scenario">
+          <div class="scenario-head"><span class="tag">NATIVE BUILD</span><div><h4>A packet-parsing dependency fails to install</h4></div></div>
+          <p>Read the first meaningful build error. The Python package may require compiler tools, headers, Rust, or a library such as libpcap at the OS layer.</p>
+          <pre><code>python --version
+python -m pip --version
+python -m pip install -v &lt;reviewed-package&gt;
+# Install documented native prerequisites via the OS manager,
+# then retry inside the venv without sudo pip.</code></pre>
+        </article>
+
+        <article class="scenario">
+          <div class="scenario-head"><span class="tag">DRIFT</span><div><h4>A detection report changes without a code diff</h4></div></div>
+          <pre><code>git status --short
+git rev-parse HEAD
+python --version
+python -m pip freeze --all | sort
+# Compare with the environment evidence saved for the previous run.</code></pre>
+          <p><strong>Reasoning:</strong> parser, timezone, regex, serialization, or model-library behavior can change with dependencies or the interpreter even when repository code is identical.</p>
+        </article>
+
+        <article class="scenario">
+          <div class="scenario-head"><span class="tag">PRODUCTION</span><div><h4>The service cannot find the activated venv</h4></div></div>
+          <p>A service manager does not inherit your interactive activation. Configure the service to execute the venv interpreter explicitly.</p>
+          <pre><code>/opt/analyzer/.venv/bin/python /opt/analyzer/analyzer.py
+# Record a controlled working directory, environment, identity, and logs
+# in the service definition rather than relying on ~/.zshrc or ~/.bashrc.</code></pre>
+        </article>
+      </section>
+
+      <section id="drills">
+        <p class="section-kicker">08 · Practice</p>
+        <h2>Hands-on drills</h2>
+
+        <article class="drill">
+          <div class="drill-head"><h3>1. Observe PATH activation</h3><span class="time">15 min</span></div>
+          <pre><code>printf 'before PATH=%s\n' "$PATH"
+command -v python3
+python3 -m venv .venv
+source .venv/bin/activate
+printf 'after PATH=%s\n' "$PATH"
+command -v python
+printf 'VIRTUAL_ENV=%s\n' "$VIRTUAL_ENV"
+deactivate</code></pre>
+          <ul class="checklist"><li>Identify the exact PATH entry added by activation.</li><li>Explain <code>sys.prefix</code> versus <code>sys.base_prefix</code>.</li><li>Show how <code>deactivate</code> restores command resolution.</li></ul>
+        </article>
+
+        <article class="drill">
+          <div class="drill-head"><h3>2. Prove project isolation</h3><span class="time">20 min</span></div>
+          <p>Create two venvs, install different reviewed versions of a small library, and use each environment's explicit Python path to print the version and module file.</p>
+          <ul class="checklist"><li>Do not activate either environment for the final comparison.</li><li>Show that the base interpreter remains unchanged.</li><li>Explain what is isolated and what OS resources are still shared.</li></ul>
+        </article>
+
+        <article class="drill">
+          <div class="drill-head"><h3>3. Rebuild from blank</h3><span class="time">30 min</span></div>
+          <p>Delete only a disposable project venv after validating its exact path, create a fresh one from the documented interpreter, install the dependency specification, and run the project's tests.</p>
+          <ul class="checklist"><li>Save Python, pip, platform, and dependency evidence.</li><li>Explain every dependency source and pinning choice.</li><li>Run the analyzer with the venv's explicit Python path.</li></ul>
+        </article>
+      </section>
+
+      <section id="cheatsheet">
+        <p class="section-kicker">09 · Desk reference</p>
+        <h2>One-screen cheat sheet</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Intent</th><th>Command</th></tr></thead>
+            <tbody>
+              <tr><td>Show interpreter version</td><td><code>python3 --version</code></td></tr>
+              <tr><td>Create venv</td><td><code>python3 -m venv .venv</code></td></tr>
+              <tr><td>Activate on POSIX</td><td><code>source .venv/bin/activate</code></td></tr>
+              <tr><td>Leave activated venv</td><td><code>deactivate</code></td></tr>
+              <tr><td>Selected executable</td><td><code>command -v python</code></td></tr>
+              <tr><td>Interpreter identity</td><td><code>python -c 'import sys; print(sys.executable)'</code></td></tr>
+              <tr><td>Bind pip to Python</td><td><code>python -m pip ...</code></td></tr>
+              <tr><td>Install reviewed requirements</td><td><code>python -m pip install -r requirements.txt</code></td></tr>
+              <tr><td>List / inspect packages</td><td><code>python -m pip list</code> · <code>show pkg</code></td></tr>
+              <tr><td>Check dependency consistency</td><td><code>python -m pip check</code></td></tr>
+              <tr><td>Locate imported module</td><td><code>python -c 'import pkg; print(pkg.__file__)'</code></td></tr>
+              <tr><td>Run without activation</td><td><code>.venv/bin/python -m pytest</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Ready to pass Topic 1.5?</h3>
+        <div class="exit-grid">
+          <div class="exit-item"><b>Choose</b>Explain what belongs to the OS manager, project venv, pipx, container, and application configuration.</div>
+          <div class="exit-item"><b>Trace</b>Follow shell command resolution to Python, pip, site-packages, and an imported module's file.</div>
+          <div class="exit-item"><b>Explain</b>Describe exactly how venv activation changes PATH and what it does not isolate.</div>
+          <div class="exit-item"><b>Rebuild</b>Create a clean environment from documented inputs and reproduce tests and an evaluation artifact.</div>
+        </div>
+
+        <h3>Continue learning</h3>
+        <div class="resources">
+          <a class="resource" href="https://docs.python.org/3/library/venv.html" target="_blank" rel="noopener"><b>Python venv</b><span>Authoritative environment docs</span></a>
+          <a class="resource" href="https://packaging.python.org/en/latest/tutorials/installing-packages/" target="_blank" rel="noopener"><b>Python Packaging User Guide</b><span>Installation workflow</span></a>
+          <a class="resource" href="https://pip.pypa.io/en/stable/topics/secure-installs/" target="_blank" rel="noopener"><b>pip secure installs</b><span>Hashes and repeatability</span></a>
+        </div>
+      </section>
+
+      <footer class="footer">Part of the <a href="../index.html#w1">Detection Engineering Learning Console</a> · Week 1, Topic 1.5</footer>
+    </main>
+  </div>
+</div>
+</body>
+</html>

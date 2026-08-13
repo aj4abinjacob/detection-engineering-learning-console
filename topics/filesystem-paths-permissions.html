@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="A practical filesystem, paths, and permissions field guide for detection engineers." />
+<title>Filesystem, Paths &amp; Permissions — Detection Engineering Learning Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/guide.css" />
+<script src="assets/guide.js" defer></script>
+</head>
+<body>
+<div class="topbar"><div class="topbar-inner">
+  <a class="back" href="../index.html#w1"><span>←</span> Back to curriculum</a>
+  <span class="topic-id">Week 1 · Topic 1.2</span>
+</div></div>
+
+<div class="shell">
+  <header class="hero">
+    <p class="eyebrow">Practical field guide · Filesystem</p>
+    <h1>Know what a path <span>really names.</span></h1>
+    <p class="lede">Paths, inodes, links, ownership, and permission bits decide whether a collector can read telemetry, whether a script can execute, and whether sensitive evidence is exposed.</p>
+    <div class="hero-grid" aria-label="Guide summary">
+      <div class="hero-stat"><b>17 commands</b><span>Core working set</span></div>
+      <div class="hero-stat"><b>4 scenarios</b><span>Detection work</span></div>
+      <div class="hero-stat"><b>3 drills</b><span>Run unassisted</span></div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <a href="#why">Why it matters</a>
+      <a href="#model">Filesystem model</a>
+      <a href="#paths">Paths</a>
+      <a href="#links">Inodes &amp; links</a>
+      <a href="#permissions">Permissions</a>
+      <a href="#commands">Daily commands</a>
+      <a href="#scenarios">Work scenarios</a>
+      <a class="toc-practice" href="#drills">Hands-on drills</a>
+      <a href="#cheatsheet">Cheat sheet</a>
+    </nav>
+
+    <main>
+      <section id="why">
+        <p class="section-kicker">01 · Purpose</p>
+        <h2>Why filesystems matter in detection work</h2>
+        <p class="intro">Every log, rule, socket, executable, configuration file, and investigation artifact is reached through filesystem semantics.</p>
+        <div class="cards">
+          <article class="card"><span class="num">01 · TELEMETRY</span><h4>Collectors need the right access</h4><p>A process can exist and still miss events because it cannot traverse a directory or read the rotated log it was given.</p></article>
+          <article class="card"><span class="num">02 · EVIDENCE</span><h4>Paths preserve provenance</h4><p>Absolute paths, hashes, metadata, and controlled permissions help another analyst reproduce where an artifact came from.</p></article>
+          <article class="card"><span class="num">03 · DEPLOYMENT</span><h4>Rules are files in motion</h4><p>Symlinks and atomic renames can switch a validated rule bundle without exposing a half-written version.</p></article>
+          <article class="card"><span class="num">04 · SECURITY</span><h4>Permissions are enforcement</h4><p>Misowned configs, writable executable directories, and world-readable case data are concrete privilege and confidentiality failures.</p></article>
+        </div>
+        <div class="callout"><b>The useful definition</b>A pathname is a route through directory entries. The final entry names a filesystem object represented by metadata plus content. The pathname is not the file's identity.</div>
+      </section>
+
+      <section id="model">
+        <p class="section-kicker">02 · Mental model</p>
+        <h2>Names point to objects</h2>
+        <div class="model">
+          <div class="model-track">
+            <div class="model-box"><b>Path</b><span>A sequence of directory-entry names resolved from root or the current directory.</span><code>/var/log/app.log</code></div>
+            <div class="arrow">→</div>
+            <div class="model-box"><b>Inode / file record</b><span>Stores type, owner, permission mode, timestamps, size, and data-block references.</span><code>ls -li</code></div>
+            <div class="arrow">→</div>
+            <div class="model-box"><b>Data</b><span>The bytes read by a process. Several names may reference the same underlying object.</span><code>sha256sum</code></div>
+          </div>
+          <p class="model-caption">Deleting a name removes a directory entry. The underlying object disappears only when no hard links and no open process references remain.</p>
+        </div>
+
+        <h3>Common filesystem object types</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Type</th><th>Leading mode character</th><th>Detection example</th></tr></thead>
+            <tbody>
+              <tr><td>Regular file</td><td><code>-</code></td><td>Rule, log, report, executable, capture.</td></tr>
+              <tr><td>Directory</td><td><code>d</code></td><td>Rule bundle or case workspace.</td></tr>
+              <tr><td>Symbolic link</td><td><code>l</code></td><td><code>rules/current</code> naming the active version.</td></tr>
+              <tr><td>Socket</td><td><code>s</code></td><td>Local service or agent communication endpoint.</td></tr>
+              <tr><td>Device</td><td><code>b</code> / <code>c</code></td><td>Disk, terminal, or special kernel interface.</td></tr>
+              <tr><td>Named pipe</td><td><code>p</code></td><td>Process-to-process byte stream with a filesystem name.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="paths">
+        <p class="section-kicker">03 · Navigation</p>
+        <h2>Absolute, relative, and canonical paths</h2>
+        <div class="command-list">
+          <div class="command"><code>pwd -P</code><p><b>Print the physical current directory.</b><code>-P</code> resolves symbolic-link components where supported.</p></div>
+          <div class="command"><code>realpath &lt;path&gt;</code><p><b>Canonicalize a path.</b>Resolves <code>.</code>, <code>..</code>, and links; availability and missing-path behavior vary by platform.</p></div>
+          <div class="command"><code>dirname /a/b/file</code><p><b>Return the directory portion.</b>Useful for deriving a script-relative resource location.</p></div>
+          <div class="command"><code>basename /a/b/file</code><p><b>Return the final name.</b>It manipulates pathname text; it does not inspect the object.</p></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Form</th><th>Resolved from</th><th>Example</th></tr></thead>
+            <tbody>
+              <tr><td>Absolute path</td><td>Filesystem root</td><td><code>/var/log/auth.log</code></td></tr>
+              <tr><td>Relative path</td><td>Process current working directory</td><td><code>reports/run.json</code></td></tr>
+              <tr><td><code>.</code></td><td>Current directory entry</td><td><code>./validate.sh</code></td></tr>
+              <tr><td><code>..</code></td><td>Parent directory entry</td><td><code>../fixtures</code></td></tr>
+              <tr><td><code>~</code></td><td>Expanded by the shell</td><td><code>~/.config/tool</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warn"><b>Current directory belongs to the process</b>A relative path that works in your terminal may fail under systemd, cron, CI, or a web service because that process starts elsewhere. Scripts should establish or derive their base directory deliberately.</div>
+        <pre><code># Resolve resources next to a Bash script, independent of caller cwd
+script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" &amp;&amp; pwd -P)
+python3 "$script_dir/analyzer.py" "$script_dir/fixtures/access.log"</code></pre>
+      </section>
+
+      <section id="links">
+        <p class="section-kicker">04 · Identity</p>
+        <h2>Inodes, hard links, and symbolic links</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Property</th><th>Hard link</th><th>Symbolic link</th></tr></thead>
+            <tbody>
+              <tr><td>What it stores</td><td>Another directory entry for the same inode</td><td>A pathname string to resolve later</td></tr>
+              <tr><td>Across filesystems</td><td>No</td><td>Yes</td></tr>
+              <tr><td>Can target directories</td><td>Normally no</td><td>Yes</td></tr>
+              <tr><td>If original name is deleted</td><td>Content remains through other hard link</td><td>Link may become dangling</td></tr>
+              <tr><td>Typical use</td><td>Multiple names for one file</td><td>Stable pointer to a versioned file/directory</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <pre><code>printf 'rule: v1\n' > rule-v1.yml
+ln rule-v1.yml rule-hard.yml
+ln -s rule-v1.yml rule-current.yml
+
+ls -li rule-v1.yml rule-hard.yml rule-current.yml
+readlink rule-current.yml
+stat rule-v1.yml</code></pre>
+        <p>The two hard-linked names show the same inode number and link count. The symlink has its own inode and contains the target pathname.</p>
+        <div class="callout"><b>Operational pattern</b>Write and validate a new versioned rule bundle, then atomically replace a <code>current</code> symlink or rename the finished file into place. Readers see an old complete version or a new complete version—not a partial write.</div>
+      </section>
+
+      <section id="permissions">
+        <p class="section-kicker">05 · Access control</p>
+        <h2>Read permission strings as policy</h2>
+        <pre><code>-rwxr-x---  1 analyst detection  842 validate.sh
+│└┬┘└┬┘└┬┘
+│ u  g  o
+type  user / group / other</code></pre>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Bit</th><th>On a regular file</th><th>On a directory</th></tr></thead>
+            <tbody>
+              <tr><td><code>r</code> read</td><td>Read file bytes</td><td>List entry names</td></tr>
+              <tr><td><code>w</code> write</td><td>Modify file bytes</td><td>Create, delete, or rename entries, usually with execute</td></tr>
+              <tr><td><code>x</code> execute</td><td>Execute as a program when format/interpreter allows</td><td>Traverse/search through the directory</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>Symbolic and octal modes</h3>
+        <div class="command-list">
+          <div class="command"><code>chmod u+x validate.sh</code><p><b>Add one explicit permission.</b>Symbolic mode is readable when making a narrow change.</p></div>
+          <div class="command"><code>chmod 640 report.json</code><p><b>Set the complete basic mode.</b><code>6=rw</code> for owner, <code>4=r</code> for group, <code>0</code> for others.</p></div>
+          <div class="command"><code>chown analyst:detection file</code><p><b>Change owner and group.</b>Requires appropriate privilege; do not use broad recursive ownership changes without resolving exact targets.</p></div>
+          <div class="command"><code>umask</code><p><b>Inspect default permission mask.</b>It removes permissions from the creation mode requested by a program.</p></div>
+        </div>
+        <div class="callout danger"><b>Mode bits are not the whole policy</b>Access can also be affected by parent-directory traversal, ACLs, extended attributes, SELinux/AppArmor policy, mount options, and platform-specific controls. Use <code>namei -l</code> on Linux or inspect every parent with <code>ls -ld</code>; use <code>ls -le</code> on macOS to expose ACLs.</div>
+        <h3>Shebang plus execute bit</h3>
+        <p>When you run <code>./validate.sh</code>, the kernel checks execute permission and uses the shebang interpreter. When you run <code>bash validate.sh</code>, Bash only needs to read the file—the script's execute bit is not what starts it.</p>
+      </section>
+
+      <section id="commands">
+        <p class="section-kicker">06 · Core working set</p>
+        <h2>Inspect before changing</h2>
+        <div class="command-list">
+          <div class="command"><code>ls -la</code><p><b>List names and basic metadata.</b>Use <code>-i</code> for inode numbers and <code>-d</code> to inspect a directory itself.</p></div>
+          <div class="command"><code>stat &lt;path&gt;</code><p><b>Inspect precise metadata.</b>Output format differs between GNU/Linux and BSD/macOS.</p></div>
+          <div class="command"><code>file &lt;path&gt;</code><p><b>Classify content.</b>Uses magic bytes and heuristics; an extension alone does not determine format.</p></div>
+          <div class="command"><code>find logs -type f -name '*.json' -print</code><p><b>Search by filesystem properties.</b>Quote patterns so <code>find</code>, not the shell, evaluates them.</p></div>
+          <div class="command"><code>du -sh &lt;path&gt;</code><p><b>Measure referenced disk usage.</b>Use for a capture or case directory.</p></div>
+          <div class="command"><code>df -h</code><p><b>Measure filesystem capacity.</b><code>df -i</code> checks inode exhaustion on filesystems that expose it.</p></div>
+          <div class="command"><code>sha256sum &lt;file&gt;</code><p><b>Hash content.</b>On macOS, use <code>shasum -a 256</code>.</p></div>
+        </div>
+      </section>
+
+      <section id="scenarios">
+        <p class="section-kicker">07 · On the job</p>
+        <h2>Detection-engineering scenarios</h2>
+
+        <article class="scenario">
+          <div class="scenario-head"><span class="tag">MISSING LOGS</span><div><h4>The collector reports “permission denied”</h4></div></div>
+          <p>Inspect every pathname component and the identity of the collector process.</p>
+          <pre><code>id collector_user
+ls -ld /var /var/log /var/log/myapp
+ls -l /var/log/myapp/events.json
+# Linux:
+namei -l /var/log/myapp/events.json</code></pre>
+          <p><strong>Look for:</strong> missing execute permission on a parent directory, wrong group membership, ACLs, or rotation creating new files with a different owner/mode.</p>
+        </article>
+
+        <article class="scenario">
+          <div class="scenario-head"><span class="tag">RULE RELEASE</span><div><h4>Switch rule bundles without partial reads</h4></div></div>
+          <pre><code>mkdir -p rules/releases/2026-08-13
+cp validated/*.yml rules/releases/2026-08-13/
+ln -sfn releases/2026-08-13 rules/current
+readlink rules/current</code></pre>
+          <p><strong>Why it works:</strong> consumers open files through one stable name while the versioned directory remains immutable. Confirm your platform's symlink replacement behavior and rollback procedure.</p>
+        </article>
+
+        <article class="scenario">
+          <div class="scenario-head"><span class="tag">DISK PRESSURE</span><div><h4>A sensor stops writing although disk space looks available</h4></div></div>
+          <pre><code>df -h
+df -i
+du -sh /var/log/* 2>/dev/null
+lsof +L1 2>/dev/null</code></pre>
+          <p><strong>Possible causes:</strong> inode exhaustion from many tiny files or a deleted log still held open by a process. Validate before rotating or restarting anything.</p>
+        </article>
+
+        <article class="scenario">
+          <div class="scenario-head"><span class="tag">CASE DATA</span><div><h4>An investigation report is world-readable</h4></div></div>
+          <pre><code>stat reports/private/finding.json
+ls -ld reports reports/private
+chmod 750 reports/private
+chmod 640 reports/private/finding.json</code></pre>
+          <p><strong>Reasoning:</strong> restrict the directory and file to the actual collaboration group; avoid reflexively using <code>777</code>, which converts an access problem into an integrity and confidentiality problem.</p>
+        </article>
+      </section>
+
+      <section id="drills">
+        <p class="section-kicker">08 · Practice</p>
+        <h2>Hands-on drills</h2>
+
+        <article class="drill">
+          <div class="drill-head"><h3>1. Predict path resolution</h3><span class="time">15 min</span></div>
+          <p>Create <code>fs-lab/a/b</code>, enter <code>b</code>, and predict the canonical result of <code>.</code>, <code>..</code>, <code>../..</code>, and <code>../../a/./b</code> before running <code>pwd -P</code> or <code>realpath</code>.</p>
+          <ul class="checklist"><li>Repeat after entering through a symlink.</li><li>Explain logical versus physical working-directory views.</li><li>State which base directory a relative path uses.</li></ul>
+        </article>
+
+        <article class="drill">
+          <div class="drill-head"><h3>2. Prove link semantics</h3><span class="time">20 min</span></div>
+          <pre><code>printf 'evidence\n' > original.txt
+ln original.txt hard.txt
+ln -s original.txt symbolic.txt
+ls -li original.txt hard.txt symbolic.txt
+printf 'changed\n' >> hard.txt
+cat original.txt symbolic.txt</code></pre>
+          <ul class="checklist"><li>Identify shared versus distinct inode numbers.</li><li>Rename <code>original.txt</code> and explain both links afterward.</li><li>Explain link count and when content becomes reclaimable.</li></ul>
+        </article>
+
+        <article class="drill">
+          <div class="drill-head"><h3>3. Execute-bit failure</h3><span class="time">15 min</span></div>
+          <pre><code>printf '#!/usr/bin/env bash\necho validated\n' > validate.sh
+chmod u+x validate.sh
+./validate.sh
+chmod u-x validate.sh
+./validate.sh
+bash validate.sh
+printf 'status=%s\n' "$?"</code></pre>
+          <ul class="checklist"><li>Record the exact error after removing execute permission.</li><li>Explain why <code>bash validate.sh</code> still works.</li><li>Restore only the owner execute bit and verify the mode.</li></ul>
+        </article>
+      </section>
+
+      <section id="cheatsheet">
+        <p class="section-kicker">09 · Desk reference</p>
+        <h2>One-screen cheat sheet</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Intent</th><th>Command</th></tr></thead>
+            <tbody>
+              <tr><td>Current physical directory</td><td><code>pwd -P</code></td></tr>
+              <tr><td>Canonical path</td><td><code>realpath &lt;path&gt;</code></td></tr>
+              <tr><td>List metadata / inodes</td><td><code>ls -la</code> · <code>ls -li</code></td></tr>
+              <tr><td>Detailed metadata</td><td><code>stat &lt;path&gt;</code></td></tr>
+              <tr><td>Content type</td><td><code>file &lt;path&gt;</code></td></tr>
+              <tr><td>Create hard / symbolic link</td><td><code>ln src name</code> · <code>ln -s target name</code></td></tr>
+              <tr><td>Read symlink target</td><td><code>readlink &lt;link&gt;</code></td></tr>
+              <tr><td>Search files safely</td><td><code>find dir -type f -name '*.log' -print</code></td></tr>
+              <tr><td>Add owner execute</td><td><code>chmod u+x script</code></td></tr>
+              <tr><td>Owner rw, group r, other none</td><td><code>chmod 640 file</code></td></tr>
+              <tr><td>Change owner/group</td><td><code>chown user:group file</code></td></tr>
+              <tr><td>Disk / inode capacity</td><td><code>df -h</code> · <code>df -i</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Ready to pass Topic 1.2?</h3>
+        <div class="exit-grid">
+          <div class="exit-item"><b>Explain</b>Path → directory entry → inode/file record → data, including link counts.</div>
+          <div class="exit-item"><b>Predict</b>Resolve absolute, relative, parent, home, and symlinked paths from a stated working directory.</div>
+          <div class="exit-item"><b>Interpret</b>Read file and directory <code>rwx</code> bits and translate common octal modes without guessing.</div>
+          <div class="exit-item"><b>Diagnose</b>Trace a permission failure across user identity, parent traversal, file mode, group, and ACLs.</div>
+        </div>
+
+        <h3>Continue learning</h3>
+        <div class="resources">
+          <a class="resource" href="https://missing.csail.mit.edu/2020/course-shell/" target="_blank" rel="noopener"><b>Missing Semester: Shell</b><span>Paths and filesystem tools</span></a>
+          <a class="resource" href="https://man7.org/linux/man-pages/man7/path_resolution.7.html" target="_blank" rel="noopener"><b>path_resolution(7)</b><span>Linux pathname resolution</span></a>
+          <a class="resource" href="https://www.gnu.org/software/coreutils/manual/coreutils.html" target="_blank" rel="noopener"><b>GNU Coreutils</b><span>File utility reference</span></a>
+        </div>
+      </section>
+
+      <footer class="footer">Part of the <a href="../index.html#w1">Detection Engineering Learning Console</a> · Week 1, Topic 1.2</footer>
+    </main>
+  </div>
+</div>
+</body>
+</html>

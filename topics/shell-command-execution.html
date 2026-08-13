@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="A practical shell and command-execution field guide for detection engineers." />
+<title>Shell &amp; Command Execution — Detection Engineering Learning Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/guide.css" />
+<script src="assets/guide.js" defer></script>
+</head>
+<body>
+<div class="topbar"><div class="topbar-inner">
+  <a class="back" href="../index.html#w1"><span>←</span> Back to curriculum</a>
+  <span class="topic-id">Week 1 · Topic 1.1</span>
+</div></div>
+
+<div class="shell">
+  <header class="hero">
+    <p class="eyebrow">Practical field guide · Shell</p>
+    <h1>Know what runs <span>before</span> you run it.</h1>
+    <p class="lede">A shell turns text into processes. Understanding parsing, expansion, command lookup, and exit status lets you automate investigations without silently running the wrong program or corrupting evidence.</p>
+    <div class="hero-grid" aria-label="Guide summary">
+      <div class="hero-stat"><b>18 commands</b><span>Core working set</span></div>
+      <div class="hero-stat"><b>4 scenarios</b><span>Detection work</span></div>
+      <div class="hero-stat"><b>3 drills</b><span>Run unassisted</span></div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <a href="#why">Why it matters</a>
+      <a href="#model">Execution model</a>
+      <a href="#lookup">PATH &amp; lookup</a>
+      <a href="#quoting">Quoting &amp; expansion</a>
+      <a href="#startup">Startup files</a>
+      <a href="#scripts">Reliable scripts</a>
+      <a href="#scenarios">Work scenarios</a>
+      <a class="toc-practice" href="#drills">Hands-on drills</a>
+      <a href="#cheatsheet">Cheat sheet</a>
+    </nav>
+
+    <main>
+      <section id="why">
+        <p class="section-kicker">01 · Purpose</p>
+        <h2>Why the shell matters in detection work</h2>
+        <p class="intro">Detection work constantly crosses the boundary between files, processes, APIs, and small programs. The shell is the control plane connecting them.</p>
+        <div class="cards">
+          <article class="card"><span class="num">01 · TRIAGE</span><h4>Interrogate a host quickly</h4><p>Find a process, inspect a log, hash an artifact, or summarize a capture without first writing an application.</p></article>
+          <article class="card"><span class="num">02 · AUTOMATION</span><h4>Turn a sequence into a repeatable tool</h4><p>A careful script preserves exact commands, inputs, outputs, and failure behavior for later review.</p></article>
+          <article class="card"><span class="num">03 · SAFETY</span><h4>See how text becomes arguments</h4><p>Quoting and expansion determine whether a filename stays one argument or becomes many—and whether data becomes executable syntax.</p></article>
+          <article class="card"><span class="num">04 · DEBUGGING</span><h4>Explain environment differences</h4><p>PATH, aliases, startup files, and exported variables explain why a command works interactively but fails in cron, CI, or production.</p></article>
+        </div>
+        <div class="callout"><b>The useful definition</b>A terminal is the window and input/output device. A shell—such as Bash or Zsh—is the program reading command text, expanding it, locating commands, starting processes, and reporting their exit status.</div>
+      </section>
+
+      <section id="model">
+        <p class="section-kicker">02 · Mental model</p>
+        <h2>From command line to running process</h2>
+        <p class="intro">The shell does significant work before the target program receives anything. The target receives an argument array, not your original command-line string.</p>
+        <div class="model">
+          <div class="model-track">
+            <div class="model-box"><b>Parse</b><span>Recognize words, quotes, operators, redirections, and pipelines.</span><code>printf '%s\n' "$x"</code></div>
+            <div class="arrow">→</div>
+            <div class="model-box"><b>Expand</b><span>Resolve variables, command substitutions, globs, and word splitting in shell-defined order.</span><code>"$HOME"/*.log</code></div>
+            <div class="arrow">→</div>
+            <div class="model-box"><b>Execute</b><span>Run a builtin or locate an executable, pass arguments and environment, then collect status.</span><code>execve(...)</code></div>
+          </div>
+          <p class="model-caption">This is why <code>echo "$pattern"</code> and <code>echo $pattern</code> can behave differently: quote removal and word splitting occur before <code>echo</code> starts.</p>
+        </div>
+
+        <h3>Shell syntax versus program arguments</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Text</th><th>Handled by</th><th>Effect</th></tr></thead>
+            <tbody>
+              <tr><td><code>| &gt; &amp;&amp; ;</code></td><td>Shell</td><td>Connect, redirect, conditionally run, or separate commands.</td></tr>
+              <tr><td><code>*.json</code></td><td>Shell</td><td>Usually expands to matching pathnames before the program starts.</td></tr>
+              <tr><td><code>--format json</code></td><td>Target program</td><td>Two arguments interpreted according to that program's CLI.</td></tr>
+              <tr><td><code>KEY=value cmd</code></td><td>Shell</td><td>Adds an environment variable for that command invocation.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <pre><code># Reveal the exact argument boundaries a program receives
+python3 -c 'import sys; print(sys.argv)' one "two words" '*.log'</code></pre>
+        <div class="callout warn"><b>Shell is not Python</b>Each tool has its own parser. Shell quoting ends before Python, awk, sed, jq, SQL, or a regular-expression engine interprets its arguments. Debug one parser boundary at a time.</div>
+      </section>
+
+      <section id="lookup">
+        <p class="section-kicker">03 · Command resolution</p>
+        <h2>How the shell finds a command</h2>
+        <p class="intro">A bare command name may resolve to an alias, function, builtin, hashed location, or executable in PATH. Do not assume <code>python</code> means the interpreter you intended.</p>
+        <div class="command-list">
+          <div class="command"><code>type -a python3</code><p><b>Show every resolution candidate.</b>Unlike <code>which</code>, shell <code>type</code> can report aliases, functions, and builtins as well as files.</p></div>
+          <div class="command"><code>command -v python3</code><p><b>Get the command the shell would use.</b>Suitable for portable existence checks in scripts.</p></div>
+          <div class="command"><code>which python3</code><p><b>Common executable lookup.</b>Useful interactively, but behavior varies and it may not explain aliases or functions.</p></div>
+          <div class="command"><code>printf '%s\n' "$PATH"</code><p><b>Inspect lookup order.</b>PATH is a colon-separated list searched left to right.</p></div>
+          <div class="command"><code>env</code><p><b>List exported environment.</b>Environment variables are inherited by child processes; ordinary shell variables are not unless exported.</p></div>
+          <div class="command"><code>hash -r</code><p><b>Forget cached executable locations.</b>Useful after installing or moving a program when the shell remembers an old path.</p></div>
+        </div>
+        <pre><code># Trace the selected Python from command name to file
+type -a python3
+command -v python3
+ls -l "$(command -v python3)"
+python3 -c 'import sys; print(sys.executable)'</code></pre>
+        <div class="callout danger"><b>PATH is a trust boundary</b>Putting a writable or current directory early in PATH can cause an attacker-controlled executable to run instead of the expected system tool. Privileged scripts should use a controlled PATH and explicit command paths where appropriate.</div>
+      </section>
+
+      <section id="quoting">
+        <p class="section-kicker">04 · Data stays data</p>
+        <h2>Quoting, expansion, and globbing</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Form</th><th>Meaning</th><th>Example</th></tr></thead>
+            <tbody>
+              <tr><td>Single quotes</td><td>Everything inside is literal; a single quote cannot appear directly.</td><td><code>'*.log $HOME'</code></td></tr>
+              <tr><td>Double quotes</td><td>Preserve one argument while allowing variable and command substitution.</td><td><code>"$report_dir/run 1.json"</code></td></tr>
+              <tr><td>Unquoted variable</td><td>Expansion is shell- and option-dependent. Bash normally splits and then globs; Zsh normally does not split scalar values by default. Usually wrong for path/data variables.</td><td><code>$files</code></td></tr>
+              <tr><td>Command substitution</td><td>Replaces syntax with captured stdout; trailing newlines are removed.</td><td><code>"$(date +%F)"</code></td></tr>
+              <tr><td>Glob</td><td>Shell pathname matching, not a regular expression.</td><td><code>logs/*.json</code></td></tr>
+              <tr><td>Brace expansion</td><td>Generate literal alternatives or ranges before parameter expansion.</td><td><code>rule.{yml,json}</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <pre><code>report_dir='case files'
+pattern='*.json'
+
+printf '&lt;%s&gt;\n' "$report_dir"     # one argument in Bash and Zsh
+printf '&lt;%s&gt;\n' $report_dir       # Bash normally splits; Zsh normally does not
+printf '&lt;%s&gt;\n' "$pattern"        # literal *.json in both
+printf '&lt;%s&gt;\n' $pattern          # Bash may glob; Zsh scalar behavior differs</code></pre>
+
+        <div class="callout warn"><b>Your shell dialect is part of the runtime</b>Do not depend on an unquoted scalar behaving the same in Bash, Zsh, Dash, or another shell. Quote data expansions, use arrays in shells that support them, and declare the interpreter a script requires.</div>
+
+        <h3>Safe argument construction</h3>
+        <p>In Bash or Zsh, use arrays when building a command dynamically. An array preserves each element as one argument without evaluating data as shell syntax.</p>
+        <pre><code>args=(--format json --limit 50)
+[[ -n "${since:-}" ]] &amp;&amp; args+=(--since "$since")
+python3 analyzer.py "${args[@]}"
+
+# Avoid eval "$user_supplied_text"
+# It turns data back into executable shell syntax.</code></pre>
+      </section>
+
+      <section id="startup">
+        <p class="section-kicker">05 · Environment</p>
+        <h2>Startup files: what runs when</h2>
+        <p class="intro">Shell startup behavior depends on the shell, whether it is login or non-login, and whether it is interactive. That is why blindly editing every dotfile creates duplicate PATH entries and confusing side effects.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Shell / mode</th><th>Common user files</th><th>Typical use</th></tr></thead>
+            <tbody>
+              <tr><td>Zsh login</td><td><code>~/.zprofile</code></td><td>Login-session environment such as PATH setup.</td></tr>
+              <tr><td>Zsh interactive</td><td><code>~/.zshrc</code></td><td>Aliases, prompt, completion, interactive options.</td></tr>
+              <tr><td>Bash login</td><td><code>~/.bash_profile</code> or <code>~/.profile</code></td><td>Login-session environment.</td></tr>
+              <tr><td>Bash interactive non-login</td><td><code>~/.bashrc</code></td><td>Aliases, prompt, interactive helpers.</td></tr>
+              <tr><td>Non-interactive script</td><td>Normally none of the interactive files</td><td>The script must declare what it needs.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <pre><code>printf 'shell process: %s\n' "$$"
+printf 'declared shell: %s\n' "$SHELL"
+ps -p $$ -o command=
+case $- in *i*) echo interactive ;; *) echo non-interactive ;; esac</code></pre>
+        <div class="callout warn"><b>Keep startup files boring</b>A startup file should be fast, repeatable, and quiet. Do not print output or launch long-running programs unconditionally; non-obvious side effects break terminals, remote sessions, and tooling.</div>
+      </section>
+
+      <section id="scripts">
+        <p class="section-kicker">06 · Reliable automation</p>
+        <h2>Write scripts that fail visibly</h2>
+        <pre><code>#!/usr/bin/env bash
+set -euo pipefail
+
+readonly input=${1:?usage: analyze.sh ACCESS_LOG}
+readonly out_dir=${OUT_DIR:-reports}
+
+mkdir -p "$out_dir"
+python3 analyzer.py "$input" > "$out_dir/summary.json"
+printf 'wrote %s\n' "$out_dir/summary.json"</code></pre>
+        <div class="command-list">
+          <div class="command"><code>#!/usr/bin/env bash</code><p><b>Select the interpreter through PATH.</b>Portable across common user environments; use a fixed absolute interpreter path when the runtime must be tightly controlled.</p></div>
+          <div class="command"><code>set -e</code><p><b>Exit on some unhandled failures.</b>Useful with care, but its exceptions depend on shell syntax and context; handle expected failures explicitly instead of treating it as complete error handling.</p></div>
+          <div class="command"><code>set -u</code><p><b>Reject unset variables.</b>Catches misspellings and missing configuration instead of substituting an empty string.</p></div>
+          <div class="command"><code>set -o pipefail</code><p><b>Expose pipeline failures.</b>Without it, a failed early stage can be hidden by a successful final command.</p></div>
+          <div class="command"><code>trap cleanup EXIT</code><p><b>Run cleanup on script exit.</b>Use for temporary resources, while ensuring cleanup targets are explicit and validated.</p></div>
+          <div class="command"><code>shellcheck script.sh</code><p><b>Statically inspect shell code.</b>Finds common quoting, expansion, portability, and error-handling bugs.</p></div>
+        </div>
+        <div class="callout"><b>Idempotent means safe to repeat</b>A setup script should converge on the same result when run twice: create missing directories, verify before appending, update files atomically, and avoid duplicating config.</div>
+      </section>
+
+      <section id="scenarios">
+        <p class="section-kicker">07 · On the job</p>
+        <h2>Detection-engineering scenarios</h2>
+
+        <article class="scenario">
+          <div class="scenario-head"><span class="tag">MYSTERY BINARY</span><div><h4>The analyzer differs between your terminal and CI</h4></div></div>
+          <p>Compare command resolution and exported environment instead of reinstalling randomly.</p>
+          <pre><code>type -a python3
+python3 -c 'import sys; print(sys.executable); print(sys.version)'
+env | sort
+# In CI, record the same three outputs and compare.</code></pre>
+          <p><strong>What this reveals:</strong> a virtual environment, user-installed binary, alias, or PATH order difference.</p>
+        </article>
+
+        <article class="scenario">
+          <div class="scenario-head"><span class="tag">UNSAFE INPUT</span><div><h4>A case filename contains spaces and wildcard characters</h4></div></div>
+          <p>Treat the path as one argument and terminate option parsing when the command supports <code>--</code>.</p>
+          <pre><code>case_file='captures/login attempt [1].json'
+shasum -a 256 -- "$case_file"     # macOS; sha256sum on GNU/Linux
+python3 analyzer.py --input "$case_file"</code></pre>
+          <p><strong>Why it matters:</strong> unquoted evidence paths can be split, expanded, or mistaken for options, producing the wrong result without an obvious error.</p>
+        </article>
+
+        <article class="scenario">
+          <div class="scenario-head"><span class="tag">CRON FAILURE</span><div><h4>A script works manually but not from a scheduler</h4></div></div>
+          <p>Assume a smaller environment and different working directory. Make inputs, output paths, PATH, and interpreter explicit.</p>
+          <pre><code>#!/usr/bin/env bash
+set -euo pipefail
+PATH=/usr/local/bin:/usr/bin:/bin
+cd /opt/detection-rules
+exec ./run-validation.sh >> /var/log/rule-validation.log 2>&amp;1</code></pre>
+        </article>
+
+        <article class="scenario">
+          <div class="scenario-head"><span class="tag">TRACE</span><div><h4>A setup script behaves differently on the second run</h4></div></div>
+          <p>Trace expansions and commands in a sanitized lab run. Never enable tracing around secrets because expanded values can enter logs.</p>
+          <pre><code>PS4='+ ${BASH_SOURCE}:${LINENO}: '
+bash -x ./setup-lab.sh
+bash -n ./setup-lab.sh
+shellcheck ./setup-lab.sh</code></pre>
+        </article>
+      </section>
+
+      <section id="drills">
+        <p class="section-kicker">08 · Practice</p>
+        <h2>Hands-on drills</h2>
+        <p class="intro">Run these from a blank terminal. Save commands, outputs, and your explanation—not just the final result.</p>
+
+        <article class="drill">
+          <div class="drill-head"><h3>1. Trace Python through PATH</h3><span class="time">15 min</span></div>
+          <pre><code>printf '%s\n' "$PATH"
+type -a python python3
+command -v python3
+ls -l "$(command -v python3)"
+python3 -c 'import os,sys; print(sys.executable); print(os.environ["PATH"])'</code></pre>
+          <ul class="checklist"><li>Explain the left-to-right PATH search.</li><li>Identify aliases, shims, or symlinks in the chain.</li><li>Predict what changes after activating a virtual environment.</li></ul>
+        </article>
+
+        <article class="drill">
+          <div class="drill-head"><h3>2. Compare Bash and Zsh quoting</h3><span class="time">20 min</span></div>
+          <pre><code>mkdir -p shell-lab &amp;&amp; cd shell-lab
+touch 'one report.json' 'two.json' 'literal*.json'
+cat &gt; quote-demo.sh &lt;&lt;'EOF'
+value='*.json'
+set -- $value
+printf 'unquoted argc=%s\n' "$#"
+printf '&lt;%s&gt;\n' "$@"
+set -- "$value"
+printf 'quoted argc=%s value=&lt;%s&gt;\n' "$#" "$1"
+EOF
+
+bash quote-demo.sh
+zsh quote-demo.sh</code></pre>
+          <ul class="checklist"><li>Explain why Bash and Zsh can produce different unquoted argument counts.</li><li>Explain why the quoted form remains one literal argument in both.</li><li>State the script interpreter and options you would require instead of relying on interactive defaults.</li></ul>
+        </article>
+
+        <article class="drill">
+          <div class="drill-head"><h3>3. Build an idempotent setup-and-test script</h3><span class="time">30–45 min</span></div>
+          <p>Create a script that makes a lab directory, creates a virtual environment only when absent, installs from a pinned requirements file, runs tests, and succeeds unchanged on a second run.</p>
+          <ul class="checklist"><li>Use strict mode and quote every data/path expansion.</li><li>Run <code>shellcheck</code> and explain every suppression, if any.</li><li>Capture first-run and second-run transcripts; explain why nothing duplicates.</li></ul>
+        </article>
+      </section>
+
+      <section id="cheatsheet">
+        <p class="section-kicker">09 · Desk reference</p>
+        <h2>One-screen cheat sheet</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Intent</th><th>Command / pattern</th></tr></thead>
+            <tbody>
+              <tr><td>Identify current shell process</td><td><code>ps -p $$ -o command=</code></td></tr>
+              <tr><td>Resolve a command</td><td><code>type -a cmd</code> · <code>command -v cmd</code></td></tr>
+              <tr><td>Inspect PATH safely</td><td><code>printf '%s\n' "$PATH"</code></td></tr>
+              <tr><td>Set env for one command</td><td><code>KEY=value command</code></td></tr>
+              <tr><td>Export to child processes</td><td><code>export KEY=value</code></td></tr>
+              <tr><td>Preserve one argument</td><td><code>"$variable"</code></td></tr>
+              <tr><td>Preserve array arguments</td><td><code>"${array[@]}"</code></td></tr>
+              <tr><td>Check last exit status</td><td><code>printf '%s\n' "$?"</code></td></tr>
+              <tr><td>Run next only on success</td><td><code>first &amp;&amp; second</code></td></tr>
+              <tr><td>Run fallback on failure</td><td><code>first || fallback</code></td></tr>
+              <tr><td>Syntax-check Bash</td><td><code>bash -n script.sh</code></td></tr>
+              <tr><td>Lint shell</td><td><code>shellcheck script.sh</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Ready to pass Topic 1.1?</h3>
+        <div class="exit-grid">
+          <div class="exit-item"><b>Explain</b>Terminal versus shell, parse/expand/execute, and how a child receives arguments and environment.</div>
+          <div class="exit-item"><b>Trace</b>Resolve <code>python3</code> through aliases, PATH entries, symlinks, and <code>sys.executable</code>.</div>
+          <div class="exit-item"><b>Predict</b>State the exact arguments produced by quoted variables, unquoted variables, and globs.</div>
+          <div class="exit-item"><b>Build</b>Write and rerun an idempotent setup-and-test script with visible failure behavior.</div>
+        </div>
+
+        <h3>Continue learning</h3>
+        <div class="resources">
+          <a class="resource" href="https://missing.csail.mit.edu/2020/course-shell/" target="_blank" rel="noopener"><b>Missing Semester: Shell</b><span>Practical lecture and notes</span></a>
+          <a class="resource" href="https://www.gnu.org/software/bash/manual/bash.html" target="_blank" rel="noopener"><b>GNU Bash manual</b><span>Exact shell semantics</span></a>
+          <a class="resource" href="https://www.shellcheck.net/" target="_blank" rel="noopener"><b>ShellCheck</b><span>Shell script analysis</span></a>
+        </div>
+      </section>
+
+      <footer class="footer">Part of the <a href="../index.html#w1">Detection Engineering Learning Console</a> · Week 1, Topic 1.1</footer>
+    </main>
+  </div>
+</div>
+</body>
+</html>
