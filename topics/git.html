@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="A practical Git field guide for detection engineers: mental models, everyday commands, recovery, realistic scenarios, and hands-on drills." />
+<title>Git Field Guide — Detection Engineering Learning Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0b1116;--bg2:#0e151c;--surface:#131c24;--surface2:#18232d;--line:#25333f;--line2:#31424f;
+    --text:#e7eef4;--muted:#93a4b2;--muted2:#6d7f8d;--accent:#94a3b8;--teal:#2dd4bf;--amber:#fbbf24;
+    --red:#fb7185;--blue:#38bdf8;--green:#34d399;--radius:14px;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,sans-serif;
+    --display:'Space Grotesk',var(--sans);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth;scroll-padding-top:28px}
+  body{margin:0;background:
+      radial-gradient(1000px 500px at 5% -5%,rgba(148,163,184,.09),transparent 58%),
+      radial-gradient(800px 500px at 100% 10%,rgba(45,212,191,.05),transparent 60%),var(--bg);
+    color:var(--text);font-family:var(--sans);line-height:1.65;-webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  button{font:inherit}
+  .shell{max-width:1180px;margin:0 auto;padding:0 22px 100px}
+  .topbar{border-bottom:1px solid var(--line);background:rgba(11,17,22,.82);backdrop-filter:blur(12px)}
+  .topbar-inner{max-width:1180px;margin:0 auto;padding:11px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+  .back{display:inline-flex;align-items:center;gap:9px;color:var(--muted);font-family:var(--mono);font-size:12px;text-decoration:none}
+  .back:hover{color:var(--text)}
+  .back span{color:var(--accent)}
+  .topic-id{font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted2)}
+  .hero{padding:62px 0 44px;max-width:900px}
+  .eyebrow{margin:0 0 15px;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent)}
+  h1{font-family:var(--display);font-size:clamp(39px,7vw,68px);line-height:1.02;letter-spacing:-.035em;margin:0 0 20px;max-width:12ch}
+  h1 span{color:var(--accent)}
+  .lede{max-width:69ch;margin:0;color:var(--muted);font-size:17px}
+  .hero-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:30px;max-width:760px}
+  .hero-stat{border:1px solid var(--line);background:rgba(19,28,36,.78);border-radius:11px;padding:13px 14px}
+  .hero-stat b{display:block;font-family:var(--display);font-size:17px;margin-bottom:1px}
+  .hero-stat span{display:block;color:var(--muted2);font-family:var(--mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase}
+  .layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:46px;align-items:start}
+  .toc{position:sticky;top:22px;border-left:1px solid var(--line);padding:3px 0 3px 15px}
+  .toc-title{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted2);margin:0 0 9px}
+  .toc a{display:block;text-decoration:none;color:var(--muted);font-size:12.5px;padding:4px 8px;border-radius:5px;margin-left:-8px}
+  .toc a:hover{background:var(--surface);color:var(--text)}
+  .toc .toc-practice{color:var(--teal);margin-top:7px}
+  main{min-width:0;max-width:820px}
+  section{scroll-margin-top:26px;margin:0 0 64px}
+  .section-kicker{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin:0 0 5px}
+  h2{font-family:var(--display);font-size:clamp(25px,4vw,34px);line-height:1.15;letter-spacing:-.018em;margin:0 0 12px}
+  h3{font-family:var(--display);font-size:18px;line-height:1.3;margin:28px 0 8px}
+  h4{font-family:var(--display);font-size:15px;line-height:1.35;margin:0 0 5px}
+  p{margin:0 0 14px}
+  .intro{color:var(--muted);font-size:15px;max-width:70ch;margin-bottom:23px}
+  strong{color:var(--text)}
+  code{font-family:var(--mono);font-size:.9em;color:#cbd5e1;background:var(--surface2);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+  pre{position:relative;margin:10px 0 0;padding:17px 54px 17px 17px;overflow:auto;border:1px solid var(--line);border-radius:10px;background:#091016;color:#d8e2e9;font:12.5px/1.75 var(--mono);white-space:pre}
+  pre code{font:inherit;color:inherit;background:none;border:0;border-radius:0;padding:0}
+  .copy{position:absolute;right:8px;top:8px;border:1px solid var(--line2);border-radius:6px;padding:4px 7px;background:var(--surface);color:var(--muted);font-family:var(--mono);font-size:9px;cursor:pointer;letter-spacing:.04em}
+  .copy:hover{border-color:var(--accent);color:var(--text)}
+  .copy.copied{color:var(--green);border-color:rgba(52,211,153,.45)}
+  .callout{border:1px solid rgba(45,212,191,.25);border-left:3px solid var(--teal);border-radius:10px;background:rgba(45,212,191,.065);padding:14px 16px;color:var(--muted);font-size:14px;margin:20px 0}
+  .callout b{display:block;color:var(--teal);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+  .callout.warn{border-color:rgba(251,191,36,.27);border-left-color:var(--amber);background:rgba(251,191,36,.06)}
+  .callout.warn b{color:var(--amber)}
+  .callout.danger{border-color:rgba(251,113,133,.27);border-left-color:var(--red);background:rgba(251,113,133,.055)}
+  .callout.danger b{color:var(--red)}
+  .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin-top:18px}
+  .card{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:16px}
+  .card .num{display:block;color:var(--muted2);font-family:var(--mono);font-size:10px;letter-spacing:.09em;margin-bottom:6px}
+  .card p{color:var(--muted);font-size:13.5px;margin:0}
+  .model{margin:22px 0;border:1px solid var(--line);border-radius:13px;background:var(--surface);padding:20px}
+  .model-track{display:grid;grid-template-columns:1fr 38px 1fr 38px 1fr;align-items:center;gap:5px}
+  .model-box{min-height:112px;border:1px solid var(--line2);border-radius:10px;padding:13px;background:var(--bg2)}
+  .model-box b{display:block;font-family:var(--display);font-size:15px;margin-bottom:4px}
+  .model-box span{display:block;color:var(--muted);font-size:12px;line-height:1.45}
+  .model-box code{display:inline-block;margin-top:9px;color:var(--teal)}
+  .arrow{text-align:center;color:var(--muted2);font-family:var(--mono);font-size:20px}
+  .model-caption{margin:12px 2px 0;color:var(--muted2);font-size:12.5px}
+  .branch-map{font:12.5px/1.7 var(--mono);white-space:pre;overflow:auto;color:#cbd5e1;border:1px solid var(--line);border-radius:10px;background:var(--bg2);padding:16px;margin-top:14px}
+  .command-list{display:flex;flex-direction:column;gap:10px;margin-top:18px}
+  .command{display:grid;grid-template-columns:minmax(190px,.8fr) 1.2fr;gap:18px;border:1px solid var(--line);background:var(--surface);border-radius:11px;padding:14px 15px;align-items:start}
+  .command code{display:inline-block;color:#d8e2e9;font-size:12px;line-height:1.5;word-break:break-word}
+  .command p{color:var(--muted);font-size:13px;margin:0}
+  .command p b{display:block;font-size:12.5px;margin-bottom:2px}
+  .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:11px;margin-top:18px}
+  table{width:100%;border-collapse:collapse;background:var(--surface);font-size:13px}
+  th{text-align:left;color:var(--muted2);font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;background:var(--bg2)}
+  th,td{padding:11px 13px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:0}
+  td{color:var(--muted)}
+  td:first-child{color:var(--text)}
+  td code{white-space:nowrap}
+  .safe{color:var(--green);font-family:var(--mono);font-size:10px;text-transform:uppercase}
+  .careful{color:var(--amber);font-family:var(--mono);font-size:10px;text-transform:uppercase}
+  .danger-text{color:var(--red);font-family:var(--mono);font-size:10px;text-transform:uppercase}
+  .scenario{border-top:1px dashed var(--line);padding:25px 0 5px}
+  .scenario:first-of-type{border-top:0;padding-top:4px}
+  .scenario-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:7px}
+  .scenario-head .tag{flex:0 0 auto;border-radius:5px;background:rgba(56,189,248,.13);color:#7dd3fc;font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.08em;padding:3px 6px;margin-top:3px}
+  .scenario p{color:var(--muted);font-size:14px}
+  .steps{counter-reset:step;list-style:none;margin:17px 0 0;padding:0;display:flex;flex-direction:column;gap:11px}
+  .steps li{counter-increment:step;position:relative;padding:1px 0 1px 38px;color:var(--muted);font-size:14px}
+  .steps li::before{content:counter(step);position:absolute;left:0;top:0;width:25px;height:25px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line2);color:var(--accent);font:600 10px var(--mono);background:var(--surface)}
+  .steps li b{color:var(--text)}
+  .drill{border:1px solid var(--line);border-radius:13px;background:var(--surface);padding:18px;margin:14px 0}
+  .drill-head{display:flex;justify-content:space-between;align-items:start;gap:12px;margin-bottom:8px}
+  .drill-head h3{margin:0;font-size:18px}
+  .time{white-space:nowrap;color:var(--muted2);font-family:var(--mono);font-size:10px;border:1px solid var(--line);border-radius:999px;padding:3px 8px}
+  .drill > p{color:var(--muted);font-size:13.5px}
+  .checklist{list-style:none;margin:15px 0 0;padding:0}
+  .checklist li{position:relative;color:var(--muted);font-size:13.5px;padding:5px 0 5px 26px}
+  .checklist li::before{content:"";position:absolute;left:1px;top:9px;width:13px;height:13px;border:1px solid var(--line2);border-radius:4px}
+  .exit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:17px}
+  .exit-item{border:1px solid var(--line);border-radius:10px;padding:13px 14px;color:var(--muted);font-size:13.5px;background:var(--surface)}
+  .exit-item b{display:block;color:var(--green);font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
+  .resources{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:18px}
+  .resource{display:block;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:13px;text-decoration:none}
+  .resource:hover{border-color:var(--line2);background:var(--surface2)}
+  .resource b{display:block;font-size:13px;margin-bottom:3px}
+  .resource span{color:var(--muted2);font-size:11.5px}
+  .footer{border-top:1px solid var(--line);padding-top:24px;color:var(--muted2);font:11px/1.7 var(--mono)}
+  .footer a{color:var(--muted)}
+  @media(max-width:860px){
+    .layout{grid-template-columns:1fr}.toc{position:static;display:flex;gap:5px;overflow:auto;border-left:0;border-bottom:1px solid var(--line);padding:0 0 13px;margin-bottom:4px}.toc-title{display:none}.toc a{flex:0 0 auto;border:1px solid var(--line);border-radius:999px;padding:5px 9px;margin:0}.toc .toc-practice{margin-top:0}.hero{padding-top:46px}.resources{grid-template-columns:1fr 1fr}
+  }
+  @media(max-width:620px){
+    .shell{padding-left:16px;padding-right:16px}.topbar-inner{padding-left:16px;padding-right:16px}.topic-id{display:none}.hero-grid,.cards,.exit-grid,.resources{grid-template-columns:1fr}.model-track{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}.model-box{min-height:0}.command{grid-template-columns:1fr;gap:9px}.command code{width:max-content;max-width:100%}th,td{padding:10px}.drill{padding:15px}h1{font-size:42px}
+  }
+  @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="back" href="../index.html#w0"><span>←</span> Back to curriculum</a>
+    <span class="topic-id">Week 0 · Topic 0.3</span>
+  </div>
+</div>
+
+<div class="shell">
+  <header class="hero">
+    <p class="eyebrow">Practical field guide · Git</p>
+    <h1>Make change <span>recoverable.</span></h1>
+    <p class="lede">Git is the safety system around your code, rules, queries, runbooks, and infrastructure. This guide gives you the mental model and small command set needed to work confidently—especially when a merge goes wrong or a commit seems lost.</p>
+    <div class="hero-grid" aria-label="Guide summary">
+      <div class="hero-stat"><b>20 commands</b><span>Core working set</span></div>
+      <div class="hero-stat"><b>5 scenarios</b><span>From detection work</span></div>
+      <div class="hero-stat"><b>4 drills</b><span>Run in a throwaway repo</span></div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <a href="#why">Why Git matters</a>
+      <a href="#model">Mental model</a>
+      <a href="#setup">Setup</a>
+      <a href="#daily">Daily workflow</a>
+      <a href="#branches">Branches &amp; remotes</a>
+      <a href="#undo">Undo &amp; recovery</a>
+      <a href="#scenarios">Work scenarios</a>
+      <a class="toc-practice" href="#drills">Hands-on drills</a>
+      <a href="#cheatsheet">Cheat sheet</a>
+    </nav>
+
+    <main>
+      <section id="why">
+        <p class="section-kicker">01 · Purpose</p>
+        <h2>Why Git matters in detection work</h2>
+        <p class="intro">A detection is a production decision expressed as code. Git lets you prove what changed, review why it changed, test it in isolation, and return to a known-good version.</p>
+        <div class="cards">
+          <article class="card"><span class="num">01 · AUDITABILITY</span><h4>Every change has a trail</h4><p>A commit connects an exact snapshot to an author and an explanation. During an incident, you can answer “what changed?” without relying on memory.</p></article>
+          <article class="card"><span class="num">02 · SAFE EXPERIMENTS</span><h4>Branches isolate risky work</h4><p>Tune a threshold, rewrite a Sigma rule, or test a parser without destabilizing the version others depend on.</p></article>
+          <article class="card"><span class="num">03 · REVIEW</span><h4>Diffs make reasoning visible</h4><p>A reviewer can inspect a five-line logic change instead of rereading the whole file. That is how false-positive risk gets caught before deployment.</p></article>
+          <article class="card"><span class="num">04 · RECOVERY</span><h4>Mistakes become reversible</h4><p>Revert a bad shared change, restore a deleted file, or recover a commit through the reflog. Confidence comes from knowing the escape routes.</p></article>
+          <article class="card"><span class="num">05 · REPRODUCIBILITY</span><h4>A commit identifies the evidence</h4><p>Pin an evaluation report, rule bundle, and test corpus to one commit SHA so another engineer can reproduce the result.</p></article>
+          <article class="card"><span class="num">06 · COLLABORATION</span><h4>Parallel work can converge</h4><p>Multiple engineers can change different rules at the same time, then merge their work with conflicts called out explicitly.</p></article>
+        </div>
+        <div class="callout"><b>The useful definition</b>Git is a local version-control system. It stores snapshots of a project and a graph of how those snapshots relate. GitHub, GitLab, and Bitbucket host Git repositories and add collaboration features; they are not Git itself.</div>
+      </section>
+
+      <section id="model">
+        <p class="section-kicker">02 · Mental model</p>
+        <h2>Think in snapshots and pointers</h2>
+        <p class="intro">Most Git confusion disappears when you stop thinking “save/upload” and track which of three places currently contains each version of a file.</p>
+        <div class="model">
+          <div class="model-track">
+            <div class="model-box"><b>Working tree</b><span>Files you can see and edit right now. Changes here are not yet selected for the next snapshot.</span><code>git diff</code></div>
+            <div class="arrow">→</div>
+            <div class="model-box"><b>Staging area</b><span>Also called the index. The exact content selected for the next commit.</span><code>git diff --staged</code></div>
+            <div class="arrow">→</div>
+            <div class="model-box"><b>Repository</b><span>Committed snapshots and the graph connecting them, stored inside <code>.git</code>.</span><code>git log</code></div>
+          </div>
+          <p class="model-caption"><code>git add</code> moves content into the staging area. <code>git commit</code> records the staged snapshot. Editing after <code>git add</code> creates a new unstaged difference.</p>
+        </div>
+
+        <h3>Commits form a graph</h3>
+        <div class="branch-map" role="img" aria-label="A main branch and rule tuning branch converging at a merge commit">A──B──C────────M   main
+      ╲        ╱
+       D──E───       tune/login-rule
+
+HEAD → main → M</div>
+        <p>A commit points to a complete project snapshot, its parent commit or commits, and metadata. A branch such as <code>main</code> is only a movable name pointing at one commit. <code>HEAD</code> identifies what you currently have checked out—usually a branch.</p>
+
+        <div class="callout warn"><b>Three distinctions to keep</b>A commit is a snapshot, not merely a diff. A branch is a pointer, not a folder or copy. A remote such as <code>origin</code> is another repository, not an automatic backup.</div>
+
+        <h3>The object model, briefly</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Object</th><th>What it stores</th><th>Why you care</th></tr></thead>
+            <tbody>
+              <tr><td>Blob</td><td>File content</td><td>Identical content is stored once and addressed by its hash.</td></tr>
+              <tr><td>Tree</td><td>Directory listing: names, modes, and blob/tree references</td><td>A commit can identify a complete filesystem snapshot.</td></tr>
+              <tr><td>Commit</td><td>Root tree, parent(s), author, time, message</td><td>This is the unit you inspect, share, revert, and review.</td></tr>
+              <tr><td>Tag</td><td>A stable name, often for a release commit</td><td>Use it to mark a known rule-pack or deployment version.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <pre><code># Follow the current commit to its tree, then inspect an object
+git cat-file -p HEAD
+git cat-file -p HEAD^{tree}</code></pre>
+      </section>
+
+      <section id="setup">
+        <p class="section-kicker">03 · Before the first commit</p>
+        <h2>Set up identity and safe defaults</h2>
+        <p class="intro">Configure your author identity once. Use the identity your team expects; the email may be tied to commit signing or your repository-hosting account.</p>
+        <pre><code>git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+git config --global init.defaultBranch main
+
+# See where every active value came from
+git config --list --show-origin</code></pre>
+
+        <h3>Start or copy a repository</h3>
+        <div class="command-list">
+          <div class="command"><code>git init</code><p><b>Start tracking the current directory.</b>Creates a hidden <code>.git</code> directory. It does not commit files or publish anything.</p></div>
+          <div class="command"><code>git clone &lt;url&gt;</code><p><b>Copy an existing repository.</b>Downloads its history, creates remote-tracking branches, and checks out the default branch.</p></div>
+        </div>
+        <div class="callout danger"><b>Before you add anything</b>Create a <code>.gitignore</code> for logs, virtual environments, generated data, credentials, local config, and large captures. Git is not a secrets store. If a real secret is ever committed, assume it is compromised and rotate it—even if you later delete it from history.</div>
+        <pre><code># A small Python / detection-project .gitignore
+.venv/
+__pycache__/
+*.py[cod]
+.env
+*.log
+captures/
+reports/private/
+
+# Force-add only when a broad ignore rule hid a known-safe file
+# git add -f reports/example-sanitized.json</code></pre>
+      </section>
+
+      <section id="daily">
+        <p class="section-kicker">04 · Core working set</p>
+        <h2>The everyday workflow</h2>
+        <p class="intro">Use this loop: orient, inspect, stage intentionally, inspect again, commit one coherent idea.</p>
+        <pre><code>git status --short
+git diff
+git add rules/suspicious_login.yml tests/test_suspicious_login.yml
+git diff --staged
+git commit -m "Tune suspicious-login threshold"
+git log --oneline --graph --decorate -8</code></pre>
+
+        <div class="command-list">
+          <div class="command"><code>git status --short</code><p><b>Orient before acting.</b>Shows tracked, modified, staged, and untracked files. Run it after any surprising command.</p></div>
+          <div class="command"><code>git diff</code><p><b>Review unstaged edits.</b>Answers: “What have I changed in my working tree?” Add <code>-- path</code> to focus on one file.</p></div>
+          <div class="command"><code>git diff --staged</code><p><b>Review the next commit.</b>Answers: “What exactly will be recorded if I commit now?”</p></div>
+          <div class="command"><code>git add &lt;path&gt;</code><p><b>Stage selected content.</b>Prefer explicit paths. <code>git add -p</code> lets you select individual hunks from a mixed file.</p></div>
+          <div class="command"><code>git commit -m "…"</code><p><b>Record the staged snapshot.</b>Write the reason or outcome: “Reject empty user-agent values,” not “update file.”</p></div>
+          <div class="command"><code>git log --oneline --graph --decorate --all</code><p><b>See the commit graph.</b>Useful when a merge, rebase, branch, or detached <code>HEAD</code> feels confusing.</p></div>
+          <div class="command"><code>git show &lt;sha&gt;</code><p><b>Inspect one commit.</b>Shows its metadata and patch. Use <code>git show &lt;sha&gt;:&lt;path&gt;</code> for a file as it existed then.</p></div>
+          <div class="command"><code>git blame &lt;path&gt;</code><p><b>Find context, not a culprit.</b>Maps lines to commits so you can read the decision that introduced a line.</p></div>
+        </div>
+
+        <div class="callout"><b>A good commit is a review unit</b>Keep code and its focused test together. Avoid mixing threshold tuning, formatting, dependency updates, and documentation in one commit. Small coherent commits make review, bisecting, and reverting safer.</div>
+      </section>
+
+      <section id="branches">
+        <p class="section-kicker">05 · Parallel work</p>
+        <h2>Branches, merges, and remotes</h2>
+        <p class="intro">A branch gives a line of work a name. The usual team flow is: update your view of the remote, create a focused branch, commit, push it, and request review.</p>
+        <pre><code>git switch main
+git pull --ff-only
+git switch -c tune/impossible-travel
+
+# edit, test, add, commit
+git push -u origin tune/impossible-travel</code></pre>
+
+        <h3>The branch commands</h3>
+        <div class="command-list">
+          <div class="command"><code>git branch</code><p><b>List local branches.</b>Use <code>-a</code> for local and remote-tracking branches, or <code>-vv</code> to see upstream relationships.</p></div>
+          <div class="command"><code>git switch -c &lt;name&gt;</code><p><b>Create and enter a branch.</b>It begins at the currently checked-out commit unless you supply another starting point.</p></div>
+          <div class="command"><code>git switch &lt;name&gt;</code><p><b>Change branches.</b>Your working tree is rewritten to match the target branch. Commit or stash relevant work first.</p></div>
+          <div class="command"><code>git merge &lt;branch&gt;</code><p><b>Bring another line of work into the current branch.</b>A fast-forward just moves the pointer; diverged histories require a merge commit.</p></div>
+        </div>
+
+        <h3>Remote vocabulary</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Command / name</th><th>Meaning</th><th>Working tree changes?</th></tr></thead>
+            <tbody>
+              <tr><td><code>origin</code></td><td>Conventional nickname for the repository you cloned. It can be renamed and is not inherently special.</td><td>No</td></tr>
+              <tr><td><code>origin/main</code></td><td>Your local record of where the remote's <code>main</code> was at the last fetch.</td><td>No</td></tr>
+              <tr><td><code>git fetch origin</code></td><td>Download new objects and update remote-tracking refs without integrating them.</td><td>No</td></tr>
+              <tr><td><code>git pull --ff-only</code></td><td>Fetch, then advance the current branch only when no merge commit is needed.</td><td>Yes</td></tr>
+              <tr><td><code>git push</code></td><td>Send commits and update an allowed branch on the remote.</td><td>No</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Resolve a merge conflict deliberately</h3>
+        <ol class="steps">
+          <li><b>Read the state.</b> Run <code>git status</code>; it names unmerged paths and the operation in progress.</li>
+          <li><b>Open every conflicted file.</b> Between <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code> and <code>=======</code> is one side; between <code>=======</code> and <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code> is the other.</li>
+          <li><b>Decide the correct final content.</b> Do not mechanically choose “ours” or “theirs”; both changes may be needed.</li>
+          <li><b>Remove the markers and test.</b> For a detection rule, validate syntax and replay positive and negative fixtures.</li>
+          <li><b>Stage and complete.</b> Run <code>git add &lt;resolved-path&gt;</code>, verify <code>git status</code>, then <code>git commit</code>.</li>
+        </ol>
+        <p class="callout warn"><b>Need to stop?</b><code>git merge --abort</code> returns to the pre-merge state when possible. For a rebase conflict, use <code>git rebase --abort</code>. Read <code>git status</code> before choosing either.</p>
+      </section>
+
+      <section id="undo">
+        <p class="section-kicker">06 · Safety & recovery</p>
+        <h2>Undo the right layer</h2>
+        <p class="intro">“Undo” is not one operation. First identify whether the mistake is in the working tree, staging area, local history, or shared history.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Situation</th><th>Command</th><th>Risk</th></tr></thead>
+            <tbody>
+              <tr><td>Unstage a file; keep its edits</td><td><code>git restore --staged &lt;path&gt;</code></td><td><span class="safe">Safe</span></td></tr>
+              <tr><td>Discard unstaged edits to a tracked file</td><td><code>git restore &lt;path&gt;</code></td><td><span class="careful">Destructive to edits</span></td></tr>
+              <tr><td>Fix the most recent local commit</td><td><code>git commit --amend</code></td><td><span class="careful">Rewrites commit</span></td></tr>
+              <tr><td>Undo a commit already shared</td><td><code>git revert &lt;sha&gt;</code></td><td><span class="safe">Safe for shared history</span></td></tr>
+              <tr><td>Move branch back; keep changes staged</td><td><code>git reset --soft &lt;target&gt;</code></td><td><span class="careful">Local history only</span></td></tr>
+              <tr><td>Move branch back; keep changes unstaged</td><td><code>git reset --mixed &lt;target&gt;</code></td><td><span class="careful">Local history only</span></td></tr>
+              <tr><td>Make tracked files exactly match target</td><td><code>git reset --hard &lt;target&gt;</code></td><td><span class="danger-text">Destroys tracked work</span></td></tr>
+              <tr><td>Find a recently lost commit</td><td><code>git reflog</code></td><td><span class="safe">Read-only</span></td></tr>
+              <tr><td>Preserve a found commit</td><td><code>git switch -c recovered &lt;sha&gt;</code></td><td><span class="safe">Safe</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Revert versus reset</h3>
+        <div class="cards">
+          <article class="card"><span class="num">SHARED HISTORY</span><h4>Prefer <code>git revert</code></h4><p>It adds a new commit that applies the inverse change. Teammates keep a consistent history, and the undo itself remains auditable.</p></article>
+          <article class="card"><span class="num">UNPUSHED LOCAL HISTORY</span><h4>Use <code>git reset</code> carefully</h4><p>It moves the current branch pointer. Choose soft, mixed, or hard according to what should happen to the index and working tree.</p></article>
+        </div>
+
+        <h3>Reflog: your local safety journal</h3>
+        <p>Git records recent movements of local references: commits, resets, rebases, checkouts, and deleted branch tips. When you think work disappeared, stop changing history and inspect this journal.</p>
+        <pre><code>git reflog --date=local
+# Find the SHA before the mistaken reset/rebase/branch deletion
+git show &lt;sha&gt;
+git switch -c recovered-work &lt;sha&gt;</code></pre>
+        <p>The reflog is local, temporary, and not pushed. It is a safety net, not a backup strategy.</p>
+
+        <h3>Detached HEAD is a state, not a disaster</h3>
+        <p>When <code>HEAD</code> points directly to a commit instead of a branch, you can inspect and run old code safely. If you create commits there, give them a branch name before switching away.</p>
+        <pre><code># Enter detached HEAD to inspect an older snapshot
+git switch --detach HEAD~2
+
+# Leave without keeping new commits
+git switch main
+
+# Or preserve work created while detached
+git switch -c keep-detached-work</code></pre>
+        <div class="callout danger"><b>Pause before destructive commands</b>Before <code>reset --hard</code>, <code>clean</code>, forced pushes, or history rewrites: run <code>git status</code>, inspect the target SHA, and make a temporary branch if the work matters. Never copy a “fix” from the internet without knowing which layer it changes.</div>
+      </section>
+
+      <section id="scenarios">
+        <p class="section-kicker">07 · On the job</p>
+        <h2>Detection-engineering scenarios</h2>
+        <p class="intro">Commands become durable knowledge when each one is tied to a decision you will actually make.</p>
+
+        <article class="scenario">
+          <div class="scenario-head"><span class="tag">RULE CHANGE</span><div><h4>Tune a noisy login detection</h4></div></div>
+          <p>Create a branch, update the rule and fixtures together, inspect the staged diff, and commit the measurable reason for the change.</p>
+          <pre><code>git switch -c tune/login-velocity
+# edit rule + add a legitimate high-velocity fixture
+./test-rules.sh rules/login_velocity.yml
+git add rules/login_velocity.yml tests/login_velocity/
+git diff --staged
+git commit -m "Reduce login-velocity false positives for NAT traffic"</code></pre>
+          <p><strong>Why Git helps:</strong> the pull request can show the rule logic, test evidence, and reason in one reviewable unit. If production quality degrades, the exact change is revertible.</p>
+        </article>
+
+        <article class="scenario">
+          <div class="scenario-head"><span class="tag">INCIDENT</span><div><h4>A recently deployed parser breaks ingestion</h4></div></div>
+          <p>Identify the deployed commit, verify the suspected change, and create a new revert commit. Avoid rewriting a shared production branch during an incident.</p>
+          <pre><code>git log --oneline --decorate -12
+git show &lt;suspect-sha&gt;
+git revert &lt;suspect-sha&gt;
+# run focused tests, then push the revert through the emergency process</code></pre>
+          <p><strong>Why Git helps:</strong> recovery is fast and auditable. The original change and its inverse both remain available for post-incident analysis.</p>
+        </article>
+
+        <article class="scenario">
+          <div class="scenario-head"><span class="tag">EVIDENCE</span><div><h4>Make an evaluation result reproducible</h4></div></div>
+          <p>Record the exact commit alongside corpus version, command, environment, and output. “Tested the latest rule” is not reproducible; a commit SHA is.</p>
+          <pre><code>git rev-parse HEAD
+git status --short
+# Expect no uncommitted changes before claiming this SHA identifies the run
+
+./evaluate --corpus corpus-v3.json > reports/run-v3.txt</code></pre>
+          <p><strong>Why Git helps:</strong> another engineer can check out the SHA and distinguish code drift from data drift or environment differences.</p>
+        </article>
+
+        <article class="scenario">
+          <div class="scenario-head"><span class="tag">SECRET</span><div><h4>A credential appears in your change</h4></div></div>
+          <p>If it is only staged, unstage it, remove the secret from the file, and add an ignore rule where appropriate. If a real secret was committed or pushed, rotate/revoke it first and follow the team's history-remediation process.</p>
+          <pre><code># Secret staged but not committed
+git restore --staged .env
+# add .env to .gitignore, then verify
+git status --short
+
+# Check whether a path exists in committed history
+git log --all -- .env</code></pre>
+          <p><strong>Why Git helps:</strong> it makes exposure discoverable, but deleting a file in a later commit does not erase earlier copies. Rotation is the security control.</p>
+        </article>
+
+        <article class="scenario">
+          <div class="scenario-head"><span class="tag">DEBUGGING</span><div><h4>Find when a regression began</h4></div></div>
+          <p>When you have a reliable pass/fail test, <code>git bisect</code> performs a binary search across history to locate the first bad commit.</p>
+          <pre><code>git bisect start
+git bisect bad                 # current commit fails
+git bisect good &lt;known-good-sha&gt;
+# test the checked-out commit; mark it good or bad until Git identifies one
+git bisect reset</code></pre>
+          <p><strong>Why Git helps:</strong> a hundred candidate commits require roughly seven checks instead of reading a hundred diffs. The test supplies the truth; Git supplies the search.</p>
+        </article>
+      </section>
+
+      <section id="drills">
+        <p class="section-kicker">08 · Practice</p>
+        <h2>Week 0 hands-on drills</h2>
+        <p class="intro">Run these without AI in a disposable directory. Save the terminal transcript and annotate every step you did not understand. These drills intentionally manufacture recoverable problems.</p>
+
+        <article class="drill">
+          <div class="drill-head"><h3>1. Commit, branch, and merge</h3><span class="time">10–15 min</span></div>
+          <p>Build the normal workflow before breaking it.</p>
+          <pre><code>mkdir git-drills && cd git-drills
+git init
+printf 'threshold: 5\n' > rule.yml
+git add rule.yml && git commit -m "Add baseline rule"
+
+git switch -c tune-threshold
+printf 'threshold: 8\n' > rule.yml
+git add rule.yml && git commit -m "Tune threshold"
+
+git switch main
+git merge tune-threshold
+git log --oneline --graph --decorate --all</code></pre>
+          <ul class="checklist"><li>Explain why this merge is probably a fast-forward.</li><li>Point to <code>HEAD</code>, <code>main</code>, and <code>tune-threshold</code> in the graph.</li><li>Show the commit and file snapshot with <code>git show</code>.</li></ul>
+        </article>
+
+        <article class="drill">
+          <div class="drill-head"><h3>2. Manufacture and resolve a conflict</h3><span class="time">15–20 min</span></div>
+          <p>Create divergent commits that edit the same line.</p>
+          <pre><code>git switch -c rule-a
+printf 'threshold: 10\n' > rule.yml
+git commit -am "Raise threshold on rule-a"
+
+git switch main
+printf 'threshold: 12\n' > rule.yml
+git commit -am "Raise threshold on main"
+
+git merge rule-a
+# Read git status and rule.yml. Choose the correct final value,
+# remove every conflict marker, then:
+git add rule.yml
+git commit
+git log --oneline --graph --decorate --all</code></pre>
+          <ul class="checklist"><li>Explain each conflict marker before deleting it.</li><li>Explain why Git could not choose the correct threshold.</li><li>Identify both parents of the merge commit.</li></ul>
+        </article>
+
+        <article class="drill">
+          <div class="drill-head"><h3>3. Lose a commit and recover it</h3><span class="time">10–15 min</span></div>
+          <p>Delete the only branch naming a disposable commit, then recover it from the reflog.</p>
+          <pre><code>git switch -c disposable-spike
+printf 'experimental: true\n' >> rule.yml
+git commit -am "Try experimental rule"
+git log -1 --oneline
+
+git switch main
+git branch -D disposable-spike
+
+# The commit no longer has a branch name. Find and recover it:
+git reflog
+git show &lt;lost-sha&gt;
+git switch -c recovered-spike &lt;lost-sha&gt;</code></pre>
+          <ul class="checklist"><li>Show that <code>recovered-spike</code> points to the lost commit.</li><li>Explain why the object was still recoverable after branch deletion.</li><li>State why reflog is not a remote backup.</li></ul>
+        </article>
+
+        <article class="drill">
+          <div class="drill-head"><h3>4. Enter and exit detached HEAD</h3><span class="time">10 min</span></div>
+          <p>Inspect an earlier snapshot without moving a branch.</p>
+          <pre><code>git switch main
+git switch --detach HEAD~1
+git status
+git log -3 --oneline --decorate
+
+# Optional: make a disposable commit here, then preserve it with:
+git switch -c saved-detached-work
+
+# If you made no commit, simply leave with:
+git switch main</code></pre>
+          <ul class="checklist"><li>Explain what <code>HEAD</code> points to while detached.</li><li>Explain why switching away can make a new detached commit hard to find.</li><li>Demonstrate both “inspect only” and “preserve new work” exits.</li></ul>
+        </article>
+
+        <div class="callout"><b>Artifact to save</b>Record the session with <code>script git-drills.txt</code> on macOS/Linux, run all four drills, then type <code>exit</code>. Add a short <code>git-drills-notes.md</code> explaining why each recovery worked. Do not clean up the transcript to hide mistakes; the mistakes are the diagnostic.</div>
+      </section>
+
+      <section id="cheatsheet">
+        <p class="section-kicker">09 · Desk reference</p>
+        <h2>One-screen cheat sheet</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Intent</th><th>Command</th></tr></thead>
+            <tbody>
+              <tr><td>See current state</td><td><code>git status --short</code></td></tr>
+              <tr><td>See unstaged / staged changes</td><td><code>git diff</code> · <code>git diff --staged</code></td></tr>
+              <tr><td>Stage a file / selected hunks</td><td><code>git add &lt;path&gt;</code> · <code>git add -p</code></td></tr>
+              <tr><td>Commit one coherent change</td><td><code>git commit -m "Reason for change"</code></td></tr>
+              <tr><td>See the graph</td><td><code>git log --oneline --graph --decorate --all</code></td></tr>
+              <tr><td>Create and switch branch</td><td><code>git switch -c &lt;name&gt;</code></td></tr>
+              <tr><td>Update knowledge of remote</td><td><code>git fetch origin</code></td></tr>
+              <tr><td>Push branch and set upstream</td><td><code>git push -u origin &lt;branch&gt;</code></td></tr>
+              <tr><td>Unstage, keep edits</td><td><code>git restore --staged &lt;path&gt;</code></td></tr>
+              <tr><td>Discard unstaged tracked edits</td><td><code>git restore &lt;path&gt;</code></td></tr>
+              <tr><td>Undo a shared commit safely</td><td><code>git revert &lt;sha&gt;</code></td></tr>
+              <tr><td>Find lost local work</td><td><code>git reflog</code></td></tr>
+              <tr><td>Recover a found commit</td><td><code>git switch -c recovered &lt;sha&gt;</code></td></tr>
+              <tr><td>Abort an in-progress merge</td><td><code>git merge --abort</code></td></tr>
+              <tr><td>Temporarily inspect an old commit</td><td><code>git switch --detach &lt;sha&gt;</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Ready to pass Topic 0.3?</h3>
+        <div class="exit-grid">
+          <div class="exit-item"><b>Explain</b>Working tree → staging area → commit → branch → HEAD, from a blank page.</div>
+          <div class="exit-item"><b>Demonstrate</b>Create a branch, make commits, merge it, and read the resulting graph.</div>
+          <div class="exit-item"><b>Recover</b>Resolve a conflict, find a lost commit, and safely leave detached HEAD.</div>
+          <div class="exit-item"><b>Choose safely</b>Know when to restore, revert, reset, abort, or use the reflog—and what each can destroy.</div>
+        </div>
+
+        <h3>Continue learning</h3>
+        <div class="resources">
+          <a class="resource" href="https://git-scm.com/book/en/v2" target="_blank" rel="noopener"><b>Pro Git</b><span>Free, authoritative book</span></a>
+          <a class="resource" href="https://learngitbranching.js.org/" target="_blank" rel="noopener"><b>Learn Git Branching</b><span>Visual interactive practice</span></a>
+          <a class="resource" href="https://git-scm.com/docs" target="_blank" rel="noopener"><b>Git reference</b><span>Exact command semantics</span></a>
+        </div>
+      </section>
+
+      <footer class="footer">Part of the <a href="../index.html#w0">Detection Engineering Learning Console</a>. This page covers the Week 0 diagnostic; Week 1 returns to Git internals, remotes, and recovery in greater depth.</footer>
+    </main>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('pre').forEach(pre=>{
+  const button=document.createElement('button');
+  button.className='copy';
+  button.type='button';
+  button.textContent='COPY';
+  button.setAttribute('aria-label','Copy command block');
+  button.addEventListener('click',async()=>{
+    const code=pre.querySelector('code');
+    if(!code)return;
+    try{
+      await navigator.clipboard.writeText(code.innerText);
+      button.textContent='COPIED';
+      button.classList.add('copied');
+      setTimeout(()=>{button.textContent='COPY';button.classList.remove('copied');},1500);
+    }catch(_){
+      button.textContent='SELECT';
+      const selection=window.getSelection();
+      const range=document.createRange();
+      range.selectNodeContents(code);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+  });
+  pre.appendChild(button);
+});
+</script>
+</body>
+</html>
