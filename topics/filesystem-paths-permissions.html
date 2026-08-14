@@ -33,6 +33,9 @@
     <nav class="toc" aria-label="On this page">
       <p class="toc-title">On this page</p>
       <a href="#why">Why it matters</a>
+      <a href="#first-navigation">First navigation</a>
+      <a href="#file-command-walkthroughs">File commands</a>
+      <a href="#find-walkthrough">Find files</a>
       <a href="#model">Filesystem model</a>
       <a href="#paths">Paths</a>
       <a href="#links">Inodes &amp; links</a>
@@ -57,8 +60,175 @@
         <div class="callout"><b>The useful definition</b>A pathname is a route through directory entries. The final entry names a filesystem object represented by metadata plus content. The pathname is not the file's identity.</div>
       </section>
 
+      <section id="first-navigation">
+        <p class="section-kicker">02 · Start here</p>
+        <h2>Know where you are before changing anything</h2>
+        <p class="intro">A file manager and a shell can point at the same place. The file manager shows folders as pictures; the shell uses pathnames. Your first habit is to ask “where am I?” and “what is here?” before you move, copy, or remove anything.</p>
+
+        <pre><code>pwd            # Print the shell's current working directory.
+ls             # List the current directory.
+ls -la         # Include dot-prefixed names and use a long listing.
+cd Documents   # Move to a child directory, relative to where you are.
+cd ..          # Move to the parent directory.
+cd -           # Return to the previous working directory.
+cd             # With no argument, Bash goes to your home directory.</code></pre>
+
+        <h3>A small path compass</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Form</th><th>Start lookup from</th><th>Plain-language meaning</th></tr></thead>
+            <tbody>
+              <tr><td><code>/var/log/app.log</code></td><td>The process's root directory</td><td>An absolute path: begin at <code>/</code> and follow every component.</td></tr>
+              <tr><td><code>logs/app.log</code></td><td>The current working directory</td><td>A relative path: begin where the process is now.</td></tr>
+              <tr><td><code>.</code></td><td>Current lookup directory</td><td>“This directory.” Useful in paths such as <code>./script.sh</code>.</td></tr>
+              <tr><td><code>..</code></td><td>Current lookup directory</td><td>“The parent.” At the root, <code>/..</code> still resolves to <code>/</code>.</td></tr>
+              <tr><td><code>~</code></td><td>Expanded by the shell first</td><td>Your home directory in common interactive shells. It is shell syntax, not a literal top-level directory.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>A leading <code>/</code> is the easiest test: present means absolute; absent means relative. Tab completion can finish a unique component, but it does not prove that you chose the intended path. Run <code>pwd</code> and <code>ls</code> again after moving.</p>
+
+        <h3>Create a harmless lab and inspect every result</h3>
+        <pre><code>mkdir -p shell-lab/reports
+cd shell-lab
+touch 'case notes.txt'
+ls -la
+stat -- 'case notes.txt'
+touch -- 'case notes.txt'
+stat -- 'case notes.txt'</code></pre>
+        <ol class="steps">
+          <li><b><code>mkdir -p</code> creates missing parents.</b> It also succeeds when the requested directories already exist, unless another error occurs.</li>
+          <li><b><code>touch</code> is mainly a timestamp tool.</b> GNU <code>touch</code> creates an empty file only when the named file is absent and creation has not been disabled.</li>
+          <li><b>Quotes keep spaces inside one argument.</b> Without quotes, <code>case notes.txt</code> becomes two arguments.</li>
+          <li><b><code>--</code> ends option parsing when a utility supports it.</b> This helps with names beginning with <code>-</code>, but quoting is still needed for whitespace and shell metacharacters.</li>
+        </ol>
+
+        <div class="callout warn"><b>Names are less universal than they look</b>A leading dot makes a name hidden from ordinary <code>ls</code> output by convention; it is not an access-control boundary. Maximum component length, allowed bytes, Unicode handling, and case sensitivity depend on the filesystem and mount. Do not assume every Linux filesystem—or every macOS volume—behaves exactly like the tutorial machine.</div>
+        <p><strong>Verified against:</strong> Linux <a href="https://man7.org/linux/man-pages/man7/path_resolution.7.html"><code>path_resolution(7)</code></a> for absolute and relative lookup plus <code>.</code>/<code>..</code>, GNU <a href="https://man7.org/linux/man-pages/man1/ls.1.html"><code>ls(1)</code></a> for dot-prefixed entries, and GNU <a href="https://man7.org/linux/man-pages/man1/touch.1.html"><code>touch(1)</code></a> for creation and timestamp behavior.</p>
+      </section>
+
+      <section id="file-command-walkthroughs">
+        <p class="section-kicker">03 · Command walkthroughs</p>
+        <h2>List, create, copy, move, and remove</h2>
+        <p class="intro">Use the same loop for every file command: state the source, state the destination, predict the result, run it, and inspect both places. The command returning no text is never a reason to skip the inspection.</p>
+
+        <h3><code>ls</code>: list names and selected metadata</h3>
+        <pre><code>ls                       # Current directory, ordinary names only.
+ls -la                   # Long format, including dot-prefixed names.
+ls -lh -- /var/log       # Human-readable sizes in a long listing.
+ls -ld -- /var/log       # The directory entry itself, not its contents.
+ls -li -- rules/current  # Include inode numbers.
+ls -lt -- reports        # Sort newest modification time first.</code></pre>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Option</th><th>What it changes</th><th>What it does not mean</th></tr></thead>
+            <tbody>
+              <tr><td><code>-a</code></td><td>Do not ignore names beginning with <code>.</code>; includes implied <code>.</code> and <code>..</code>.</td><td>Those names are not more private or protected.</td></tr>
+              <tr><td><code>-A</code></td><td>Like <code>-a</code>, but omit implied <code>.</code> and <code>..</code>.</td><td>It does not recurse into directories.</td></tr>
+              <tr><td><code>-l</code></td><td>Show type/mode, link count, owner, group, size, time, and name.</td><td>The displayed columns are not a stable machine-readable data format.</td></tr>
+              <tr><td><code>-h</code></td><td>Scale displayed sizes when paired with an option such as <code>-l</code>.</td><td>It does not calculate the total content below a directory; use <code>du</code>.</td></tr>
+              <tr><td><code>-d</code></td><td>List a directory entry rather than listing inside it.</td><td>It does not mean “directories only.”</td></tr>
+              <tr><td><code>-t</code> / <code>-r</code></td><td>Sort by modification time / reverse the chosen order.</td><td>Option meaning can interact; read the installed manual for the final ordering.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warn"><b><code>ls</code> is a view for people</b>Names can contain spaces, tabs, newlines, and control characters. Do not parse <code>ls</code> output to discover files in a script. Use a pathname-aware interface such as <code>find</code>, a shell glob/array, or a language filesystem API.</div>
+
+        <h3><code>mkdir</code> and <code>touch</code>: create structure deliberately</h3>
+        <pre><code>mkdir command-lab
+mkdir -p command-lab/inbox/2026-08-14
+mkdir -m 750 command-lab/private
+
+touch command-lab/inbox/event.json
+touch -c command-lab/inbox/must-already-exist.json
+touch reference.log
+touch -r reference.log copied-time.log</code></pre>
+        <ul class="checklist">
+          <li><code>mkdir</code> creates one directory; <code>-p</code> creates missing parents and does not complain when the requested directory already exists.</li>
+          <li><code>mkdir -m MODE</code> requests the mode for the newly created final directory. Confirm the result with <code>stat</code>, especially when ACLs or platform policy apply.</li>
+          <li><code>touch</code> updates access and modification times by default. If the path is missing it creates an empty file unless <code>-c</code> is used.</li>
+          <li><code>touch -r</code> copies timestamps from a reference; it does not copy file content.</li>
+        </ul>
+
+        <h3><code>cp</code> and <code>mv</code>: source first, destination second</h3>
+        <pre><code>cp -- source.json copy.json
+cp -R -- fixtures fixtures-copy
+cp -a -- validated-rules release-2026-08-14   # GNU archival copy
+
+mv -- draft.json final.json                    # Rename in one directory.
+mv -- final.json archive/                      # Move without renaming.
+mv -i -- report.json archive/report.json       # Ask before overwrite.</code></pre>
+        <p><code>cp</code> leaves the source and creates or replaces the destination. <code>mv</code> changes the name or location and may replace an existing destination. A destination directory means “keep the source basename inside here”; a nonexistent final component becomes the new name. Use <code>-i</code> for an explicit overwrite prompt or <code>-n</code> to refuse overwriting where supported, but do not combine conflicting overwrite options and assume the result is portable.</p>
+        <div class="callout"><b>Recursive is not the same as archival</b><code>cp -R</code> traverses a directory tree. GNU <code>cp -a</code> also requests preservation of links and selected metadata. Neither is a transactional backup: interruption, special files, ACLs, extended attributes, sparse files, and cross-filesystem behavior need explicit verification.</div>
+
+        <h3><code>rm</code> and <code>rmdir</code>: inspect the exact target twice</h3>
+        <pre><code>ls -ld -- command-lab/empty
+rmdir -- command-lab/empty          # Only succeeds when empty.
+
+find command-lab/cache -maxdepth 2 -print
+rm -I -r -- command-lab/cache       # GNU: one prompt before recursive removal.
+test ! -e command-lab/cache &amp;&amp; printf 'removed expected path\n'</code></pre>
+        <p><code>rm</code> removes directory entries directly; it normally does not use a desktop trash folder. <code>-r</code> descends through directories, <code>-i</code> prompts for each removal, and GNU <code>-I</code> gives one broader prompt. Avoid teaching yourself that <code>-f</code> is a default habit: it suppresses useful diagnostics and confirmations.</p>
+        <div class="callout danger"><b>An alias is not a safety boundary</b><code>alias rm='rm -i'</code> can help interactively, but scripts, other shells, absolute command paths, and overridden aliases can bypass it. Safety comes from an explicit target, a preview, narrow permissions, backups, and a command that remains understandable without an alias.</div>
+        <p><strong>Verified against:</strong> the GNU Coreutils manuals for <a href="https://www.gnu.org/software/coreutils/manual/html_node/ls-invocation.html"><code>ls</code></a>, <a href="https://www.gnu.org/software/coreutils/manual/html_node/mkdir-invocation.html"><code>mkdir</code></a>, <a href="https://www.gnu.org/software/coreutils/manual/html_node/touch-invocation.html"><code>touch</code></a>, <a href="https://www.gnu.org/software/coreutils/manual/html_node/cp-invocation.html"><code>cp</code></a>, <a href="https://www.gnu.org/software/coreutils/manual/html_node/mv-invocation.html"><code>mv</code></a>, and <a href="https://www.gnu.org/software/coreutils/manual/html_node/rm-invocation.html"><code>rm</code></a>.</p>
+      </section>
+
+      <section id="find-walkthrough">
+        <p class="section-kicker">04 · Command walkthrough</p>
+        <h2><code>find</code>: start point, tests, then actions</h2>
+        <p class="intro">Read a <code>find</code> command as a sentence: “Start here, keep entries that pass these tests, then take this action.” It walks below each start point unless depth is limited.</p>
+        <pre><code>find logs -type f -name '*.json' -print
+│    │     │       │              └─ action
+│    │     │       └──────────────── name test; quoted for find to match
+│    │     └──────────────────────── file-type test
+│    └────────────────────────────── implicit AND between expressions
+└─────────────────────────────────── start point</code></pre>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Question</th><th>Expression</th><th>Important detail</th></tr></thead>
+            <tbody>
+              <tr><td>Exact shell-style name?</td><td><code>-name '*.json'</code></td><td>Quote the pattern so <code>find</code>, not the shell, evaluates it.</td></tr>
+              <tr><td>Name ignoring case?</td><td><code>-iname '*.JSON'</code></td><td>Widely available but not specified by POSIX; case folding is locale-sensitive.</td></tr>
+              <tr><td>Only files/directories/links?</td><td><code>-type f</code>, <code>-type d</code>, <code>-type l</code></td><td>The default symbolic-link following policy affects which object is tested.</td></tr>
+              <tr><td>Limit traversal depth?</td><td><code>-maxdepth 2</code>, <code>-mindepth 1</code></td><td>GNU/BSD extensions; count the start point as depth 0.</td></tr>
+              <tr><td>Modified recently?</td><td><code>-mmin -30</code></td><td>Matches modification-age buckets less than 30 minutes; boundary rounding matters.</td></tr>
+              <tr><td>Modified after a known file?</td><td><code>-newer baseline.timestamp</code></td><td>Often clearer than calculating a relative-day bucket.</td></tr>
+              <tr><td>Larger than 10 MiB?</td><td><code>-size +10M</code></td><td>Units and rounding belong to the implementation; verify with its manual.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Build the expression one test at a time</h3>
+        <pre><code># 1. Confirm the start point and traversal.
+find logs -maxdepth 2 -print
+
+# 2. Restrict the type.
+find logs -maxdepth 2 -type f -print
+
+# 3. Group OR conditions; implicit AND has higher precedence.
+find logs -maxdepth 2 -type f \( -name '*.json' -o -name '*.log' \) -print
+
+# 4. Add a time boundary that can be preserved as evidence.
+touch -t 202608140900 baseline.timestamp
+find logs -type f -newer baseline.timestamp -print</code></pre>
+        <p>The escaped parentheses belong to <code>find</code>; escaping prevents the shell from treating them as shell syntax. Without grouping, an <code>-o</code> expression can apply differently than the English sentence in your head.</p>
+
+        <h3>Actions: print first, execute second</h3>
+        <pre><code># One invocation can receive many matched paths.
+find logs -type f -name '*.json' -exec sha256sum -- {} +
+
+# When a consumer needs a stream of arbitrary pathnames:
+find logs -type f -print0 | xargs -0 sha256sum --</code></pre>
+        <p><code>{}</code> is replaced by matched pathnames and <code>+</code> batches as many as practical. A semicolon form, written <code>\;</code>, runs once per match. For arbitrary names, newline-separated <code>find ... -print | xargs ...</code> is unsafe because a pathname may contain whitespace or a newline; use <code>-exec ... {} +</code> or a NUL-delimited <code>-print0</code>/<code>xargs -0</code> pair.</p>
+        <div class="callout danger"><b>Do not begin with deletion</b>Run the final tests with <code>-print</code>, review the complete target set, then change the action. <code>-delete</code> changes traversal behavior on GNU <code>find</code> and acts immediately; a misplaced operator or start point can remove far more than intended.</div>
+
+        <h3><code>locate</code> answers a different question</h3>
+        <p><code>locate PATTERN</code> searches a filename database, so it is usually much faster than walking the live tree. The database can be stale, omit paths, or include names that have disappeared. Use <code>find</code> when current filesystem state and metadata tests matter.</p>
+        <p><strong>Verified against:</strong> the GNU <a href="https://www.gnu.org/software/findutils/manual/html_mono/find.html">Findutils manual</a>, including traversal depth, expressions, actions, unusual filenames, and NUL-delimited output.</p>
+      </section>
+
       <section id="model">
-        <p class="section-kicker">02 · Mental model</p>
+        <p class="section-kicker">05 · Mental model</p>
         <h2>Names point to objects</h2>
         <div class="model">
           <div class="model-track">
@@ -88,7 +258,7 @@
       </section>
 
       <section id="paths">
-        <p class="section-kicker">03 · Navigation</p>
+        <p class="section-kicker">06 · Navigation</p>
         <h2>Absolute, relative, and canonical paths</h2>
         <div class="command-list">
           <div class="command"><code>pwd -P</code><p><b>Print the physical current directory.</b><code>-P</code> resolves symbolic-link components where supported.</p></div>
@@ -115,7 +285,7 @@ python3 "$script_dir/analyzer.py" "$script_dir/fixtures/access.log"</code></pre>
       </section>
 
       <section id="links">
-        <p class="section-kicker">04 · Identity</p>
+        <p class="section-kicker">07 · Identity</p>
         <h2>Inodes, hard links, and symbolic links</h2>
         <div class="table-wrap">
           <table>
@@ -141,7 +311,7 @@ stat rule-v1.yml</code></pre>
       </section>
 
       <section id="permissions">
-        <p class="section-kicker">05 · Access control</p>
+        <p class="section-kicker">08 · Access control</p>
         <h2>Read permission strings as policy</h2>
         <pre><code>-rwxr-x---  1 analyst detection  842 validate.sh
 │└┬┘└┬┘└┬┘
@@ -170,7 +340,7 @@ type  user / group / other</code></pre>
       </section>
 
       <section id="commands">
-        <p class="section-kicker">06 · Core working set</p>
+        <p class="section-kicker">09 · Core working set</p>
         <h2>Inspect before changing</h2>
         <div class="command-list">
           <div class="command"><code>ls -la</code><p><b>List names and basic metadata.</b>Use <code>-i</code> for inode numbers and <code>-d</code> to inspect a directory itself.</p></div>
@@ -184,7 +354,7 @@ type  user / group / other</code></pre>
       </section>
 
       <section id="scenarios">
-        <p class="section-kicker">07 · On the job</p>
+        <p class="section-kicker">10 · On the job</p>
         <h2>Detection-engineering scenarios</h2>
 
         <article class="scenario">
@@ -227,7 +397,7 @@ chmod 640 reports/private/finding.json</code></pre>
       </section>
 
       <section id="drills">
-        <p class="section-kicker">08 · Practice</p>
+        <p class="section-kicker">11 · Practice</p>
         <h2>Hands-on drills</h2>
 
         <article class="drill">
@@ -265,7 +435,7 @@ chmod u+x validate.sh</code></pre>
       </section>
 
       <section id="cheatsheet">
-        <p class="section-kicker">09 · Desk reference</p>
+        <p class="section-kicker">12 · Desk reference</p>
         <h2>One-screen cheat sheet</h2>
         <div class="table-wrap">
           <table>

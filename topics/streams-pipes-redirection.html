@@ -33,6 +33,8 @@
     <nav class="toc" aria-label="On this page">
       <p class="toc-title">On this page</p>
       <a href="#why">Why it matters</a>
+      <a href="#read-first">Read text first</a>
+      <a href="#command-walkthroughs">Command walkthroughs</a>
       <a href="#model">Stream model</a>
       <a href="#redirect">Redirection</a>
       <a href="#pipes">Pipelines</a>
@@ -56,8 +58,168 @@
         <div class="callout"><b>The useful definition</b>A stream is an ordered sequence of bytes. Programs commonly start with three open file descriptors: stdin <code>0</code>, stdout <code>1</code>, and stderr <code>2</code>. The shell can connect each descriptor to a terminal, file, pipe, or device.</div>
       </section>
 
+      <section id="read-first">
+        <p class="section-kicker">02 · Start here</p>
+        <h2>Read the data before you start routing it</h2>
+        <p class="intro">The simplest commands answer one question at a time: “show me this short file,” “show me the first ten lines,” or “let me move through a long file.” Learn those first; pipes and redirection then feel like connecting familiar pieces.</p>
+
+        <div class="command-list">
+          <div class="command"><code>cat short.txt</code><p><b>Write the whole file to stdout.</b>Good for a small file; noisy and awkward for a very large one.</p></div>
+          <div class="command"><code>less long.log</code><p><b>Open a scrollable view.</b>Use arrow/Page keys, <code>/text</code> to search, <code>n</code> for the next match, and <code>q</code> to quit in the usual <code>less</code> configuration.</p></div>
+          <div class="command"><code>head -n 20 app.log</code><p><b>Show the beginning.</b>Useful for headers, schemas, and a quick format check.</p></div>
+          <div class="command"><code>tail -n 20 app.log</code><p><b>Show the end.</b><code>tail -f</code> keeps watching appended data; stop it with the terminal's interrupt key, normally <code>Ctrl-C</code>.</p></div>
+        </div>
+
+        <h3>Make a tiny file, then observe each route</h3>
+        <pre><code>printf 'allow\ndeny\nallow\n' > decisions.txt
+cat decisions.txt
+head -n 1 decisions.txt
+tail -n 1 decisions.txt
+wc -l < decisions.txt
+sort decisions.txt | uniq -c</code></pre>
+        <ol class="steps">
+          <li><b><code>printf</code> produces stdout.</b>It is more predictable than <code>echo</code> in scripts when text contains backslashes or begins with option-like characters.</li>
+          <li><b><code>&gt;</code> is handled by the shell.</b>The shell opens or truncates <code>decisions.txt</code> before starting <code>printf</code>, then connects the command's stdout to that file.</li>
+          <li><b><code>&lt;</code> changes stdin.</b><code>wc</code> reads bytes from the file without receiving a filename argument, so its output contains only the count.</li>
+          <li><b><code>|</code> connects two processes.</b><code>sort</code> writes ordered lines; <code>uniq -c</code> reads them and counts adjacent equal lines.</li>
+        </ol>
+
+        <div class="callout warn"><b>Redirection is not an editor</b><code>&gt;</code> replaces an existing destination's content; <code>&gt;&gt;</code> appends. The redirection happens before the command runs, so <code>sort file &gt; file</code> can empty the input before <code>sort</code> reads it. Write to a different file, inspect it, then replace deliberately.</div>
+        <p><strong>Verified against:</strong> the GNU Bash manual sections on <a href="https://www.gnu.org/software/bash/manual/html_node/Redirections.html">redirections</a> and <a href="https://www.gnu.org/software/bash/manual/bash.html">pipelines and shell operation</a>, plus the GNU <a href="https://www.gnu.org/software/coreutils/manual/coreutils.html">Coreutils manual</a> for <code>cat</code>, <code>head</code>, <code>tail</code>, <code>wc</code>, <code>sort</code>, and <code>uniq</code>.</p>
+      </section>
+
+      <section id="command-walkthroughs">
+        <p class="section-kicker">03 · Command walkthroughs</p>
+        <h2>Count, search, edit, and reshape text</h2>
+        <p class="intro">These tools do not all understand the same language. <code>find -name</code> uses shell-style pathname patterns, <code>grep</code>/<code>sed</code>/<code>awk</code> use regular expressions, and <code>cut</code> knows only positions or a simple delimiter. Start by naming the input format and the parser you are asking to read it.</p>
+
+        <h3><code>wc</code>, <code>sort</code>, and <code>uniq</code></h3>
+        <pre><code>wc notes.txt             # lines, words, bytes, then filename
+wc -l notes.txt          # newline count
+wc -w notes.txt          # words according to wc's rules
+wc -c notes.txt          # bytes; -m requests characters
+wc -l &lt; notes.txt        # same data, but no filename operand to print
+
+LC_ALL=C sort values.txt
+sort -n scores.txt       # numeric rather than lexicographic order
+sort -k2,2 users.txt     # use field 2 as the key
+sort values.txt | uniq -c | sort -nr</code></pre>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Command</th><th>The detail that prevents mistakes</th></tr></thead>
+            <tbody>
+              <tr><td><code>wc -l</code></td><td>Counts newline characters. A final unterminated record can make “lines” and logical records differ.</td></tr>
+              <tr><td><code>sort</code></td><td>Writes sorted output; it does not rewrite the input file. Locale affects collation, so record <code>LC_ALL</code> when exact grouping must be reproducible.</td></tr>
+              <tr><td><code>sort -n</code></td><td>Compares numeric values. Plain sort is lexical, so text <code>10</code> can appear before <code>2</code>.</td></tr>
+              <tr><td><code>uniq</code></td><td>Only compares adjacent lines. Sort or otherwise group equal values first when the duplicates are scattered.</td></tr>
+              <tr><td><code>uniq -c</code></td><td>Prefixes each adjacent group with its count. <code>-d</code> shows duplicate groups; it does not tell you about non-adjacent duplicates by itself.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 id="grep-sed"><code>grep</code>: select lines; <code>sed</code>: edit a stream</h3>
+        <h4><code>grep</code> reads a pattern, then input</h4>
+        <pre><code>grep -nF 'literal.value' app.log     # fixed string, with line numbers
+grep -nE '^(allow|deny) ' app.log    # extended regular expression
+grep -i 'failed login' app.log       # ignore case distinctions
+grep -v '^#' config.txt              # invert: lines that do not match
+grep -c 'ERROR' app.log              # count matching lines, not occurrences
+grep -l 'secret' -- *.conf           # print names of matching files
+grep -r -nF 'api_key' configs/       # recursively search file contents</code></pre>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Regular-expression form</th><th>Meaning</th><th>Do not confuse it with</th></tr></thead>
+            <tbody>
+              <tr><td><code>^start</code> / <code>end$</code></td><td>Anchor at the start/end of a line.</td><td>A shell prompt or shell variable expansion.</td></tr>
+              <tr><td><code>.</code></td><td>Any one character.</td><td>A literal dot; write <code>\.</code> for that.</td></tr>
+              <tr><td><code>[abc]</code> / <code>[^abc]</code></td><td>One listed character / one character not listed.</td><td>A whole word choice.</td></tr>
+              <tr><td><code>x*</code></td><td>Zero or more of the preceding atom <code>x</code>.</td><td>The shell glob <code>*</code>, which stands alone for pathname characters.</td></tr>
+              <tr><td><code>x+</code>, <code>x?</code>, <code>a|b</code></td><td>One-or-more, optional, or alternation with <code>grep -E</code>.</td><td>Shell pipe syntax; quote the whole pattern.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><code>grep</code> normally exits <code>0</code> when it selected a line, <code>1</code> when it selected none, and <code>2</code> on an error. “No match” is therefore a useful documented outcome, not automatically a broken command.</p>
+
+        <h4><code>sed</code> has addresses and commands</h4>
+        <pre><code># s/pattern/replacement/ changes the first match on each selected line.
+sed 's/denied/blocked/' events.txt
+
+# g changes every non-overlapping match on each selected line.
+sed 's/denied/blocked/g' events.txt
+
+# A different delimiter is easier when the values contain slashes.
+sed 's#/old/path#/new/path#g' paths.txt
+
+# -n disables automatic printing; p explicitly prints selected lines.
+sed -n '1p' events.txt
+sed -n '5,9p' events.txt
+sed -n '/ERROR/p' events.txt
+sed -n '2,$p' events.txt
+
+# Multiple scripts can be written separately or loaded from a file.
+sed -e 's/foo/bar/g' -e '/^#/d' input.txt
+sed -f cleanup.sed input.txt</code></pre>
+        <ol class="steps">
+          <li><b>Input remains unchanged by default.</b><code>sed</code> writes the transformed stream to stdout; redirect it to a different file if you want to save it.</li>
+          <li><b>The first delimiter defines the rest.</b><code>/</code> is conventional, not required. Pick a delimiter that makes the script readable.</li>
+          <li><b>An address narrows a command.</b>A line number, range, or <code>/regexp/</code> before <code>s</code>, <code>p</code>, or <code>d</code> chooses which records receive that command.</li>
+          <li><b><code>-E</code> enables extended regular expressions.</b>This reduces escaping for groups and alternation, but replacement backreferences still use forms such as <code>\1</code>.</li>
+        </ol>
+        <div class="callout danger"><b>Delay in-place editing</b><code>sed -i</code> syntax and backup behavior differ between GNU and BSD/macOS implementations. While learning—or when editing evidence—write to a new file, compare it, and replace only after validation.</div>
+
+        <h3 id="record-tools"><code>tr</code>, <code>cut</code>, <code>awk</code>, and <code>xargs</code></h3>
+        <h4><code>tr</code> transforms character sets from stdin</h4>
+        <pre><code>tr '[:lower:]' '[:upper:]' &lt; names.txt
+tr -d '\r' &lt; windows-lines.txt &gt; unix-lines.txt
+tr -s '[:space:]' ' ' &lt; irregular.txt</code></pre>
+        <p><code>tr SET1 SET2</code> maps characters; it does not accept a filename operand in the usual interface. <code>-d</code> deletes characters from a set and <code>-s</code> squeezes repeated characters from the selected set. Character classes and locale affect what counts as lower case or whitespace.</p>
+
+        <h4><code>cut</code> selects positions or simple delimiter fields</h4>
+        <pre><code>cut -c 1-12 fixed-width.txt
+cut -d: -f1,7 /etc/passwd
+cut -f2-4 tab-separated.tsv</code></pre>
+        <p><code>-c</code> selects character positions, <code>-d</code> sets one field delimiter, and <code>-f</code> selects fields. <code>cut -d,</code> is not a CSV parser: quoting, embedded commas, and embedded newlines require a CSV-aware tool.</p>
+
+        <h4><code>awk</code> is a pattern–action language</h4>
+        <pre><code># Default records are lines and default fields are whitespace-separated.
+awk '{ print $1, $NF }' access.log
+
+# Choose a delimiter and select a condition.
+awk -F '\t' '$3 == "blocked" { print NR, $1, $3 }' events.tsv
+
+# BEGIN runs before input; END runs after all records.
+awk '
+  BEGIN { errors = 0 }
+  $9 ~ /^5[0-9][0-9]$/ { errors++ }
+  END { printf "5xx=%d records=%d\n", errors, NR }
+' access.log</code></pre>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Meaning</th></tr></thead>
+            <tbody>
+              <tr><td><code>$0</code></td><td>The whole current record.</td></tr>
+              <tr><td><code>$1</code> … <code>$NF</code></td><td>The first through last current fields.</td></tr>
+              <tr><td><code>NF</code></td><td>Number of fields in the current record.</td></tr>
+              <tr><td><code>NR</code> / <code>FNR</code></td><td>Total record number / record number within the current file.</td></tr>
+              <tr><td><code>FS</code> / <code>OFS</code></td><td>Input and output field separators.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Putting an <code>awk</code> program in single quotes protects <code>$1</code> and other syntax from the shell. If shell data must enter the program, pass it as an <code>awk</code> variable with <code>-v name="$shell_value"</code> instead of splicing text into program source.</p>
+
+        <h4><code>xargs</code> turns an input stream into argument lists</h4>
+        <pre><code>printf '%s\n' one two three | xargs -n 2 printf '&lt;%s&gt;\n'
+
+# Safe for arbitrary pathnames because the boundary is NUL, not whitespace.
+find logs -type f -name '*.json' -print0 \
+  | xargs -0 sha256sum --</code></pre>
+        <p>With no command, GNU <code>xargs</code> uses <code>echo</code>. <code>-n 2</code> supplies at most two input arguments per invocation; <code>-I {}</code> substitutes one logical input item into a template but changes batching behavior. Default whitespace parsing cannot preserve arbitrary pathnames. Prefer <code>find ... -exec command {} +</code> when it expresses the job directly, or pair <code>-print0</code> with <code>xargs -0</code>.</p>
+        <div class="callout warn"><b>Structured data deserves a structured parser</b>The video examples use friendly teaching files. Production logs may contain quoted delimiters, Unicode, multiline records, binary data, or attacker-controlled filenames. Confirm the input contract before choosing a text tool.</div>
+        <p><strong>Verified against:</strong> the GNU manuals for <a href="https://www.gnu.org/software/coreutils/manual/coreutils.html">Coreutils</a>, <a href="https://www.gnu.org/software/grep/manual/grep.html"><code>grep</code></a>, <a href="https://www.gnu.org/software/sed/manual/sed.html"><code>sed</code></a>, <a href="https://www.gnu.org/software/gawk/manual/gawk.html"><code>awk</code></a>, and <a href="https://www.gnu.org/software/findutils/manual/html_node/find_html/xargs-options.html"><code>xargs</code></a>.</p>
+      </section>
+
       <section id="model">
-        <p class="section-kicker">02 · Mental model</p>
+        <p class="section-kicker">04 · Mental model</p>
         <h2>Programs read and write file descriptors</h2>
         <div class="model">
           <div class="model-track">
@@ -88,7 +250,7 @@ print("diagnostic", file=sys.stderr)' \
       </section>
 
       <section id="redirect">
-        <p class="section-kicker">03 · Routing</p>
+        <p class="section-kicker">05 · Routing</p>
         <h2>Redirection is evaluated left to right</h2>
         <div class="table-wrap">
           <table>
@@ -123,7 +285,7 @@ command 2>&amp;1 | tee combined.log</code></pre>
       </section>
 
       <section id="pipes">
-        <p class="section-kicker">04 · Composition</p>
+        <p class="section-kicker">06 · Composition</p>
         <h2>Build pipelines one verified stage at a time</h2>
         <pre><code># Question: which IPs appear most often in a simple access log?
 awk '{print $1}' access.log \
@@ -149,7 +311,7 @@ printf 'pipeline status=%s\n' "$status"</code></pre>
       </section>
 
       <section id="filters">
-        <p class="section-kicker">05 · Text toolkit</p>
+        <p class="section-kicker">07 · Text toolkit</p>
         <h2>Know each filter's contract</h2>
         <div class="command-list">
           <div class="command"><code>grep -nE '5[0-9]{2}' file</code><p><b>Select matching lines.</b><code>-n</code> preserves line numbers; <code>-E</code> selects extended regular expressions. Use <code>-F</code> for literal strings.</p></div>
@@ -172,7 +334,7 @@ LC_ALL=C awk '{print $1}' access.log \
       </section>
 
       <section id="structured">
-        <p class="section-kicker">06 · Honest parsing</p>
+        <p class="section-kicker">08 · Honest parsing</p>
         <h2>Use structure-aware tools for structured data</h2>
         <div class="table-wrap">
           <table>
@@ -196,7 +358,7 @@ jq -r 'select(.source_ip != null) | .source_ip' events.jsonl \
       </section>
 
       <section id="scenarios">
-        <p class="section-kicker">07 · On the job</p>
+        <p class="section-kicker">09 · On the job</p>
         <h2>Detection-engineering scenarios</h2>
 
         <article class="scenario">
@@ -244,7 +406,7 @@ printf 'status=%s\n' "$status"</code></pre>
       </section>
 
       <section id="drills">
-        <p class="section-kicker">08 · Practice</p>
+        <p class="section-kicker">10 · Practice</p>
         <h2>Hands-on drills</h2>
 
         <article class="drill">
@@ -273,7 +435,7 @@ printf 'status=%s\n' "$?"</code></pre>
       </section>
 
       <section id="cheatsheet">
-        <p class="section-kicker">09 · Desk reference</p>
+        <p class="section-kicker">11 · Desk reference</p>
         <h2>One-screen cheat sheet</h2>
         <div class="table-wrap">
           <table>

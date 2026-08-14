@@ -33,6 +33,9 @@
     <nav class="toc" aria-label="On this page">
       <p class="toc-title">On this page</p>
       <a href="#why">Why it matters</a>
+      <a href="#start">Start at the prompt</a>
+      <a href="#command-index">Command index</a>
+      <a href="#interactive-shell-tools">Variables &amp; helpers</a>
       <a href="#model">Execution model</a>
       <a href="#lookup">PATH &amp; lookup</a>
       <a href="#quoting">Quoting &amp; expansion</a>
@@ -57,8 +60,125 @@
         <div class="callout"><b>The useful definition</b>A terminal is the window and input/output device. A shell—such as Bash or Zsh—is the program reading command text, expanding it, locating commands, starting processes, and reporting their exit status.</div>
       </section>
 
+      <section id="start">
+        <p class="section-kicker">02 · Start here</p>
+        <h2>Read one command line without guessing</h2>
+        <p class="intro">A terminal can feel like a blank screen that expects you to know a secret language. It is simpler than that: the prompt says “I am ready,” you type a command, and the shell turns the words into a request.</p>
+
+        <h3>Terminal, shell, and kernel are different jobs</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Part</th><th>Plain-language job</th><th>What you notice</th></tr></thead>
+            <tbody>
+              <tr><td>Terminal</td><td>The window or session carrying keyboard input and text output.</td><td>Fonts, colors, tabs, scrolling, and copy/paste.</td></tr>
+              <tr><td>Shell</td><td>The command interpreter. It reads syntax, performs expansions, and starts commands.</td><td>Bash, Zsh, Dash, and their prompts, history, variables, and job control.</td></tr>
+              <tr><td>Command</td><td>A shell builtin or another program asked to do one job.</td><td><code>cd</code>, <code>ls</code>, <code>python3</code>, or your own script.</td></tr>
+              <tr><td>Kernel</td><td>The operating-system core that manages processes, files, memory, devices, and permissions.</td><td>Usually reached through system calls made by the shell and other programs.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Command, options, arguments</h3>
+        <pre><code>ls -lah /var/log
+│   │      └─ argument: the path to inspect
+│   └──────── options: l, a, and h combined for this program
+└──────────── command name</code></pre>
+        <p><code>ls</code> with no written file argument defaults to the current directory. That directory is the effective target, but it is not an argument you typed. Short options often begin with one hyphen and many programs allow them to be combined, but option syntax and whether order matters belong to each program—not to one universal Linux grammar.</p>
+
+        <h3>Your first five-minute loop</h3>
+        <pre><code># Do not type a leading $ shown in tutorials; it represents the prompt.
+pwd                       # Where am I?
+ls                        # What names are here?
+printf 'hello world\n'    # Ask a command to print one line.
+man ls                    # Read the local manual; q usually leaves its pager.
+ls --help                 # Many GNU commands offer concise help.
+printf 'status=%s\n' "$?" # What status did the immediately previous command return?</code></pre>
+        <ol class="steps">
+          <li><b>Read the prompt.</b> A normal-user prompt commonly ends in <code>$</code>; a privileged shell commonly uses <code>#</code>. The exact prompt is customizable.</li>
+          <li><b>Type one command.</b> Press Enter only after reading it from left to right.</li>
+          <li><b>Read both output and errors.</b> No output often means the command had nothing to report, not proof that it succeeded.</li>
+          <li><b>Check the status immediately.</b> <code>$?</code> is replaced by the last foreground pipeline's status. Running another command replaces it.</li>
+          <li><b>Ask the installed system.</b> Try <code>man command</code>, <code>command --help</code>, or Bash's <code>help builtin</code>. The documentation on your host matches its installed version better than a remembered example.</li>
+        </ol>
+
+        <div class="callout"><b>Let the terminal help you type</b>Up Arrow recalls earlier commands, <code>Ctrl-R</code> searches Bash history, and Tab requests completion. Treat recalled or completed text as a draft: inspect it before pressing Enter. History is also not a secret store; avoid putting passwords or tokens directly on command lines.</div>
+        <p><strong>Verified against:</strong> the GNU <a href="https://www.gnu.org/software/bash/manual/bash.html">Bash Reference Manual</a> for tokens, shell operation, history, status, and builtins, and the GNU <a href="https://www.gnu.org/software/coreutils/ls">Coreutils <code>ls</code> manual</a> for default operands and options.</p>
+      </section>
+
+      <section id="command-index">
+        <p class="section-kicker">03 · Transcript map</p>
+        <h2>Where each command is taught in detail</h2>
+        <p class="intro">The tutorial series moves from orientation to files, then text processing, processes, automation, and storage. These notes follow the same learning order, but place each command beside the mental model it depends on.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Question</th><th>Commands</th><th>Detailed walkthrough</th></tr></thead>
+            <tbody>
+              <tr><td>Where am I, and what is here?</td><td><code>pwd</code>, <code>cd</code>, <code>ls</code></td><td><a href="filesystem-paths-permissions.html#file-command-walkthroughs">Filesystem command walkthroughs</a></td></tr>
+              <tr><td>How do I create or change names?</td><td><code>touch</code>, <code>mkdir</code>, <code>cp</code>, <code>mv</code>, <code>ln</code></td><td><a href="filesystem-paths-permissions.html#file-command-walkthroughs">Create, copy, move, and link</a></td></tr>
+              <tr><td>How do I remove something safely?</td><td><code>rm</code>, <code>rmdir</code></td><td><a href="filesystem-paths-permissions.html#file-command-walkthroughs">Removal workflow and safeguards</a></td></tr>
+              <tr><td>How do I search a directory tree?</td><td><code>find</code>, <code>locate</code></td><td><a href="filesystem-paths-permissions.html#find-walkthrough">The <code>find</code> expression, step by step</a></td></tr>
+              <tr><td>How do I read and count text?</td><td><code>cat</code>, <code>less</code>, <code>head</code>, <code>tail</code>, <code>wc</code></td><td><a href="streams-pipes-redirection.html#command-walkthroughs">Text command walkthroughs</a></td></tr>
+              <tr><td>How do I select or edit lines?</td><td><code>grep</code>, <code>sed</code></td><td><a href="streams-pipes-redirection.html#grep-sed">Patterns, addresses, and substitutions</a></td></tr>
+              <tr><td>How do I transform fields and characters?</td><td><code>sort</code>, <code>uniq</code>, <code>tr</code>, <code>cut</code>, <code>awk</code>, <code>xargs</code></td><td><a href="streams-pipes-redirection.html#record-tools">Record and field tools</a></td></tr>
+              <tr><td>What is running, and how do I control it?</td><td><code>ps</code>, <code>top</code>, <code>pgrep</code>, <code>jobs</code>, <code>bg</code>, <code>fg</code>, <code>kill</code>, <code>nice</code>, <code>nohup</code></td><td><a href="processes-signals.html#process-command-walkthroughs">Process command walkthroughs</a>, <a href="processes-signals.html#jobs">jobs</a>, and <a href="processes-signals.html#signals">signals</a></td></tr>
+              <tr><td>Why does a command resolve differently?</td><td><code>type</code>, <code>command -v</code>, <code>env</code>, <code>export</code>, <code>alias</code>, <code>source</code>, <code>history</code></td><td><a href="#interactive-shell-tools">Variables and interactive helpers</a>, then <a href="#lookup">command lookup</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout"><b>Commands later in the video series</b>Archive and backup tools (<code>tar</code>, <code>gzip</code>, <code>rsync</code>), schedulers (<code>cron</code>, <code>anacron</code>, systemd timers), terminal multiplexers (<code>screen</code>, <code>tmux</code>), and storage-administration tools (<code>mount</code>, <code>parted</code>, <code>dd</code>, LVM, ZFS, SMART, and LUKS) are separate administration subjects. They should not be mixed into a first shell lesson or run casually; their guide needs device-specific labs, backups, and rollback checks.</div>
+      </section>
+
+      <section id="interactive-shell-tools">
+        <p class="section-kicker">04 · Shell walkthroughs</p>
+        <h2>Variables, aliases, functions, and history</h2>
+        <p class="intro">These commands change the shell session itself. That makes them convenient, but also explains why a setting can exist in one terminal and be absent from a script, scheduler, or newly opened terminal.</p>
+
+        <h3><code>env</code> and <code>export</code>: decide what child processes inherit</h3>
+        <pre><code>case_name='login investigation'       # Shell variable in this session.
+printf '%s\n' "$case_name"           # Quote it so it remains one argument.
+
+export CASE_NAME="$case_name"         # Future child processes inherit it.
+env | sort                            # Display the exported environment.
+MODE=lab python3 analyzer.py          # MODE exists for this command only.
+unset CASE_NAME                       # Remove the shell variable/export.</code></pre>
+        <ul class="checklist">
+          <li><code>name=value</code> creates or changes a shell variable; it is not automatically an environment variable.</li>
+          <li><code>export name</code> marks that variable for inheritance by commands started later. It cannot alter an already-running process.</li>
+          <li><code>NAME=value command</code> supplies a value only to that command's environment without permanently exporting it in the current shell.</li>
+          <li><code>env</code> shows exported values, not every unexported shell variable. Environment output may contain secrets, so do not paste it blindly into tickets or logs.</li>
+        </ul>
+
+        <h3><code>alias</code> and functions: name repeated interactive work</h3>
+        <pre><code>alias ll='ls -lah'
+type ll
+ll /var/log
+unalias ll
+
+cgrep() {
+  grep --color=auto "$@"
+}
+type cgrep
+cgrep -n 'failed' auth.log</code></pre>
+        <p>An alias substitutes text at the start of an interactive command and is best kept short and unsurprising. It does not receive positional parameters like a script. A shell function can receive arguments; <code>"$@"</code> passes each supplied argument onward without merging them. Use <code>type name</code> to see whether a name is an alias, function, builtin, or executable.</p>
+        <div class="callout warn"><b>Convenience is not a safety boundary</b>An alias such as <code>alias rm='rm -i'</code> may be absent in scripts, remote sessions, root shells, or commands that bypass aliases. Write destructive commands safely without depending on an alias.</div>
+
+        <h3><code>source</code>: run a file inside the current shell</h3>
+        <pre><code>bash -n ./lab-environment.sh    # Check Bash syntax first.
+source ./lab-environment.sh    # Bash/Zsh spelling.
+. ./lab-environment.sh         # POSIX spelling.</code></pre>
+        <p>Executing a script normally starts another process, so its variable and directory changes do not flow back into the parent shell. <code>source</code> (or <code>.</code>) reads and executes the file in the current shell, so it can change variables, functions, options, and the working directory. Read an unfamiliar file before sourcing it: this is code execution, not a configuration-file parser.</p>
+
+        <h3><code>history</code>: recall work, not secrets</h3>
+        <pre><code>history 20                 # Show recent entries in Bash.
+history | grep -- 'find'  # Search displayed history.
+# Ctrl-R starts an interactive reverse search in Bash.</code></pre>
+        <p>History behavior depends on the shell, its options, and when sessions write their history files. Recall a command, edit it, and inspect the full line before pressing Enter. Deleting an entry later does not erase copies from process listings, audit logs, terminal capture, backups, or a remote service.</p>
+
+        <p><strong>Verified against:</strong> the GNU <a href="https://www.gnu.org/software/bash/manual/bash.html">Bash Reference Manual</a> sections on shell parameters, the environment, aliases, functions, Bourne shell builtins, and history builtins.</p>
+      </section>
+
       <section id="model">
-        <p class="section-kicker">02 · Mental model</p>
+        <p class="section-kicker">05 · Mental model</p>
         <h2>From command line to running process</h2>
         <p class="intro">The shell does significant work before the target program receives anything. The target receives an argument array, not your original command-line string.</p>
         <div class="model">
@@ -90,7 +210,7 @@ python3 -c 'import sys; print(sys.argv)' one "two words" '*.log'</code></pre>
       </section>
 
       <section id="lookup">
-        <p class="section-kicker">03 · Command resolution</p>
+        <p class="section-kicker">06 · Command resolution</p>
         <h2>How the shell finds a command</h2>
         <p class="intro">A bare command name may resolve to an alias, function, builtin, hashed location, or executable in PATH. Do not assume <code>python</code> means the interpreter you intended.</p>
         <div class="command-list">
@@ -110,7 +230,7 @@ python3 -c 'import sys; print(sys.executable)'</code></pre>
       </section>
 
       <section id="quoting">
-        <p class="section-kicker">04 · Data stays data</p>
+        <p class="section-kicker">07 · Data stays data</p>
         <h2>Quoting, expansion, and globbing</h2>
         <div class="table-wrap">
           <table>
@@ -146,7 +266,7 @@ python3 analyzer.py "${args[@]}"
       </section>
 
       <section id="startup">
-        <p class="section-kicker">05 · Environment</p>
+        <p class="section-kicker">08 · Environment</p>
         <h2>Startup files: what runs when</h2>
         <p class="intro">Shell startup behavior depends on the shell, whether it is login or non-login, and whether it is interactive. That is why blindly editing every dotfile creates duplicate PATH entries and confusing side effects.</p>
         <div class="table-wrap">
@@ -169,7 +289,7 @@ case $- in *i*) echo interactive ;; *) echo non-interactive ;; esac</code></pre>
       </section>
 
       <section id="scripts">
-        <p class="section-kicker">06 · Reliable automation</p>
+        <p class="section-kicker">09 · Reliable automation</p>
         <h2>Write scripts that fail visibly</h2>
         <pre><code>#!/usr/bin/env bash
 set -euo pipefail
@@ -192,7 +312,7 @@ printf 'wrote %s\n' "$out_dir/summary.json"</code></pre>
       </section>
 
       <section id="scenarios">
-        <p class="section-kicker">07 · On the job</p>
+        <p class="section-kicker">10 · On the job</p>
         <h2>Detection-engineering scenarios</h2>
 
         <article class="scenario">
@@ -235,7 +355,7 @@ shellcheck ./setup-lab.sh</code></pre>
       </section>
 
       <section id="drills">
-        <p class="section-kicker">08 · Practice</p>
+        <p class="section-kicker">11 · Practice</p>
         <h2>Hands-on drills</h2>
         <p class="intro">Run these from a blank terminal. Save commands, outputs, and your explanation—not just the final result.</p>
 
@@ -275,7 +395,7 @@ zsh quote-demo.sh</code></pre>
       </section>
 
       <section id="cheatsheet">
-        <p class="section-kicker">09 · Desk reference</p>
+        <p class="section-kicker">12 · Desk reference</p>
         <h2>One-screen cheat sheet</h2>
         <div class="table-wrap">
           <table>
