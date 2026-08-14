@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="Post-diagnostic review field guide for building a tested Python access-log analyzer from a blank folder." />
+<title>Python Build-from-Blank — Detection Engineering Learning Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/guide.css" />
+<script src="assets/guide.js" defer></script>
+</head>
+<body>
+<div class="topbar"><div class="topbar-inner">
+  <a class="back" href="../index.html#w0"><span>←</span> Back to curriculum</a>
+  <span class="topic-id">Week 0 · Topic 0.1</span>
+</div></div>
+<div class="shell">
+  <header class="hero">
+    <p class="eyebrow">Post-diagnostic review material · Python</p>
+    <h1>Turn raw access logs into <span>defensible evidence.</span></h1>
+    <p class="lede">Do not read this before attempting the unprepared diagnostic. After you have stopped the clock and saved your gaps, use it to review how a small, testable Python command-line analyzer turns request records into top IPs, an error rate, and requests per minute.</p>
+    <div class="hero-grid" aria-label="Guide summary">
+      <div class="hero-stat"><b>14 concepts</b><span>Build mechanics</span></div>
+      <div class="hero-stat"><b>4 scenarios</b><span>Detection work</span></div>
+      <div class="hero-stat"><b>3 drills</b><span>Saved artifacts</span></div>
+    </div>
+  </header>
+  <div class="layout">
+    <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <a href="#why">Why it matters</a><a href="#model">Analyzer model</a><a href="#log-format">Parse records</a><a href="#metrics">Compute metrics</a><a href="#cli">Package a CLI</a><a href="#tests">Test behavior</a><a href="#safety">Failure modes &amp; safety</a><a href="#scenarios">Work scenarios</a><a class="toc-practice" href="#drills">Hands-on drills</a><a href="#cheatsheet">Cheat sheet &amp; exit</a>
+    </nav>
+    <main>
+      <section id="why">
+        <p class="section-kicker">01 · Purpose</p><h2>Why build this without assistance?</h2>
+        <p class="intro">A detection engineer often receives semi-structured evidence before a dashboard, parser, or data model exists. The useful skill is not remembering every library call; it is choosing an explicit input contract, isolating transformation steps, and proving the result.</p>
+        <div class="cards">
+          <article class="card"><span class="num">INPUT CONTRACT</span><h4>Logs are data, not prose</h4><p>Every metric depends on the timestamp, client identity, and status fields being parsed exactly as you claim.</p></article>
+          <article class="card"><span class="num">REPRODUCIBILITY</span><h4>One command, one result</h4><p>A CLI makes the input, limit, and output format reviewable in an incident timeline or CI job.</p></article>
+          <article class="card"><span class="num">DETECTION SIGNAL</span><h4>Aggregation creates leads</h4><p>Top talkers, error-rate shifts, and rate bursts are triage signals—not conclusions about maliciousness.</p></article>
+          <article class="card"><span class="num">TRUST</span><h4>Tests preserve meaning</h4><p>Five small tests can pin down boundary choices before a rule or report is trusted.</p></article>
+        </div>
+        <div class="callout warn"><b>Diagnostic rule</b>Your Week 0 artifact measures what you can do cold. Preserve the original implementation and <code>gaps.md</code>; make a separate review revision if you improve it after reading this page.</div>
+      </section>
+
+      <section id="model">
+        <p class="section-kicker">02 · Mental model</p><h2>Keep parsing, aggregation, and presentation separate</h2>
+        <p class="intro">A reliable tiny analyzer is a pipeline. Each stage accepts a narrow value, produces a narrow value, and can be tested without a terminal or real log file.</p>
+        <div class="model"><div class="model-track">
+          <div class="model-box"><b>Text → event</b><span>Parse one line into a typed record or reject it with a counted reason.</span><code>parse_line(line)</code></div><div class="arrow">→</div>
+          <div class="model-box"><b>Events → metrics</b><span>Count client IPs, statuses, and minute buckets with declared rules.</span><code>summarize(events)</code></div><div class="arrow">→</div>
+          <div class="model-box"><b>Metrics → output</b><span>Render stable JSON or text through a small CLI adapter.</span><code>main(argv)</code></div>
+        </div><p class="model-caption">Do not let file I/O, regular expressions, printing, and counting become one untestable loop. The boundary is what lets you diagnose a wrong result.</p></div>
+        <pre><code>from dataclasses import dataclass
+from datetime import UTC, datetime
+
+@dataclass(frozen=True)
+class AccessEvent:
+    client_ip: str
+    when: datetime
+    status: int
+    method: str
+    path: str</code></pre>
+        <p>An immutable event is a useful convention, not a requirement. It makes accidental mutation less likely while the same event feeds more than one aggregate.</p>
+      </section>
+
+      <section id="log-format">
+        <p class="section-kicker">03 · Input</p><h2>Parse access logs with an explicit contract</h2>
+        <p class="intro">This example accepts the common Nginx/Apache-style combined log shape. It is a lab contract: real deployments may add a trusted-proxy address, use JSON, omit fields, or escape values differently.</p>
+        <pre><code>203.0.113.8 - - [10/Oct/2025:13:55:36 +0000] "GET /login HTTP/1.1" 401 182 "-" "curl/8.0"
+
+# Required here: client address, bracketed timestamp, quoted request, numeric status.
+# Do not use a regex designed for this line against an unknown vendor format.</code></pre>
+        <div class="command-list">
+          <div class="command"><code>re.fullmatch(pattern, line)</code><p><b>Require the full expected shape.</b>Use when the exercise's fixture controls the format; partial matches can silently accept truncated or concatenated evidence.</p></div>
+          <div class="command"><code>datetime.strptime(..., "%d/%b/%Y:%H:%M:%S %z")</code><p><b>Parse a zoned timestamp.</b>The <code>%z</code> offset matters: bucket normalized instants, not a timestamp string that only looks comparable.</p></div>
+          <div class="command"><code>ipaddress.ip_address(value)</code><p><b>Validate an address literal.</b>It checks syntax, not whether the address is the original client behind a proxy.</p></div>
+        </div>
+        <pre><code>import re
+from datetime import datetime
+from ipaddress import ip_address
+
+LINE = re.compile(
+    r'(?P&lt;ip&gt;\S+) \S+ \S+ \[(?P&lt;time&gt;[^\]]+)\] '
+    r'"(?P&lt;method&gt;[A-Z]+) (?P&lt;path&gt;\S+) [^"]+" '
+    r'(?P&lt;status&gt;\d{3}) \S+ "[^"]*" "[^"]*"'
+)
+
+def parse_line(line: str) -&gt; AccessEvent:
+    match = LINE.fullmatch(line.rstrip("\n"))
+    if not match:
+        raise ValueError("unsupported access-log line")
+    fields = match.groupdict()
+    return AccessEvent(
+        client_ip=str(ip_address(fields["ip"])),
+        when=datetime.strptime(fields["time"], "%d/%b/%Y:%H:%M:%S %z"),
+        status=int(fields["status"]), method=fields["method"], path=fields["path"],
+    )</code></pre>
+        <div class="callout danger"><b>Client IP is not automatically identity</b>At a reverse proxy, the socket peer may be the proxy and a forwarded header may be spoofable unless the proxy chain strips and sets it. Record what field you used and its trust boundary before attributing activity to an IP.</div>
+      </section>
+
+      <section id="metrics">
+        <p class="section-kicker">04 · Aggregation</p><h2>Make the metric definitions visible</h2>
+        <p class="intro">The exercise asks for top-N IPs, error rate, and requests per minute. State the denominator and rounding policy beside the result so another engineer can reproduce it.</p>
+        <pre><code>from collections import Counter
+
+def summarize(events: list[AccessEvent], limit: int) -&gt; dict:
+    top_ips = Counter(event.client_ip for event in events).most_common(limit)
+    errors = sum(500 &lt;= event.status &lt; 600 for event in events)
+    by_minute = Counter(
+        event.when.astimezone(UTC).replace(second=0, microsecond=0).isoformat()
+        for event in events
+    )
+    total = len(events)
+    return {
+        "bucket_timezone": "UTC",
+        "requests": total,
+        "server_error_rate": errors / total if total else 0.0,
+        "top_ips": top_ips,
+        "requests_per_minute": dict(sorted(by_minute.items())),
+    }</code></pre>
+        <div class="table-wrap"><table><thead><tr><th>Metric</th><th>Definition used here</th><th>Question to ask before trusting it</th></tr></thead><tbody>
+          <tr><td>Top-N IPs</td><td>Most parsed requests by address; ties follow counter encounter order unless you add a secondary sort.</td><td>Is NAT, a proxy, or a load balancer collapsing many people?</td></tr>
+          <tr><td>Error rate</td><td><code>5xx requests / all parsed requests</code>.</td><td>Did the investigation mean 4xx + 5xx, a route-specific rate, or upstream failures?</td></tr>
+          <tr><td>Requests/minute</td><td>Requests in each timestamp minute after a chosen timezone conversion.</td><td>Are timestamps complete, ordered, and all from the same clock/source?</td></tr>
+        </tbody></table></div>
+        <div class="callout"><b>Recommendation, not a universal definition</b>For a quick availability signal, treat only 5xx as server errors. Authentication failures (401/403) often deserve a separate abuse metric because including them in “error rate” blends client behavior with service failure.</div>
+      </section>
+
+      <section id="cli">
+        <p class="section-kicker">05 · Interface</p><h2>Package the tool and expose a small CLI</h2>
+        <p class="intro">Package layout lets imports behave consistently in tests and makes the command an explicit interface. <code>argparse</code> is in the Python standard library, so it fits a blank-folder diagnostic without a dependency decision.</p>
+        <pre><code>log-analyzer/
+├── pyproject.toml
+├── src/log_analyzer/__init__.py
+├── src/log_analyzer/core.py
+├── src/log_analyzer/cli.py
+└── tests/test_core.py
+
+# pyproject.toml
+[project]
+name = "log-analyzer"
+version = "0.1.0"
+requires-python = ">=3.11"
+[project.scripts]
+log-analyzer = "log_analyzer.cli:main"</code></pre>
+        <pre><code>import argparse
+import json
+from pathlib import Path
+
+from .core import parse_line, summarize
+
+def main(argv: list[str] | None = None) -&gt; int:
+    parser = argparse.ArgumentParser(description="Summarize access logs")
+    parser.add_argument("log", type=Path)
+    parser.add_argument("--top", type=int, default=10)
+    args = parser.parse_args(argv)
+    if args.top &lt; 1:
+        parser.error("--top must be at least 1")
+    events = [parse_line(line) for line in args.log.read_text().splitlines()]
+    print(json.dumps(summarize(events, args.top), indent=2))
+    return 0
+
+if __name__ == "__main__":
+    raise SystemExit(main())</code></pre>
+        <p>Install only into a disposable virtual environment: <code>python3 -m venv .venv</code>, activate it for your shell, then <code>python -m pip install -e .</code>. Do not run an unknown package installer with elevated privileges or point it at production logs.</p>
+      </section>
+
+      <section id="tests">
+        <p class="section-kicker">06 · Proof</p><h2>Write five tests that describe the contract</h2>
+        <p class="intro">Tests are executable claims. They should pin down both ordinary inputs and a boundary where a plausible implementation would lie.</p>
+        <pre><code># pytest examples; use unittest if that is what you can write cold.
+def test_parses_valid_line(): ...
+def test_rejects_malformed_line(): ...
+def test_top_ips_respects_limit(): ...
+def test_error_rate_counts_only_5xx(): ...
+def test_empty_input_has_zero_error_rate(): ...
+def test_equivalent_offsets_share_one_utc_minute_bucket(): ...
+def test_output_declares_utc_bucket_timezone(): ...</code></pre>
+        <div class="callout warn"><b>Do not test your implementation by echoing it</b>For example, a test that computes the expected error rate with the same loop and same condition may repeat the same bug. Use a tiny fixture whose expected totals you can calculate by hand.</div>
+        <pre><code>python3 -m pytest -q
+# Or, if you used the standard library:
+python3 -m unittest discover -v
+
+log-analyzer --top 3 fixtures/access.log &gt; artifacts/summary.json
+python3 -m json.tool artifacts/summary.json</code></pre>
+      </section>
+
+      <section id="safety">
+        <p class="section-kicker">07 · Boundaries</p><h2>Failure modes and safe workflow</h2>
+        <div class="table-wrap"><table><thead><tr><th>Failure</th><th>Why it happens</th><th>Safe response</th></tr></thead><tbody>
+          <tr><td>Regex accepts the wrong source</td><td>Formats vary; a “combined” format is configurable.</td><td>Version fixtures and fail closed with a parse-error count.</td></tr>
+          <tr><td>Bad timestamp buckets</td><td>Naive times, mixed offsets, daylight-saving transitions, or locale assumptions.</td><td>Require an offset; normalize deliberately and document display timezone.</td></tr>
+          <tr><td>Memory exhaustion</td><td>Reading an unbounded production file into a list.</td><td>Stream line by line, or use an approved query system for large data.</td></tr>
+          <tr><td>Evidence exposure</td><td>Logs can contain session IDs, email addresses, URLs, and tokens.</td><td>Use synthetic fixtures; redact before sharing artifacts; restrict output permissions.</td></tr>
+          <tr><td>False attribution</td><td>Address fields and status codes lack business context.</td><td>Correlate with proxy configuration, route, user/account signals, and time window.</td></tr>
+        </tbody></table></div>
+        <p><strong>Platform assumptions:</strong> commands use Python 3.11+ and a POSIX-like shell for examples. Windows users can run the Python commands in PowerShell; virtual-environment activation is <code>.venv\Scripts\Activate.ps1</code>, not <code>source .venv/bin/activate</code>. The Python code itself is cross-platform.</p>
+      </section>
+
+      <section id="scenarios">
+        <p class="section-kicker">08 · On the job</p><h2>Detection-engineering scenarios</h2>
+        <article class="scenario"><div class="scenario-head"><span class="tag">BURST</span><div><h4>Login failures spike after a deployment</h4></div></div><p>Run the analyzer for the deployment window, then compare 401/403 separately from 5xx. A top source IP may be an office NAT or a proxy; the decisive question is whether rate, route, account diversity, and client fingerprinting changed together.</p></article>
+        <article class="scenario"><div class="scenario-head"><span class="tag">OUTAGE</span><div><h4>Only checkout returns 502</h4></div></div><p>Bucket 5xx by minute and extend the event model with path. The analyzer establishes onset and volume; it cannot prove the upstream cause. Preserve the exact filter and correlate with load-balancer and application logs.</p></article>
+        <article class="scenario"><div class="scenario-head"><span class="tag">RULE QA</span><div><h4>A rate-limit detection has a suspicious false positive</h4></div></div><p>Recompute the per-minute count on the saved sample using the rule’s client-key definition. If the rule uses a trusted forwarded address while the script uses socket peer, the discrepancy is an instrumentation mismatch, not necessarily a bad threshold.</p></article>
+        <article class="scenario"><div class="scenario-head"><span class="tag">PIPELINE</span><div><h4>A parser change lowers event volume</h4></div></div><p>Count rejected lines and make parse failures visible. A cleaner-looking summary after a format change can mean data loss. Ship the fixture that caused the regression with the test before updating production parsing.</p></article>
+      </section>
+
+      <section id="drills">
+        <p class="section-kicker">09 · Practice</p><h2>Hands-on drills</h2>
+        <p class="intro">Do these after saving the original diagnostic. Work under a new, explicitly named disposable directory; do not delete broad paths as cleanup.</p>
+        <article class="drill"><div class="drill-head"><h3>1. Rebuild a log analyzer from a three-line fixture</h3><span class="time">45 min</span></div><p>Create <code>artifacts/access.log</code>, <code>artifacts/summary.json</code>, and <code>artifacts/metric-definitions.md</code>. Include at least one 2xx, 4xx, and 5xx line across two minutes.</p><ul class="checklist"><li>Show your hand-calculated top IPs, 5xx denominator, and minute counts beside the JSON.</li><li>State which IP field is assumed to be the client and why that can fail behind a proxy.</li><li>Record malformed-line behavior rather than silently dropping it.</li></ul></article>
+        <article class="drill"><div class="drill-head"><h3>2. Add a CLI and package boundary</h3><span class="time">30 min</span></div><p>Save <code>pyproject.toml</code>, a package under <code>src/</code>, and <code>artifacts/cli-transcript.txt</code> showing <code>--help</code>, a successful run, and an invalid <code>--top 0</code> run.</p><ul class="checklist"><li>Explain why <code>main(argv)</code> is easier to test than reading <code>sys.argv</code> everywhere.</li><li>Show that output is valid JSON and that errors exit non-zero.</li><li>Name the Python version and operating system used.</li></ul></article>
+        <article class="drill"><div class="drill-head"><h3>3. Write six behavior tests and a gaps review</h3><span class="time">35 min</span></div><p>Save <code>tests/test_core.py</code> (or equivalent), <code>artifacts/test-output.txt</code>, and <code>review-gaps.md</code>. Keep the original diagnostic <code>gaps.md</code> unchanged.</p><ul class="checklist"><li>Include valid, malformed, empty, error-rate, ordering/limit, and time-bucket cases.</li><li>For each failed first attempt, name the model gap—not merely the missing syntax.</li><li>Explain one test whose expected value was calculated without calling your production helper.</li></ul></article>
+      </section>
+
+      <section id="cheatsheet">
+        <p class="section-kicker">10 · Desk reference</p><h2>Cheat sheet and completion test</h2>
+        <div class="table-wrap"><table><thead><tr><th>Intent</th><th>Pattern</th></tr></thead><tbody>
+          <tr><td>Make a safe lab environment</td><td><code>python3 -m venv .venv</code> then project-local installation</td></tr><tr><td>Model a parsed record</td><td><code>@dataclass(frozen=True)</code></td></tr><tr><td>Validate IP syntax</td><td><code>ipaddress.ip_address(value)</code></td></tr><tr><td>Parse a zoned time</td><td><code>datetime.strptime(value, format_with_%z)</code></td></tr><tr><td>Count values</td><td><code>collections.Counter(...).most_common(n)</code></td></tr><tr><td>Design a CLI</td><td><code>argparse.ArgumentParser()</code> and <code>main(argv)</code></td></tr><tr><td>Run tests</td><td><code>python -m pytest -q</code> or <code>python -m unittest</code></td></tr><tr><td>Validate JSON artifact</td><td><code>python -m json.tool summary.json</code></td></tr>
+        </tbody></table></div>
+        <h3>Ready to pass Topic 0.1 without AI?</h3><div class="exit-grid"><div class="exit-item"><b>Build</b>From an empty folder, parse a declared access-log format and produce top-N IPs, 5xx rate, and minute buckets.</div><div class="exit-item"><b>Explain</b>Defend the input contract, denominator, timezone policy, and client-IP trust boundary.</div><div class="exit-item"><b>Package</b>Create an <code>argparse</code> command with a tested <code>main(argv)</code>.</div><div class="exit-item"><b>Prove</b>Write at least five tests and save an honest gap list without repairing the original diagnostic score.</div></div>
+        <h3>Primary resources</h3><div class="resources"><a class="resource" href="https://docs.python.org/3/library/argparse.html" target="_blank" rel="noopener"><b>Python: argparse</b><span>Standard-library CLI interface</span></a><a class="resource" href="https://docs.python.org/3/library/datetime.html" target="_blank" rel="noopener"><b>Python: datetime</b><span>Parsing and timezone behavior</span></a><a class="resource" href="https://docs.python.org/3/library/ipaddress.html" target="_blank" rel="noopener"><b>Python: ipaddress</b><span>Address-literal validation</span></a><a class="resource" href="https://packaging.python.org/en/latest/guides/writing-pyproject-toml/" target="_blank" rel="noopener"><b>Python Packaging guide</b><span>Project metadata and scripts</span></a></div>
+      </section>
+      <footer class="footer">Post-diagnostic review material for the <a href="../index.html#w0">Detection Engineering Learning Console</a> · Week 0, Topic 0.1</footer>
+    </main>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="A practical Git recovery and safety field guide for detection engineers." />
+<title>Git Recovery &amp; Safety — Detection Engineering Learning Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/guide.css" />
+<script src="assets/guide.js" defer></script>
+</head>
+<body>
+<div class="topbar"><div class="topbar-inner">
+  <a class="back" href="../index.html#w1"><span>←</span> Back to Week 1</a>
+  <span class="topic-id">Week 1 · Topic 1.8</span>
+</div></div>
+<div class="shell">
+  <header class="hero">
+    <p class="eyebrow">Practical field guide · Git safety</p>
+    <h1>Recover deliberately. <span>Destroy nothing by reflex.</span></h1>
+    <p class="lede">Git has separate layers for files, staged content, branch names, and shared history. Identify the layer that is wrong before changing anything; the right recovery is often a read-only inspection followed by one small, reversible move.</p>
+    <div class="hero-grid" aria-label="Guide summary"><div class="hero-stat"><b>21 commands</b><span>Core recovery set</span></div><div class="hero-stat"><b>4 scenarios</b><span>Detection work</span></div><div class="hero-stat"><b>5 drills</b><span>Safe recovery proof</span></div></div>
+  </header>
+  <div class="layout">
+    <nav class="toc" aria-label="On this page"><p class="toc-title">On this page</p><a href="#why">Why it matters</a><a href="#triage">Triage model</a><a href="#reflog">Reflog</a><a href="#reset">Reset matrix</a><a href="#restore">Restore &amp; checkout</a><a href="#detached">Detached HEAD</a><a href="#revert">Revert or reset</a><a href="#scenarios">Work scenarios</a><a href="#safety">Safety &amp; platforms</a><a class="toc-practice" href="#drills">Five drills</a><a href="#cheatsheet">Cheat sheet</a></nav>
+    <main>
+      <section id="why"><p class="section-kicker">01 · Purpose</p><h2>Why recovery is a production skill</h2><p class="intro">A rushed “undo” can erase uncommitted investigation notes, hide a flawed rule change, or overwrite a teammate’s history. Good recovery preserves evidence first, diagnoses the state second, and chooses the narrowest operation that fixes it.</p><div class="cards"><article class="card"><span class="num">INCIDENTS</span><h4>Undo with an audit trail</h4><p>A bad shared rule is usually reverted, not erased, so responders can see both the mistake and its correction.</p></article><article class="card"><span class="num">FORENSICS</span><h4>Keep local evidence intact</h4><p>Working-tree and staging recovery can separate accidental edits from committed, reviewable snapshots.</p></article><article class="card"><span class="num">RELIABILITY</span><h4>Know what a command rewrites</h4><p>Reset changes different layers depending on mode; <code>--hard</code> replaces tracked files as well as moving a branch.</p></article><article class="card"><span class="num">COLLABORATION</span><h4>Do not rewrite another person’s base</h4><p>Remote histories are shared state. Prefer an additive revert and use force-with-lease only for owned, coordinated branches.</p></article></div><div class="callout"><b>First principle</b>Stop, run <code>git status</code>, and preserve a name for anything valuable before experimenting. Git recovery is easiest while objects are still reachable by a branch, tag, stash, or reflog entry.</div></section>
+
+      <section id="triage"><p class="section-kicker">02 · Mental model</p><h2>Ask which layer changed—and which history is shared</h2><div class="model"><div class="model-track"><div class="model-box"><b>Working tree</b><span>Files on disk. Unstaged edits live here.</span><code>git diff</code></div><div class="arrow">→</div><div class="model-box"><b>Index</b><span>Exact next-commit content. Staged edits live here.</span><code>git diff --staged</code></div><div class="arrow">→</div><div class="model-box"><b>Branch / HEAD</b><span>Names the committed snapshot you have checked out.</span><code>git log -1</code></div></div><p class="model-caption">A recovery command may affect one, two, or all three layers. Remote history is a separate concern: a local branch move does not change a server until you push it.</p></div><div class="table-wrap"><table><thead><tr><th>Before acting</th><th>Question it answers</th><th>Why it is safe</th></tr></thead><tbody><tr><td><code>git status</code></td><td>Is there an operation in progress? What is modified, staged, or untracked?</td><td>Read-only state report.</td></tr><tr><td><code>git diff</code> / <code>git diff --staged</code></td><td>What exact content would be discarded or committed?</td><td>Read-only comparison.</td></tr><tr><td><code>git log --oneline --graph --decorate --all</code></td><td>Where do branch and remote-tracking refs point?</td><td>Read-only graph view.</td></tr><tr><td><code>git show &lt;rev&gt;</code></td><td>Is this the commit/file I want before restoring it?</td><td>Read-only object inspection.</td></tr></tbody></table></div><div class="callout warn"><b>Untracked is a different risk</b><code>git reset --hard</code> removes changes to tracked files, but normally leaves untracked files. <code>git clean</code> targets untracked files; it can delete ignored files with <code>-x</code>. Never treat either as routine cleanup.</div></section>
+
+      <section id="reflog"><p class="section-kicker">03 · Local safety journal</p><h2>Reflog records recent ref movements—locally and temporarily</h2><p class="intro">The reflog answers “where did this local ref used to point?” It records updates caused by commits, resets, rebases, checkouts, and other ref changes. It is frequently how you find a commit after moving or deleting a local branch.</p><pre><code>git reflog --date=local
+git reflog show main
+git show HEAD@{1}                  # inspect, do not restore blindly
+git branch recovered-work &lt;sha&gt;     # give the found commit a durable name
+git switch recovered-work</code></pre><div class="command-list"><div class="command"><code>git reflog</code><p><b>List HEAD’s local movement journal.</b>Use after an accidental reset, rebase, or branch deletion. It assumes the relevant local reflog entry has not expired or been pruned; it neither queries nor repairs a remote.</p></div><div class="command"><code>git branch recovered-work &lt;sha&gt;</code><p><b>Protect a found commit without changing files.</b>Use immediately after verifying <code>git show</code>. It creates a local branch ref, making the commit reachable through normal history again.</p></div><div class="command"><code>git fsck --no-reflogs --unreachable</code><p><b>Inspect unreachable objects as a last resort.</b>Use only in a disposable or carefully backed-up repository when reflog is insufficient. Output can include sensitive historical content; it does not guarantee recovery after pruning.</p></div></div><p>Reflogs are not pushed or cloned as collaboration data. Their entries expire and objects that are no longer reachable may later be pruned by Git maintenance. Default expiry behavior is configurable and can vary: Git commonly expires reachable reflog entries after 90 days and unreachable ones after 30 days, but configuration, manual expiration, garbage collection, and hosting providers change the outcome. Recover and name important work now; do not rely on a time window as a backup policy.</p><div class="callout danger"><b>Locality and exposure</b>A reflog can reveal prior commit IDs and messages locally, including work that was later rewritten. Do not paste its full output into tickets if it exposes branch names, paths, or sensitive context. A remote provider’s web history is not your local reflog.</div></section>
+
+      <section id="reset"><p class="section-kicker">04 · Move layers precisely</p><h2>Reset matrix: same target, different treatment of files and index</h2><p class="intro"><code>git reset &lt;target&gt;</code> moves the current branch/HEAD reference. The mode determines how far Git also updates the index and working tree. All three modes can make commits disappear from the current branch; check reflog if the move was mistaken.</p><div class="table-wrap"><table><thead><tr><th>Mode</th><th>Branch / HEAD</th><th>Index</th><th>Working tree</th><th>Use and risk</th></tr></thead><tbody><tr><td><code>--soft</code></td><td>Moves to target</td><td>Kept as it was</td><td>Kept as it was</td><td>Undo an unpushed commit while keeping its whole snapshot staged. Rewrites local history.</td></tr><tr><td><code>--mixed</code> (default)</td><td>Moves to target</td><td>Reset to target</td><td>Kept as it was</td><td>Undo an unpushed commit while keeping its content as unstaged edits. Rewrites local history.</td></tr><tr><td><code>--hard</code></td><td>Moves to target</td><td>Reset to target</td><td>Tracked files replaced by target</td><td><span class="danger-text">Destructive:</span> discards staged and unstaged tracked edits. It can also delete untracked obstructions in the way of writing tracked files.</td></tr></tbody></table></div><pre><code># First inspect the target and preserve any important state.
+git status
+git show --stat HEAD~1
+git branch safety-before-reset HEAD
+
+git reset --soft HEAD~1    # keep former commit staged
+# git reset --mixed HEAD~1 # keep former commit as unstaged edits (default mode)
+# git reset --hard HEAD~1  # only in a disposable repo or after verified backup</code></pre><p><code>git reset --mixed &lt;path&gt;</code> has a different, path-limited form: it resets index entries for those paths without moving HEAD (modern spelling: <code>git restore --staged &lt;path&gt;</code>). Avoid generalizing a path reset into the whole-history reset matrix.</p></section>
+
+      <section id="restore"><p class="section-kicker">05 · File-level recovery</p><h2>Use restore/switch for one clear job; understand legacy checkout</h2><div class="table-wrap"><table><thead><tr><th>Intent</th><th>Modern command</th><th>Legacy equivalent / consequence</th></tr></thead><tbody><tr><td>Discard unstaged edits to one tracked path</td><td><code>git restore path</code></td><td><code>git checkout -- path</code>. Both replace the working file from index by default—destructive to those edits.</td></tr><tr><td>Unstage a path but keep its working edits</td><td><code>git restore --staged path</code></td><td><code>git reset HEAD -- path</code>. Changes index only.</td></tr><tr><td>Restore a file from a specific commit</td><td><code>git restore --source=&lt;rev&gt; -- path</code></td><td><code>git checkout &lt;rev&gt; -- path</code>. Writes the chosen historical content into working tree and index; inspect first.</td></tr><tr><td>Change branch / inspect commit</td><td><code>git switch branch</code> / <code>git switch --detach rev</code></td><td><code>git checkout branch</code> / <code>git checkout rev</code>. Legacy checkout overloads branch switching and path restoration.</td></tr></tbody></table></div><pre><code>git diff -- rules/login.yml
+git restore rules/login.yml                 # destroys only unstaged edits to that tracked file
+git restore --staged rules/login.yml        # unstage; retain working-tree edits
+git show HEAD~1:rules/login.yml             # inspect prior content first
+git restore --source=HEAD~1 -- rules/login.yml
+git diff --staged && git diff</code></pre><p><code>git restore</code> and <code>git switch</code> arrived in Git 2.23 (2019). On older Git, use the corresponding <code>git checkout</code> form, and include <code>--</code> before a path to disambiguate it from a branch name. Neither tool makes a remote backup; restore can overwrite local edits, and switch can be blocked by edits that would be overwritten.</p></section>
+
+      <section id="detached"><p class="section-kicker">06 · Pointer state</p><h2>Detached HEAD: inspect freely, name new work before leaving</h2><p class="intro">Normally, <code>HEAD</code> symbolically points to a branch, and commits advance that branch. In detached HEAD, it points directly to a commit. You can inspect, build, and even commit; new commits simply lack a branch name that will keep them conveniently reachable after you move away.</p><div class="branch-map" role="img" aria-label="Attached HEAD points to a branch while detached HEAD points directly to a commit">Attached:  HEAD → main → C
+Detached:  HEAD → B       main → C
+
+New detached commit: HEAD → D    (no branch names D yet)</div><pre><code>git switch --detach HEAD~1        # inspect an older snapshot
+git status
+# If you make a useful commit while detached:
+git switch -c preserve-investigation-note
+# If you only inspected, leave safely:
+git switch main</code></pre><div class="callout warn"><b>Do not panic; do name things</b>Detached HEAD is not damage. The risk starts when you create a commit, switch away, and later cannot remember its ID. Create a branch (or tag) before leaving. If you already left, inspect <code>git reflog</code> and create a branch at the commit you find.</div></section>
+
+      <section id="revert"><p class="section-kicker">07 · Shared-history choice</p><h2>Revert adds an inverse commit; reset moves a ref backward</h2><div class="table-wrap"><table><thead><tr><th>Situation</th><th>Prefer</th><th>Why</th></tr></thead><tbody><tr><td>A reviewed/pushed commit caused a bad deployment</td><td><code>git revert &lt;sha&gt;</code></td><td>Adds a new inverse change, preserving shared history and an audit trail. It can conflict if later changes touch the same content.</td></tr><tr><td>You want to revise your last unpushed local commit</td><td><code>git reset --soft HEAD~1</code> or <code>git commit --amend</code></td><td>Rewrites only your own local history; select mode based on whether content should stay staged.</td></tr><tr><td>An owned feature branch was pushed then rebased</td><td>Coordinate, then <code>git push --force-with-lease</code></td><td>Remote ref must be updated to rewritten commits. The lease rejects if remote changed since last observation.</td></tr></tbody></table></div><pre><code># Shared branch: inspect, then create an auditable inverse commit.
+git show --stat &lt;bad-sha&gt;
+git revert &lt;bad-sha&gt;
+git push origin main
+
+# A merge commit has multiple parents; choose which parent is the mainline.
+# Do not run blindly: git revert -m 1 &lt;merge-sha&gt;</code></pre><p><code>git revert</code> changes your working tree and creates a new commit after conflict resolution if necessary. It does not erase the original. Reverting a merge needs <code>-m &lt;parent-number&gt;</code> to say which parent is the mainline; inspect the merge first with <code>git show --no-patch --pretty=raw &lt;merge-sha&gt;</code> and follow your team’s release process.</p></section>
+
+      <section id="scenarios"><p class="section-kicker">08 · Field decisions</p><h2>Four recovery scenarios</h2><article class="scenario"><div class="scenario-head"><span class="tag">UNSTAGED NOTE</span><h3>You accidentally overwrite a working rule edit</h3></div><p>Before “fixing” anything, compare <code>git diff</code> and check whether the desired version is in a prior commit. If the edit was never staged or committed and was replaced by restore/reset, Git may not have an object to recover. This is why you inspect and make small commits; use backups/editor history for untracked work.</p></article><article class="scenario"><div class="scenario-head"><span class="tag">BAD DEPLOYMENT</span><h3>A shared detection release increases false positives</h3></div><p>Find the specific merged commit, inspect it, and use <code>git revert</code> through the approved release path. The inverse commit documents the operational choice and does not force teammates to repair rewritten history. Validate the reverted rule bundle before publishing.</p></article><article class="scenario"><div class="scenario-head"><span class="tag">LOST LOCAL COMMIT</span><h3>An experiment disappears after reset</h3></div><p>Stop rewriting. Use <code>git reflog</code> to locate the old tip, inspect it with <code>git show</code>, and create <code>recovered-work</code> at that ID. Reflog locality means a coworker’s clone cannot be assumed to have this journal or its object.</p></article><article class="scenario"><div class="scenario-head"><span class="tag">DIRTY BRANCH SWITCH</span><h3>A responder needs last week’s parser snapshot</h3></div><p>Do not use legacy checkout with a path accidentally. First status/diff and commit or stash your relevant work, then <code>git switch --detach &lt;known-sha&gt;</code> to inspect. Create a branch only if the investigation produces a new commit worth retaining.</p></article></section>
+
+      <section id="safety"><p class="section-kicker">09 · Boundaries</p><h2>Destructive commands, retention limits, and Windows notes</h2><div class="cards"><article class="card"><span class="num">RESET --HARD</span><h4>Tracked edits can be unrecoverable</h4><p>It resets branch, index, and tracked files. It does not mean “clean my repo safely.” Name a safety branch or make an external copy before a high-risk operation.</p></article><article class="card"><span class="num">GIT CLEAN</span><h4>Untracked is not protected</h4><p><code>git clean -n</code> previews; <code>git clean -f</code> deletes untracked files; <code>-x</code> includes ignored files such as local configuration. Treat all deletion variants as destructive.</p></article><article class="card"><span class="num">FORCE PUSH</span><h4>Remote rewrite affects others</h4><p>Never use bare <code>--force</code> on a collaborative branch. Confirm ownership, fetch, communicate, and prefer <code>--force-with-lease</code>.</p></article><article class="card"><span class="num">SENSITIVE DATA</span><h4>Deletion is not secrecy</h4><p>Rewritten or reverted commits can persist in clones, caches, reviews, and reflogs. Rotate an exposed secret and follow the incident process.</p></article></div><pre><code>git clean -nfd        # preview untracked files/directories only
+# git clean -fd       # DESTRUCTIVE: delete precisely what preview showed
+# git clean -xfd      # MORE DESTRUCTIVE: also delete ignored files
+git version
+git init -b main      # requires Git 2.28+; older: git init then git branch -M main</code></pre><div class="callout warn"><b>Platform details</b>Examples use POSIX <code>printf</code> and <code>/tmp/detection-git-recovery-1-8</code>. In Windows PowerShell use the explicit disposable path <code>C:\Temp\detection-git-recovery-1-8</code>, <code>New-Item -ItemType Directory C:\Temp\detection-git-recovery-1-8</code>, and <code>Set-Content -NoNewline file 'text'</code>. Git’s repository semantics are cross-platform, but case-insensitive default filesystems and line-ending settings can create surprises; use a project <code>.gitattributes</code> policy and do not resolve a conflict by changing every line ending.</div></section>
+
+      <section id="drills"><p class="section-kicker">10 · Practice</p><h2>Five safe recovery drills</h2><p class="intro">Perform all five in the exact disposable path <code>/tmp/detection-git-recovery-1-8</code> (macOS/Linux) or <code>C:\Temp\detection-git-recovery-1-8</code> (Windows PowerShell). These commands intentionally make recoverable mistakes. Save the stated artifacts and explain why each recovery affects the layer it does.</p>
+        <article class="drill"><div class="drill-head"><h3>1. Restore a changed tracked file and unstage without losing it</h3><span class="time">15 min</span></div><pre><code>mkdir /tmp/detection-git-recovery-1-8
+cd /tmp/detection-git-recovery-1-8
+git init -b main
+git config user.name "Drill User"
+git config user.email "drill@example.invalid"
+printf 'threshold: 5\n' &gt; rule.yml
+git add rule.yml &amp;&amp; git commit -m "Baseline"
+printf 'threshold: 9\n' &gt; rule.yml
+git add rule.yml
+git restore --staged rule.yml
+git diff | tee drill-1-unstaged.txt
+git restore rule.yml
+git status | tee drill-1-final-status.txt</code></pre><ul class="checklist"><li>Show that <code>restore --staged</code> changed index state but left <code>threshold: 9</code> in the working tree.</li><li>Explain why the second restore discarded that tracked edit and why it did not move <code>HEAD</code>.</li><li>State what extra recovery source you would need if the discarded content had never been committed or staged.</li></ul></article>
+        <article class="drill"><div class="drill-head"><h3>2. Compare soft, mixed, and hard reset in isolated branches</h3><span class="time">25 min</span></div><pre><code>git switch -c reset-lab
+printf 'threshold: 10\n' &gt; rule.yml &amp;&amp; git commit -am "Commit ten"
+git reset --soft HEAD~1
+git status --short | tee drill-2-soft.txt
+git reset --hard HEAD
+printf 'threshold: 10\n' &gt; rule.yml &amp;&amp; git commit -am "Commit ten again"
+git reset --mixed HEAD~1
+git status --short | tee drill-2-mixed.txt
+git add rule.yml &amp;&amp; git commit -m "Commit ten a third time"
+git branch safety-before-hard HEAD
+git reset --hard HEAD~1
+git status --short | tee drill-2-hard.txt
+git show safety-before-hard:rule.yml</code></pre><ul class="checklist"><li>For each artifact, identify whether the change is staged, unstaged, or absent from the working file.</li><li>Explain why all modes moved the branch but only hard replaced the tracked file.</li><li>Explain how <code>safety-before-hard</code> preserved a name for the deliberately discarded commit.</li></ul></article>
+        <article class="drill"><div class="drill-head"><h3>3. Lose a branch tip, recover it through reflog</h3><span class="time">15 min</span></div><pre><code>git switch main
+git switch -c disposable-spike
+printf 'experiment: true\n' &gt; spike.yml
+git add spike.yml &amp;&amp; git commit -m "Try spike"
+git switch main
+git branch -D disposable-spike
+git reflog --date=local | tee drill-3-reflog.txt
+git show &lt;lost-sha&gt;
+git branch recovered-spike &lt;lost-sha&gt;
+git log --oneline --decorate --all | tee drill-3-recovered-graph.txt</code></pre><ul class="checklist"><li>Show the reflog entry that named the lost tip and the new <code>recovered-spike</code> ref.</li><li>Explain why a deleted branch did not immediately delete its commit object.</li><li>State why the result would not be guaranteed after reflog expiry/pruning or in another clone.</li></ul></article>
+        <article class="drill"><div class="drill-head"><h3>4. Enter detached HEAD, create work, and preserve it</h3><span class="time">15 min</span></div><pre><code>git switch main
+git switch --detach HEAD
+printf 'note: detached investigation\n' &gt; note.yml
+git add note.yml &amp;&amp; git commit -m "Detached investigation note"
+git status | tee drill-4-detached-status.txt
+git switch -c preserved-detached-note
+git log --oneline --decorate -3 | tee drill-4-preserved.txt
+git switch main</code></pre><ul class="checklist"><li>Explain what <code>HEAD</code> named before creating <code>preserved-detached-note</code>.</li><li>Show that the new branch makes the detached commit reachable through a normal ref.</li><li>Explain the safe difference between inspection-only detached HEAD and committing there.</li></ul></article>
+        <article class="drill"><div class="drill-head"><h3>5. Revert a shared-style mistake rather than reset it away</h3><span class="time">15 min</span></div><pre><code>git switch main
+printf 'enabled: false\n' &gt; rule.yml
+git add rule.yml &amp;&amp; git commit -m "Accidentally disable rule"
+bad_sha=$(git rev-parse HEAD)
+git revert "$bad_sha"
+git log --oneline -3 | tee drill-5-revert-log.txt
+git show --stat HEAD
+cat rule.yml</code></pre><ul class="checklist"><li>Show both the bad commit and the later inverse commit in the log; explain why neither was erased.</li><li>Explain why reset would be riskier if the bad commit were already pushed and used by teammates.</li><li>State what you would inspect before reverting a merge commit and why <code>-m</code> is required.</li></ul></article>
+        <div class="callout"><b>Pass artifact</b>Save the five named transcript files plus a short <code>recovery-why.md</code> that labels every operation as working-tree, index, local-history, or shared-history recovery. This is the Week 1 gate’s “5 Git recovery tasks WITH why each works” evidence.</div>
+      </section>
+
+      <section id="cheatsheet"><p class="section-kicker">11 · Desk reference</p><h2>Git recovery and safety cheat sheet</h2><div class="table-wrap"><table><thead><tr><th>Situation</th><th>Use</th><th>Risk</th></tr></thead><tbody><tr><td>Orient before any undo</td><td><code>git status</code>, <code>git diff</code>, <code>git log --all</code></td><td><span class="safe">Read-only</span></td></tr><tr><td>Unstage, retain file edit</td><td><code>git restore --staged path</code></td><td><span class="safe">Index only</span></td></tr><tr><td>Discard unstaged tracked edit</td><td><code>git restore path</code></td><td><span class="danger-text">Destroys edit</span></td></tr><tr><td>Undo own unpushed commit, keep staged</td><td><code>git reset --soft HEAD~1</code></td><td><span class="careful">Rewrites local history</span></td></tr><tr><td>Undo own unpushed commit, keep unstaged</td><td><code>git reset --mixed HEAD~1</code></td><td><span class="careful">Rewrites local history</span></td></tr><tr><td>Make tracked files exactly match target</td><td><code>git reset --hard target</code></td><td><span class="danger-text">Destructive</span></td></tr><tr><td>Find and preserve lost local commit</td><td><code>git reflog</code> → <code>git show sha</code> → <code>git branch recovered sha</code></td><td><span class="safe">Name it first</span></td></tr><tr><td>Inspect old snapshot</td><td><code>git switch --detach sha</code></td><td><span class="safe">Name new commits</span></td></tr><tr><td>Undo shared commit</td><td><code>git revert sha</code></td><td><span class="safe">Adds inverse commit</span></td></tr><tr><td>Preview / delete untracked files</td><td><code>git clean -n</code> / <code>git clean -fd</code></td><td><span class="danger-text">Deletion after preview</span></td></tr></tbody></table></div><h3>Ready to pass Topic 1.8?</h3><div class="exit-grid"><div class="exit-item"><b>Diagnose</b>From memory, identify whether a mistake is in the working tree, index, local branch history, or shared history.</div><div class="exit-item"><b>Demonstrate</b>Run all five recovery drills in a disposable repo and produce the transcripts plus a correct why explanation.</div><div class="exit-item"><b>Explain</b>Without notes or AI, draw the soft/mixed/hard matrix, detached HEAD pointer state, and the locality/expiry limits of reflog.</div><div class="exit-item"><b>Choose safely</b>Explain when revert is required over reset, why restore can destroy work, and why force-with-lease is still a coordinated operation.</div></div><h3>Primary resources</h3><div class="resources"><a class="resource" href="https://git-scm.com/book/en/v2/Git-Tools-Reset-Demystified" target="_blank" rel="noopener"><b>Pro Git: Reset Demystified</b><span>Layer-by-layer model</span></a><a class="resource" href="https://git-scm.com/docs/git-reflog" target="_blank" rel="noopener"><b>git-reflog reference</b><span>Local journal and expiry</span></a><a class="resource" href="https://git-scm.com/docs/git-restore" target="_blank" rel="noopener"><b>git-restore reference</b><span>Modern file recovery</span></a><a class="resource" href="https://git-scm.com/docs/git-revert" target="_blank" rel="noopener"><b>git-revert reference</b><span>Shared-history reversal</span></a></div></section>
+      <footer class="footer">Part of the Detection Engineering Learning Console · <a href="../index.html#w1">Week 1: Shell, OS, and Git</a></footer>
+    </main>
+  </div>
+</div>
+</body>
+</html>

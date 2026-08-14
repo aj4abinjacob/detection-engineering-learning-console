@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="DNS resolution, delegation, records, caching, and visibility for detection engineering.">
+<title>DNS — Detection Engineering Learning Console</title>
+<link rel="stylesheet" href="assets/guide.css">
+<script src="assets/guide.js" defer>
+</script>
+</head>
+<body>
+<div class="topbar">
+<div class="topbar-inner">
+<a class="back" href="../index.html#w7">Back to curriculum</a>
+<span class="topic-id">Week 7 · Topic 7.4</span>
+</div>
+</div>
+<div class="shell">
+<header class="hero">
+<p class="eyebrow">Networking</p>
+<h1>Understand names, delegation, and cache evidence <span>before interpreting DNS.</span>
+</h1>
+<p class="lede">DNS maps names through delegated zones and cached resolver responses. Classic DNS metadata is often observable; DoH/DoT shift visibility and collector placement.</p>
+<div class="hero-grid">
+<div class="hero-stat">
+<b>10 concepts</b>
+<span>Resolution</span>
+</div>
+<div class="hero-stat">
+<b>4 scenarios</b>
+<span>Detection</span>
+</div>
+<div class="hero-stat">
+<b>3 drills</b>
+<span>Artifacts</span>
+</div>
+</div>
+</header>
+<div class="layout">
+<nav class="toc">
+<a href="#why">Why</a>
+<a href="#model">Model</a>
+<a href="#resolution">Resolution</a>
+<a href="#records">Records</a>
+<a href="#cache">Caching</a>
+<a href="#delegation">Delegation</a>
+<a href="#privacy">Visibility</a>
+<a href="#tools">Tools</a>
+<a href="#scenarios">Scenarios</a>
+<a href="#drills">Drills</a>
+<a href="#exit">Exit</a>
+</nav>
+<main>
+<section id="why">
+<h2>Why it matters</h2>
+<p>DNS is a name-resolution protocol, not a proof that a connection or malicious action happened. Resolver logs, endpoint telemetry, and passive traffic each answer different questions.</p>
+</section>
+<section id="model">
+<h2>Resolver model</h2>
+<div class="model">
+<div class="model-track">
+<div class="model-box">
+<b>Stub/client</b>
+<span>Asks configured resolver.</span>
+</div>
+<div class="arrow">→</div>
+<div class="model-box">
+<b>Recursive resolver</b>
+<span>Uses cache or follows delegation.</span>
+</div>
+<div class="arrow">→</div>
+<div class="model-box">
+<b>Authority</b>
+<span>Answers for a zone.</span>
+</div>
+</div>
+</div>
+</section>
+<section id="resolution">
+<h2>Root, TLD, authoritative</h2>
+<pre><code>Sanitized illustrative cache miss for api.example.com A
+stub → recursive       query api.example.com A (RD=1)
+recursive → root       query api.example.com A
+root → recursive       referral: com. NS (+ glue where required)
+recursive → com TLD    query api.example.com A
+TLD → recursive        referral: example.com. NS
+recursive → authority  query api.example.com A
+authority → recursive  answer: 192.0.2.44, TTL 300, AA=1
+recursive → stub       cached answer, RA=1</code></pre>
+<p>This is a teaching transcript, not current data for <code>example.com</code>. For an uncached name, a recursive resolver follows referrals from root to TLD to the delegated authority; a referral places NS data in the authority section and may include address “glue” needed to reach an in-bailiwick nameserver. The final authoritative response places requested data in the answer section. Clients normally ask a recursive resolver with recursion desired, not root servers directly; a cache hit can skip the external chain.</p>
+</section>
+<section id="records">
+<h2>Record types</h2>
+<div class="table-wrap">
+<table>
+<tr>
+<th>Type</th>
+<th>Meaning</th>
+</tr>
+<tr>
+<td>A</td>
+<td>IPv4 address</td>
+</tr>
+<tr>
+<td>AAAA</td>
+<td>IPv6 address</td>
+</tr>
+<tr>
+<td>CNAME</td>
+<td>Alias to another canonical name</td>
+</tr>
+<tr>
+<td>MX</td>
+<td>Mail exchanger</td>
+</tr>
+<tr>
+<td>TXT</td>
+<td>Text data with application-specific meaning</td>
+</tr>
+</table>
+</div>
+<p>When reading a response, preserve the question name/type/class, header flags (<code>QR</code>, <code>AA</code>, <code>RD</code>, <code>RA</code>), response code, and answer/authority/additional sections. <code>NOERROR</code> with no requested-type answer can be NODATA, while <code>NXDOMAIN</code> says the queried name does not exist. A CNAME redirects name resolution and normally cannot coexist with other data at the same owner name; follow the chain under loop/depth limits. TXT is not automatically trustworthy policy evidence—interpret it under its application specification.</p>
+</section>
+<section id="cache">
+<h2>Caching and negative answers</h2>
+<p>TTL controls cache lifetime, not a guarantee every resolver behaves identically. NXDOMAIN means the queried name does not exist in the relevant zone; NODATA means name exists but requested type has no data. Negative caching follows SOA-related policy. Save query type, resolver, response code, TTL, and time.</p>
+</section>
+<section id="delegation">
+<h2>Names are scoped by zones</h2>
+<p>Authoritative does not mean globally benevolent; it means designated to answer for a zone. Split-horizon DNS, search suffixes, captive portals, and local overrides can yield different answers by network.</p>
+</section>
+<section id="privacy">
+<h2>Visibility under encryption</h2>
+<p>Traditional UDP/TCP DNS can expose query metadata to local/on-path observers. DoT encrypts DNS transport; DoH carries DNS in HTTPS. The configured resolver still sees queries, while a passive network observer’s visibility changes. Do not infer “no DNS” merely from encrypted traffic.</p>
+</section>
+<section id="tools">
+<h2>Safe interpretation</h2>
+<pre>
+<code>dig example.invalid A; nslookup example.invalid</code>
+</pre>
+<p>These commands make network queries and answers are current/network-dependent; do not run them for this guide. On Windows use <code>nslookup</code> or PowerShell <code>Resolve-DnsName</code>; macOS/Linux commonly have <code>dig</code>. They show a resolver answer, not global truth or an application connection.</p>
+</section>
+<section id="scenarios">
+<h2>Detection scenarios</h2>
+<article class="scenario">
+<h4>Rare-domain alert</h4>
+<p>Confirm query type, resolver scope, cache effects, and endpoint process before attribution.</p>
+</article>
+<article class="scenario">
+<h4>DNS outage</h4>
+<p>Distinguish NXDOMAIN, timeout, resolver failure, and application cache behavior.</p>
+</article>
+<article class="scenario">
+<h4>DoH rollout</h4>
+<p>Passive DNS coverage changes; use endpoint/resolver telemetry instead of declaring activity absent.</p>
+</article>
+<article class="scenario">
+<h4>CNAME chain</h4>
+<p>Record final data and chain; an alias is not a direct connection record.</p>
+</article>
+</section>
+<section id="drills">
+<h2>Saved-evidence drills</h2>
+<article class="drill">
+<h3>1. Trace an authorized name resolution</h3>
+<p>For a domain you own/control or an instructor-provided lab zone, run a bounded <code>dig +trace name.example</code> or inspect a supplied transcript and save <code>artifacts/dns/resolution.md</code>. A live trace contacts public DNS infrastructure and reveals the queried name/source; obtain authorization and do not use a third party's target.</p>
+<ul class="checklist">
+<li>Draw stub/resolver/root/TLD/authority and distinguish a trace from the normal recursive-client path.</li>
+<li>Record command, name, time, network/resolver context, referrals, and final response.</li>
+<li>Mark cache-dependent evidence and what the result cannot prove.</li>
+</ul>
+</article>
+<article class="drill">
+<h3>2. Record table</h3>
+<p>Save <code>record-types.md</code> with synthetic examples.</p>
+<ul class="checklist">
+<li>Explain A/AAAA/CNAME/MX/TXT.</li>
+<li>Include query type.</li>
+</ul>
+</article>
+<article class="drill">
+<h3>3. Capture one owned DNS lookup</h3>
+<p>Using the bounded capture plan from Topic 7.5, capture exactly one classic DNS lookup for your lab zone on an owned host/network, then stop and save a sanitized annotation in <code>dns-visibility.md</code>. If the host uses DoH/DoT or capture permission is unavailable, use a supplied sanitized PCAP and document the visibility difference.</p>
+<ul class="checklist">
+<li>Record capture point, resolver IP, query type/name, response code, and stop condition.</li>
+<li>Compare classic DNS, DoT, and DoH without claiming encrypted payload visibility.</li>
+<li>Remove unrelated packets and sensitive names before sharing.</li>
+</ul>
+</article>
+</section>
+<section id="exit">
+<h2>Ready to pass Topic 7.4 without AI?</h2>
+<div class="exit-grid">
+<div class="exit-item">
+<b>Draw</b>Resolution/delegation.</div>
+<div class="exit-item">
+<b>Explain</b>Five record types.</div>
+<div class="exit-item">
+<b>Distinguish</b>NXDOMAIN/NODATA/cache.</div>
+<div class="exit-item">
+<b>Bound</b>DNS visibility.</div>
+</div>
+<h3>Primary resources</h3>
+<div class="resources">
+<a class="resource" href="https://www.rfc-editor.org/rfc/rfc1034">
+<b>RFC 1034</b>
+<span>DNS concepts</span>
+</a>
+<a class="resource" href="https://www.rfc-editor.org/rfc/rfc1035">
+<b>RFC 1035</b>
+<span>DNS protocol</span>
+</a>
+<a class="resource" href="https://www.rfc-editor.org/rfc/rfc8484">
+<b>RFC 8484</b>
+<span>DoH</span>
+</a>
+</div>
+</section>
+<footer class="footer">
+<a href="../index.html#w7">Week 7, Topic 7.4</a>
+</footer>
+</main>
+</div>
+</div>
+</body>
+</html>

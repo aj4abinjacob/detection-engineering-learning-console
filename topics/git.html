@@ -8,148 +8,29 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet" />
-<style>
-  :root{
-    --bg:#0b1116;--bg2:#0e151c;--surface:#131c24;--surface2:#18232d;--line:#25333f;--line2:#31424f;
-    --text:#e7eef4;--muted:#93a4b2;--muted2:#6d7f8d;--accent:#94a3b8;--teal:#2dd4bf;--amber:#fbbf24;
-    --red:#fb7185;--blue:#38bdf8;--green:#34d399;--radius:14px;
-    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
-    --sans:'IBM Plex Sans',system-ui,-apple-system,sans-serif;
-    --display:'Space Grotesk',var(--sans);
-  }
-  *{box-sizing:border-box}
-  html{scroll-behavior:smooth;scroll-padding-top:28px}
-  body{margin:0;background:
-      radial-gradient(1000px 500px at 5% -5%,rgba(148,163,184,.09),transparent 58%),
-      radial-gradient(800px 500px at 100% 10%,rgba(45,212,191,.05),transparent 60%),var(--bg);
-    color:var(--text);font-family:var(--sans);line-height:1.65;-webkit-font-smoothing:antialiased}
-  a{color:inherit}
-  button{font:inherit}
-  .shell{max-width:1180px;margin:0 auto;padding:0 22px 100px}
-  .topbar{border-bottom:1px solid var(--line);background:rgba(11,17,22,.82);backdrop-filter:blur(12px)}
-  .topbar-inner{max-width:1180px;margin:0 auto;padding:11px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-  .back{display:inline-flex;align-items:center;gap:9px;color:var(--muted);font-family:var(--mono);font-size:12px;text-decoration:none}
-  .back:hover{color:var(--text)}
-  .back span{color:var(--accent)}
-  .topic-id{font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted2)}
-  .hero{padding:62px 0 44px;max-width:900px}
-  .eyebrow{margin:0 0 15px;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent)}
-  h1{font-family:var(--display);font-size:clamp(39px,7vw,68px);line-height:1.02;letter-spacing:-.035em;margin:0 0 20px;max-width:12ch}
-  h1 span{color:var(--accent)}
-  .lede{max-width:69ch;margin:0;color:var(--muted);font-size:17px}
-  .hero-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:30px;max-width:760px}
-  .hero-stat{border:1px solid var(--line);background:rgba(19,28,36,.78);border-radius:11px;padding:13px 14px}
-  .hero-stat b{display:block;font-family:var(--display);font-size:17px;margin-bottom:1px}
-  .hero-stat span{display:block;color:var(--muted2);font-family:var(--mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase}
-  .layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:46px;align-items:start}
-  .toc{position:sticky;top:22px;border-left:1px solid var(--line);padding:3px 0 3px 15px}
-  .toc-title{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted2);margin:0 0 9px}
-  .toc a{display:block;text-decoration:none;color:var(--muted);font-size:12.5px;padding:4px 8px;border-radius:5px;margin-left:-8px}
-  .toc a:hover{background:var(--surface);color:var(--text)}
-  .toc .toc-practice{color:var(--teal);margin-top:7px}
-  main{min-width:0;max-width:820px}
-  section{scroll-margin-top:26px;margin:0 0 64px}
-  .section-kicker{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin:0 0 5px}
-  h2{font-family:var(--display);font-size:clamp(25px,4vw,34px);line-height:1.15;letter-spacing:-.018em;margin:0 0 12px}
-  h3{font-family:var(--display);font-size:18px;line-height:1.3;margin:28px 0 8px}
-  h4{font-family:var(--display);font-size:15px;line-height:1.35;margin:0 0 5px}
-  p{margin:0 0 14px}
-  .intro{color:var(--muted);font-size:15px;max-width:70ch;margin-bottom:23px}
-  strong{color:var(--text)}
-  code{font-family:var(--mono);font-size:.9em;color:#cbd5e1;background:var(--surface2);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
-  pre{position:relative;margin:10px 0 0;padding:17px 54px 17px 17px;overflow:auto;border:1px solid var(--line);border-radius:10px;background:#091016;color:#d8e2e9;font:12.5px/1.75 var(--mono);white-space:pre}
-  pre code{font:inherit;color:inherit;background:none;border:0;border-radius:0;padding:0}
-  .copy{position:absolute;right:8px;top:8px;border:1px solid var(--line2);border-radius:6px;padding:4px 7px;background:var(--surface);color:var(--muted);font-family:var(--mono);font-size:9px;cursor:pointer;letter-spacing:.04em}
-  .copy:hover{border-color:var(--accent);color:var(--text)}
-  .copy.copied{color:var(--green);border-color:rgba(52,211,153,.45)}
-  .callout{border:1px solid rgba(45,212,191,.25);border-left:3px solid var(--teal);border-radius:10px;background:rgba(45,212,191,.065);padding:14px 16px;color:var(--muted);font-size:14px;margin:20px 0}
-  .callout b{display:block;color:var(--teal);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
-  .callout.warn{border-color:rgba(251,191,36,.27);border-left-color:var(--amber);background:rgba(251,191,36,.06)}
-  .callout.warn b{color:var(--amber)}
-  .callout.danger{border-color:rgba(251,113,133,.27);border-left-color:var(--red);background:rgba(251,113,133,.055)}
-  .callout.danger b{color:var(--red)}
-  .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin-top:18px}
-  .card{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:16px}
-  .card .num{display:block;color:var(--muted2);font-family:var(--mono);font-size:10px;letter-spacing:.09em;margin-bottom:6px}
-  .card p{color:var(--muted);font-size:13.5px;margin:0}
-  .model{margin:22px 0;border:1px solid var(--line);border-radius:13px;background:var(--surface);padding:20px}
-  .model-track{display:grid;grid-template-columns:1fr 38px 1fr 38px 1fr;align-items:center;gap:5px}
-  .model-box{min-height:112px;border:1px solid var(--line2);border-radius:10px;padding:13px;background:var(--bg2)}
-  .model-box b{display:block;font-family:var(--display);font-size:15px;margin-bottom:4px}
-  .model-box span{display:block;color:var(--muted);font-size:12px;line-height:1.45}
-  .model-box code{display:inline-block;margin-top:9px;color:var(--teal)}
-  .arrow{text-align:center;color:var(--muted2);font-family:var(--mono);font-size:20px}
-  .model-caption{margin:12px 2px 0;color:var(--muted2);font-size:12.5px}
-  .branch-map{font:12.5px/1.7 var(--mono);white-space:pre;overflow:auto;color:#cbd5e1;border:1px solid var(--line);border-radius:10px;background:var(--bg2);padding:16px;margin-top:14px}
-  .command-list{display:flex;flex-direction:column;gap:10px;margin-top:18px}
-  .command{display:grid;grid-template-columns:minmax(190px,.8fr) 1.2fr;gap:18px;border:1px solid var(--line);background:var(--surface);border-radius:11px;padding:14px 15px;align-items:start}
-  .command code{display:inline-block;color:#d8e2e9;font-size:12px;line-height:1.5;word-break:break-word}
-  .command p{color:var(--muted);font-size:13px;margin:0}
-  .command p b{display:block;font-size:12.5px;margin-bottom:2px}
-  .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:11px;margin-top:18px}
-  table{width:100%;border-collapse:collapse;background:var(--surface);font-size:13px}
-  th{text-align:left;color:var(--muted2);font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;background:var(--bg2)}
-  th,td{padding:11px 13px;border-bottom:1px solid var(--line);vertical-align:top}
-  tr:last-child td{border-bottom:0}
-  td{color:var(--muted)}
-  td:first-child{color:var(--text)}
-  td code{white-space:nowrap}
-  .safe{color:var(--green);font-family:var(--mono);font-size:10px;text-transform:uppercase}
-  .careful{color:var(--amber);font-family:var(--mono);font-size:10px;text-transform:uppercase}
-  .danger-text{color:var(--red);font-family:var(--mono);font-size:10px;text-transform:uppercase}
-  .scenario{border-top:1px dashed var(--line);padding:25px 0 5px}
-  .scenario:first-of-type{border-top:0;padding-top:4px}
-  .scenario-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:7px}
-  .scenario-head .tag{flex:0 0 auto;border-radius:5px;background:rgba(56,189,248,.13);color:#7dd3fc;font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.08em;padding:3px 6px;margin-top:3px}
-  .scenario p{color:var(--muted);font-size:14px}
-  .steps{counter-reset:step;list-style:none;margin:17px 0 0;padding:0;display:flex;flex-direction:column;gap:11px}
-  .steps li{counter-increment:step;position:relative;padding:1px 0 1px 38px;color:var(--muted);font-size:14px}
-  .steps li::before{content:counter(step);position:absolute;left:0;top:0;width:25px;height:25px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line2);color:var(--accent);font:600 10px var(--mono);background:var(--surface)}
-  .steps li b{color:var(--text)}
-  .drill{border:1px solid var(--line);border-radius:13px;background:var(--surface);padding:18px;margin:14px 0}
-  .drill-head{display:flex;justify-content:space-between;align-items:start;gap:12px;margin-bottom:8px}
-  .drill-head h3{margin:0;font-size:18px}
-  .time{white-space:nowrap;color:var(--muted2);font-family:var(--mono);font-size:10px;border:1px solid var(--line);border-radius:999px;padding:3px 8px}
-  .drill > p{color:var(--muted);font-size:13.5px}
-  .checklist{list-style:none;margin:15px 0 0;padding:0}
-  .checklist li{position:relative;color:var(--muted);font-size:13.5px;padding:5px 0 5px 26px}
-  .checklist li::before{content:"";position:absolute;left:1px;top:9px;width:13px;height:13px;border:1px solid var(--line2);border-radius:4px}
-  .exit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:17px}
-  .exit-item{border:1px solid var(--line);border-radius:10px;padding:13px 14px;color:var(--muted);font-size:13.5px;background:var(--surface)}
-  .exit-item b{display:block;color:var(--green);font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
-  .resources{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:18px}
-  .resource{display:block;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:13px;text-decoration:none}
-  .resource:hover{border-color:var(--line2);background:var(--surface2)}
-  .resource b{display:block;font-size:13px;margin-bottom:3px}
-  .resource span{color:var(--muted2);font-size:11.5px}
-  .footer{border-top:1px solid var(--line);padding-top:24px;color:var(--muted2);font:11px/1.7 var(--mono)}
-  .footer a{color:var(--muted)}
-  @media(max-width:860px){
-    .layout{grid-template-columns:1fr}.toc{position:static;display:flex;gap:5px;overflow:auto;border-left:0;border-bottom:1px solid var(--line);padding:0 0 13px;margin-bottom:4px}.toc-title{display:none}.toc a{flex:0 0 auto;border:1px solid var(--line);border-radius:999px;padding:5px 9px;margin:0}.toc .toc-practice{margin-top:0}.hero{padding-top:46px}.resources{grid-template-columns:1fr 1fr}
-  }
-  @media(max-width:620px){
-    .shell{padding-left:16px;padding-right:16px}.topbar-inner{padding-left:16px;padding-right:16px}.topic-id{display:none}.hero-grid,.cards,.exit-grid,.resources{grid-template-columns:1fr}.model-track{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}.model-box{min-height:0}.command{grid-template-columns:1fr;gap:9px}.command code{width:max-content;max-width:100%}th,td{padding:10px}.drill{padding:15px}h1{font-size:42px}
-  }
-  @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
-</style>
+<link rel="stylesheet" href="assets/guide.css" />
+<script src="assets/guide.js" defer></script>
 </head>
 <body>
 <div class="topbar">
   <div class="topbar-inner">
-    <a class="back" href="../index.html#w0"><span>←</span> Back to curriculum</a>
-    <span class="topic-id">Week 0 · Topic 0.3</span>
+    <nav aria-label="Curriculum back links">
+      <a class="back" href="../index.html#w0"><span>←</span> Week 0 diagnostic</a>
+      <a class="back" href="../index.html#w1"><span>·</span> Week 1 Git internals</a>
+    </nav>
+    <span class="topic-id">Week 0 · Topic 0.3 / Week 1 · Topic 1.6</span>
   </div>
 </div>
 
 <div class="shell">
   <header class="hero">
-    <p class="eyebrow">Practical field guide · Git</p>
+    <p class="eyebrow">Post-diagnostic review · Git · Topics 0.3 &amp; 1.6</p>
     <h1>Make change <span>recoverable.</span></h1>
-    <p class="lede">Git is the safety system around your code, rules, queries, runbooks, and infrastructure. This guide gives you the mental model and small command set needed to work confidently—especially when a merge goes wrong or a commit seems lost.</p>
+    <p class="lede"><strong>Complete the Week 0 drill before opening this review material.</strong> Git is the safety system around your code, rules, queries, runbooks, and infrastructure. This guide also supports the Week 1 object-model return by connecting snapshots, objects, refs, HEAD, and recovery.</p>
     <div class="hero-grid" aria-label="Guide summary">
-      <div class="hero-stat"><b>20 commands</b><span>Core working set</span></div>
+      <div class="hero-stat"><b>25 commands</b><span>Core working set</span></div>
       <div class="hero-stat"><b>5 scenarios</b><span>From detection work</span></div>
-      <div class="hero-stat"><b>4 drills</b><span>Run in a throwaway repo</span></div>
+      <div class="hero-stat"><b>5 drills</b><span>Run in a throwaway repo</span></div>
     </div>
   </header>
 
@@ -216,13 +97,21 @@ HEAD → main → M</div>
               <tr><td>Blob</td><td>File content</td><td>Identical content is stored once and addressed by its hash.</td></tr>
               <tr><td>Tree</td><td>Directory listing: names, modes, and blob/tree references</td><td>A commit can identify a complete filesystem snapshot.</td></tr>
               <tr><td>Commit</td><td>Root tree, parent(s), author, time, message</td><td>This is the unit you inspect, share, revert, and review.</td></tr>
-              <tr><td>Tag</td><td>A stable name, often for a release commit</td><td>Use it to mark a known rule-pack or deployment version.</td></tr>
+              <tr><td>Annotated tag</td><td>A tag object with a target, tagger, message, and optional signature</td><td>A lightweight tag is only a <code>refs/tags/*</code> ref; an annotated tag adds this object.</td></tr>
             </tbody>
           </table>
         </div>
-        <pre><code># Follow the current commit to its tree, then inspect an object
+        <pre><code># Resolve pointers, then follow commit → root tree → one blob.
+git symbolic-ref --short HEAD        # branch name; fails while HEAD is detached
+git rev-parse HEAD                   # commit object ID
+git cat-file -t HEAD
 git cat-file -p HEAD
-git cat-file -p HEAD^{tree}</code></pre>
+git cat-file -t HEAD^{tree}
+git ls-tree HEAD                     # choose a regular-file object ID below
+git cat-file -t &lt;blob-id&gt;
+git cat-file -p &lt;blob-id&gt;</code></pre>
+        <p>Git object IDs address the bytes of a typed object: the object type and length are included with its content before hashing. Consequently, identical file content in one repository format produces the same blob ID, while changing a byte produces another object. Most repositories use SHA-1 object IDs; Git also supports SHA-256-format repositories. Treat the algorithm as repository metadata and never assume every object ID has one fixed length.</p>
+        <div class="callout"><b>Refs and HEAD are names, not objects</b><code>refs/heads/main</code> is a branch ref whose value names a commit. Symbolic <code>HEAD</code> usually names that branch ref; detached <code>HEAD</code> directly records a commit ID. Moving a ref changes reachability, not the immutable object it used to name.</div>
       </section>
 
       <section id="setup">
@@ -444,7 +333,7 @@ git bisect reset</code></pre>
           <div class="drill-head"><h3>1. Commit, branch, and merge</h3><span class="time">10–15 min</span></div>
           <p>Build the normal workflow before breaking it.</p>
           <pre><code>mkdir git-drills && cd git-drills
-git init
+git init -b main
 printf 'threshold: 5\n' > rule.yml
 git add rule.yml && git commit -m "Add baseline rule"
 
@@ -512,7 +401,22 @@ git switch main</code></pre>
           <ul class="checklist"><li>Explain what <code>HEAD</code> points to while detached.</li><li>Explain why switching away can make a new detached commit hard to find.</li><li>Demonstrate both “inspect only” and “preserve new work” exits.</li></ul>
         </article>
 
-        <div class="callout"><b>Artifact to save</b>Record the session with <code>script git-drills.txt</code> on macOS/Linux, run all four drills, then type <code>exit</code>. Add a short <code>git-drills-notes.md</code> explaining why each recovery worked. Do not clean up the transcript to hide mistakes; the mistakes are the diagnostic.</div>
+        <article class="drill">
+          <div class="drill-head"><h3>5. Trace the Topic 1.6 object chain</h3><span class="time">15 min</span></div>
+          <p>In the same disposable repository, save a transcript that proves how a named branch reaches immutable snapshot objects.</p>
+          <pre><code>{
+  echo "HEAD file:"; cat .git/HEAD
+  echo "branch:"; git symbolic-ref --short HEAD
+  echo "commit:"; git cat-file -t HEAD; git cat-file -p HEAD
+  echo "root tree:"; git cat-file -t HEAD^{tree}; git ls-tree HEAD
+  blob_id=$(git rev-parse HEAD:rule.yml)
+  echo "blob $blob_id:"; git cat-file -t "$blob_id"; git cat-file -p "$blob_id"
+  echo "object format:"; git rev-parse --show-object-format
+} | tee topic-1.6-object-trace.txt</code></pre>
+          <ul class="checklist"><li>Draw <code>HEAD → refs/heads/main → commit → tree → blob</code> and label which nodes are movable names versus immutable objects.</li><li>Change <code>rule.yml</code>, commit, and explain why the new content has a new blob ID while the older blob still exists.</li><li>Distinguish a lightweight tag ref from an annotated tag object, and state the repository's reported object format.</li></ul>
+        </article>
+
+        <div class="callout"><b>Artifacts to save</b>Record the Week 0 session with <code>script git-drills.txt</code> on macOS/Linux, run the first four drills, then type <code>exit</code>. Save the fifth drill as <code>topic-1.6-object-trace.txt</code>. Add <code>git-drills-notes.md</code> explaining why each recovery and object lookup worked. Do not clean up the diagnostic transcript to hide mistakes.</div>
       </section>
 
       <section id="cheatsheet">
@@ -542,6 +446,7 @@ git switch main</code></pre>
         </div>
 
         <h3>Ready to pass Topic 0.3?</h3>
+        <p class="intro"><strong>Ready to pass Topic 1.6?</strong> Use the same evidence below, then trace <code>HEAD</code> through its ref, commit, tree, and blob objects without notes or AI.</p>
         <div class="exit-grid">
           <div class="exit-item"><b>Explain</b>Working tree → staging area → commit → branch → HEAD, from a blank page.</div>
           <div class="exit-item"><b>Demonstrate</b>Create a branch, make commits, merge it, and read the resulting graph.</div>
@@ -557,37 +462,10 @@ git switch main</code></pre>
         </div>
       </section>
 
-      <footer class="footer">Part of the <a href="../index.html#w0">Detection Engineering Learning Console</a>. This page covers the Week 0 diagnostic; Week 1 returns to Git internals, remotes, and recovery in greater depth.</footer>
+      <footer class="footer">Part of the Detection Engineering Learning Console: <a href="../index.html#w0">Week 0 diagnostic</a> · <a href="../index.html#w1">Week 1 Git internals</a>. Complete the diagnostic before using this review guide.</footer>
     </main>
   </div>
 </div>
 
-<script>
-document.querySelectorAll('pre').forEach(pre=>{
-  const button=document.createElement('button');
-  button.className='copy';
-  button.type='button';
-  button.textContent='COPY';
-  button.setAttribute('aria-label','Copy command block');
-  button.addEventListener('click',async()=>{
-    const code=pre.querySelector('code');
-    if(!code)return;
-    try{
-      await navigator.clipboard.writeText(code.innerText);
-      button.textContent='COPIED';
-      button.classList.add('copied');
-      setTimeout(()=>{button.textContent='COPY';button.classList.remove('copied');},1500);
-    }catch(_){
-      button.textContent='SELECT';
-      const selection=window.getSelection();
-      const range=document.createRange();
-      range.selectNodeContents(code);
-      selection.removeAllRanges();
-      selection.addRange(range);
-    }
-  });
-  pre.appendChild(button);
-});
-</script>
 </body>
 </html>

@@ -254,8 +254,12 @@ chmod u+x validate.sh
 ./validate.sh
 chmod u-x validate.sh
 ./validate.sh
+failed_status=$?
+printf 'direct-status=%s\n' "$failed_status"
 bash validate.sh
-printf 'status=%s\n' "$?"</code></pre>
+interpreted_status=$?
+printf 'interpreter-status=%s\n' "$interpreted_status"
+chmod u+x validate.sh</code></pre>
           <ul class="checklist"><li>Record the exact error after removing execute permission.</li><li>Explain why <code>bash validate.sh</code> still works.</li><li>Restore only the owner execute bit and verify the mode.</li></ul>
         </article>
       </section>

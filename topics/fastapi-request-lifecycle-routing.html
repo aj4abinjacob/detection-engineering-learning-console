@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="FastAPI request lifecycle, routing, and dependency injection for AbuseGuard.">
+<title>FastAPI Request Lifecycle &amp; Routing — Detection Engineering Learning Console</title>
+<link rel="stylesheet" href="assets/guide.css">
+<script src="assets/guide.js" defer>
+</script>
+</head>
+<body>
+<div class="topbar">
+<div class="topbar-inner">
+<a class="back" href="../index.html#w10">
+<span>←</span> Back to curriculum</a>
+<span class="topic-id">Week 10 · Topic 10.1</span>
+</div>
+</div>
+<div class="shell">
+<header class="hero">
+<p class="eyebrow">Practical field guide · AbuseGuard</p>
+<h1>Trace a request from socket to <span>explicit response.</span>
+</h1>
+<p class="lede">FastAPI turns an ASGI scope into dependency resolution, validation, handler execution, and a response. Put routing and lifecycle assumptions where tests and operators can see them.</p>
+<div class="hero-grid">
+<div class="hero-stat">
+<b>7 concepts</b>
+<span>Lifecycle model</span>
+</div>
+<div class="hero-stat">
+<b>4 scenarios</b>
+<span>Detection work</span>
+</div>
+<div class="hero-stat">
+<b>3 drills</b>
+<span>Saved artifacts</span>
+</div>
+</div>
+</header>
+<div class="layout">
+<nav class="toc">
+<p class="toc-title">On this page</p>
+<a href="#why">Why</a>
+<a href="#model">Lifecycle</a>
+<a href="#asgi">ASGI/WSGI</a>
+<a href="#routes">Routes</a>
+<a href="#dependencies">Dependencies</a>
+<a href="#responses">Responses</a>
+<a href="#sync">Sync/async</a>
+<a href="#telemetry">Telemetry</a>
+<a href="#safety">Safety</a>
+<a href="#scenarios">Scenarios</a>
+<a class="toc-practice" href="#drills">Drills</a>
+<a href="#cheatsheet">Cheat sheet</a>
+<a href="#pass">Ready?</a>
+<a href="#resources">Resources</a>
+</nav>
+<main>
+<section id="why">
+<p class="section-kicker">01 · Purpose</p>
+<h2>Routes are the application’s observable perimeter</h2>
+<p class="intro">Register, login, and product routes become authentication, validation, persistence, and telemetry boundaries. A lifecycle diagram prevents invisible work from leaking across them.</p>
+<div class="cards">
+<article class="card">
+<span class="num">ROUTING</span>
+<h4>Match deliberately</h4>
+<p>Method/path selects a handler and parameters.</p>
+</article>
+<article class="card">
+<span class="num">DEPENDENCY</span>
+<h4>Share policy</h4>
+<p>Inject auth/repository/config instead of globals.</p>
+</article>
+<article class="card">
+<span class="num">ASYNC</span>
+<h4>Do not block loop</h4>
+<p>Async concurrency needs nonblocking work.</p>
+</article>
+<article class="card">
+<span class="num">TELEMETRY</span>
+<h4>Record boundary</h4>
+<p>Request ID/outcome/duration support triage.</p>
+</article>
+</div>
+</section>
+<section id="model">
+<p class="section-kicker">02 · Lifecycle</p>
+<div class="model">
+<div class="model-track">
+<div class="model-box">
+<b>ASGI server</b>
+<span>accepts HTTP, creates scope/receive/send.</span>
+</div>
+<div class="arrow">→</div>
+<div class="model-box">
+<b>FastAPI</b>
+<span>matches route, resolves dependencies/validation.</span>
+</div>
+<div class="arrow">→</div>
+<div class="model-box">
+<b>Handler</b>
+<span>calls application/repository, returns response.</span>
+</div>
+</div>
+<p class="model-caption">Exceptions/middleware/response serialization occur around this path. Exact middleware ordering and server behavior depend on FastAPI/Starlette/Uvicorn versions—test the deployed stack.</p>
+</div>
+</section>
+<section id="asgi">
+<p class="section-kicker">03 · ASGI versus WSGI</p>
+<p>WSGI is a synchronous callable interface traditionally used for HTTP request/response. ASGI is an asynchronous interface with scope, receive, and send, supporting HTTP and long-lived protocols. FastAPI is ASGI. ASGI does not make blocking database/file/network calls safe inside <code>async def</code>; use an async-capable library or an intentional worker/thread boundary. WSGI applications can be adapted, but adapter behavior/lifecycle is not identical.</p>
+</section>
+<section id="routes">
+<p class="section-kicker">04 · Path operations</p>
+<pre>
+<code>from fastapi import FastAPI, HTTPException
+app = FastAPI()
+
+@app.get("/route-demo/products/{product_id}")
+def route_demo_product(product_id: int):
+    item = {"id": product_id, "name": "lab product"}
+    if product_id != 1: raise HTTPException(status_code=404, detail="not found")
+    return item</code>
+</pre>
+<p>
+<strong>Use:</strong> this intentionally separate <code>/route-demo/...</code> path demonstrates method/path/type contracts without colliding with the repository-backed route below. <strong>Assumption:</strong> route precedence and parameter conversion match the versioned framework. <strong>Risk:</strong> do not expose internal identifiers/details in errors; a 404 is not an authorization gate—enforce ownership after identity is established.</p>
+</section>
+<section id="dependencies">
+<p class="section-kicker">05 · Dependency injection</p>
+<pre>
+<code>from fastapi import Depends
+def get_repository():
+    return repository  # replace with request-scoped lifecycle where needed
+@app.get("/products/{product_id}")
+def product(product_id: int, repo=Depends(get_repository)):
+    return repo.get_product(product_id)</code>
+</pre>
+<p>
+<strong>Use:</strong> inject configuration, authenticated principal, repository, and request-scoped resources so tests can override them. <strong>Risk:</strong> a dependency is code executed for the request; avoid hidden network calls, global mutable state, or secrets in dependency errors.</p>
+</section>
+<section id="responses">
+<p class="section-kicker">06 · Request and response objects</p>
+<p>FastAPI can bind path/query/header/cookie/body inputs and serialize return values. Prefer declared response models/status codes for a stable contract. Use raw <code>Request</code>/<code>Response</code> only when you need lower-level access (templates, cookies, headers); bypassing response-model validation can bypass a useful output guard.</p>
+</section>
+<section id="sync">
+<p class="section-kicker">07 · Sync and async behavior</p>
+<p>FastAPI runs normal <code>def</code> path operations/dependencies in an external threadpool, while <code>async def</code> runs on the event loop and should await nonblocking work. This is a framework/runtime implementation detail worth checking in current docs. Choose based on library I/O model; do not mark every function async or call blocking SQLite/network APIs directly in a hot async handler.</p>
+</section>
+<section id="telemetry">
+<p class="section-kicker">08 · Route event contract</p>
+<pre>
+<code>{"request_id":"lab-r20","method":"POST","route":"/login","status":401,
+ "duration_ms":4.8,"principal":"none","outcome":"invalid_credentials"}</code>
+</pre>
+<p>Use route template—not raw unbounded path—as a metric dimension; record normalized outcome and trusted client source. Never log request passwords, session cookies, authorization headers, or full bodies.</p>
+</section>
+<section id="safety">
+<p class="section-kicker">09 · Safety</p>
+<div class="callout danger">
+<b>Development server is not deployment</b>Use local development only for drills. Production needs a supported ASGI server, trusted-proxy policy, timeouts, limits, TLS termination, logging controls, and a deployment-specific security review.</div>
+</section>
+<section id="scenarios">
+<p class="section-kicker">10 · Detection scenarios</p>
+<article class="scenario">
+<div class="scenario-head">
+<span class="tag">LOGIN</span>
+<div>
+<h4>Login failures rise</h4>
+</div>
+</div>
+<p>Route template, outcome, trusted identity source, and latency distinguish invalid credentials from a broken dependency.</p>
+</article>
+<article class="scenario">
+<div class="scenario-head">
+<span class="tag">BLOCKING</span>
+<div>
+<h4>Async product route stalls</h4>
+</div>
+</div>
+<p>Trace blocking repository calls in <code>async def</code>; choose compatible I/O or controlled offload.</p>
+</article>
+<article class="scenario">
+<div class="scenario-head">
+<span class="tag">AUTHZ</span>
+<div>
+<h4>Product ID exists but is not owned</h4>
+</div>
+</div>
+<p>Route matching proves only syntax. Inject principal and enforce object authorization in service/repository policy.</p>
+</article>
+<article class="scenario">
+<div class="scenario-head">
+<span class="tag">TEST</span>
+<div>
+<h4>Global database leaks test state</h4>
+</div>
+</div>
+<p>Override repository dependencies with disposable test implementations; do not mutate shared environments.</p>
+</article>
+</section>
+<section id="drills">
+<p class="section-kicker">11 · Practice</p>
+<h2>Hands-on drills</h2>
+<article class="drill">
+<div class="drill-head">
+<h3>1. Build three local routes</h3>
+<span class="time">35 min</span>
+</div>
+<p>Create register, login, and product route stubs in local AbuseGuard.</p>
+<ul class="checklist">
+<li>Save source/route list in <code>artifacts/10.1-routes.md</code>.</li>
+<li>Declare methods/statuses.</li>
+<li>No real users/secrets.</li>
+</ul>
+</article>
+<article class="drill">
+<div class="drill-head">
+<h3>2. Lifecycle diagram</h3>
+<span class="time">20 min</span>
+</div>
+<p>Draw ASGI server → middleware/dependency → handler → response for your code.</p>
+<ul class="checklist">
+<li>Save <code>artifacts/10.1-lifecycle.md</code>.</li>
+<li>Mark validation and error boundary.</li>
+<li>Label sync/async calls.</li>
+</ul>
+</article>
+<article class="drill">
+<div class="drill-head">
+<h3>3. Dependency override test</h3>
+<span class="time">25 min</span>
+</div>
+<p>Use a fake local repository for a route test.</p>
+<ul class="checklist">
+<li>Save test output.</li>
+<li>Prove no persistent DB touched.</li>
+<li>Explain why injection improves testability.</li>
+</ul>
+</article>
+</section>
+<section id="cheatsheet">
+<p class="section-kicker">12 · Recall</p>
+<h2>Cheat sheet</h2>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Need</th>
+<th>Use</th>
+<th>Risk</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Route contract</td>
+<td>path operation</td>
+<td>not authorization</td>
+</tr>
+<tr>
+<td>Shared policy/resource</td>
+<td>Depends</td>
+<td>hidden side effects</td>
+</tr>
+<tr>
+<td>Blocking I/O</td>
+<td>sync handler/intentional boundary</td>
+<td>event-loop block</td>
+</tr>
+<tr>
+<td>Stable event</td>
+<td>route template/outcome</td>
+<td>raw sensitive input</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="pass">
+<p class="section-kicker">13 · Completion</p>
+<h2>Ready to pass Topic 10.1?</h2>
+<div class="exit-grid">
+<div class="exit-item">
+<b>Draw</b>Explain your exact request lifecycle.</div>
+<div class="exit-item">
+<b>Build</b>Create register/login/product paths from blank.</div>
+<div class="exit-item">
+<b>Explain</b>Distinguish ASGI/WSGI and sync/async behavior.</div>
+<div class="exit-item">
+<b>Test</b>Override one dependency without AI.</div>
+</div>
+</section>
+<section id="resources">
+<p class="section-kicker">14 · Primary resources</p>
+<h2>Primary resources</h2>
+<div class="resources">
+<a class="resource" href="https://fastapi.tiangolo.com/tutorial/">
+<b>FastAPI tutorial</b>
+<span>Official routes/dependencies.</span>
+</a>
+<a class="resource" href="https://asgi.readthedocs.io/en/latest/">
+<b>ASGI spec</b>
+<span>Official interface documentation.</span>
+</a>
+<a class="resource" href="https://www.uvicorn.org/">
+<b>Uvicorn</b>
+<span>ASGI server docs.</span>
+</a>
+</div>
+</section>
+</main>
+</div>
+<footer class="footer">Detection Engineering Learning Console · Week 10 · Topic 10.1 · Keep lifecycle boundaries observable.</footer>
+</div>
+</body>
+</html>

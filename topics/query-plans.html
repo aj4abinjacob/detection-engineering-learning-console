@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Reading PostgreSQL query plans safely for detection engineering.">
+<title>Reading Query Plans — Detection Engineering Learning Console</title>
+<link rel="stylesheet" href="assets/guide.css">
+<script src="assets/guide.js" defer>
+</script>
+</head>
+<body>
+<div class="topbar">
+<div class="topbar-inner">
+<a class="back" href="../index.html#w6">
+<span>←</span> Back to curriculum</a>
+<span class="topic-id">Week 6 · Topic 6.2</span>
+</div>
+</div>
+<div class="shell">
+<header class="hero">
+<p class="eyebrow">Practical field guide · SQL performance</p>
+<h1>Read the plan as the database’s <span>chosen work.</span>
+</h1>
+<p class="lede">Plans are estimates and operators, not verdicts. Compare estimated and actual rows, look for the expensive node, and test safely before changing query or schema.</p>
+<div class="hero-grid">
+<div class="hero-stat">
+<b>7 plan concepts</b>
+<span>Interpretation</span>
+</div>
+<div class="hero-stat">
+<b>4 scenarios</b>
+<span>Detection work</span>
+</div>
+<div class="hero-stat">
+<b>3 drills</b>
+<span>Saved evidence</span>
+</div>
+</div>
+</header>
+<div class="layout">
+<nav class="toc">
+<p class="toc-title">On this page</p>
+<a href="#why">Why</a>
+<a href="#model">Model</a>
+<a href="#commands">EXPLAIN</a>
+<a href="#nodes">Nodes</a>
+<a href="#estimates">Estimates</a>
+<a href="#workflow">Workflow</a>
+<a href="#safety">Safety</a>
+<a href="#sqlite">SQLite</a>
+<a href="#scenarios">Scenarios</a>
+<a class="toc-practice" href="#drills">Drills</a>
+<a href="#cheatsheet">Cheat sheet</a>
+<a href="#pass">Ready?</a>
+<a href="#resources">Resources</a>
+</nav>
+<main>
+<section id="why">
+<p class="section-kicker">01 · Purpose</p>
+<h2>Performance changes need causal evidence</h2>
+<p class="intro">A slow detector may be scanning too much, joining with a poor cardinality estimate, sorting a large intermediate result, or waiting on something outside the plan. The plan shows the chosen relational work.</p>
+<div class="cards">
+<article class="card">
+<span class="num">ESTIMATE</span>
+<h4>Rows drive choices</h4>
+<p>Bad cardinality can lead to bad join/access choice.</p>
+</article>
+<article class="card">
+<span class="num">OPERATORS</span>
+<h4>Nodes compose</h4>
+<p>Read child work before parent output.</p>
+</article>
+<article class="card">
+<span class="num">SAFETY</span>
+<h4>Analyze executes</h4>
+<p>It is not a read-only inspection for DML.</p>
+</article>
+<article class="card">
+<span class="num">ITERATE</span>
+<h4>Change one premise</h4>
+<p>Verify result and plan after each hypothesis.</p>
+</article>
+</div>
+</section>
+<section id="model">
+<p class="section-kicker">02 · Mental model</p>
+<h2>A plan tree creates rows bottom-up</h2>
+<div class="model">
+<div class="model-track">
+<div class="model-box">
+<b>Scan</b>
+<span>Read base relation rows.</span>
+</div>
+<div class="arrow">→</div>
+<div class="model-box">
+<b>Join/filter/sort</b>
+<span>Transform/intermediate rows.</span>
+</div>
+<div class="arrow">→</div>
+<div class="model-box">
+<b>Aggregate/output</b>
+<span>Return requested result.</span>
+</div>
+</div>
+<p class="model-caption">PostgreSQL estimates cost/rows/width before execution. Actual rows, loops, and time are only available with <code>ANALYZE</code>; interpret them together, not as isolated numbers.</p>
+</div>
+</section>
+<section id="commands">
+<p class="section-kicker">03 · PostgreSQL commands</p>
+<pre>
+<code>-- Copyable psql lab: prepare a parameterized SELECT, then explain it.
+PREPARE tenant_counts(text) AS
+SELECT client_ip, count(*)
+FROM events WHERE tenant_id = $1 GROUP BY client_ip;
+
+-- Plans without executing the prepared SELECT.
+EXPLAIN (COSTS, VERBOSE) EXECUTE tenant_counts('lab');
+
+-- EXECUTES the prepared SELECT and reports actuals.
+EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT) EXECUTE tenant_counts('lab');
+DEALLOCATE tenant_counts;</code>
+</pre>
+<p>
+<strong>Use:</strong> this <code>PREPARE</code>/<code>EXECUTE</code> form is directly usable in <code>psql</code> against a disposable schema; in application code, pass the equivalent value through the driver rather than interpolating it. Plain <code>EXPLAIN</code> is for estimate inspection; <code>EXPLAIN ANALYZE</code> only for authorized, controlled statements/data. <strong>Assumption:</strong> <code>tenant_id</code> is text; change the declared parameter type to the real schema type. <strong>Risk:</strong> <code>ANALYZE</code> executes <em>any</em> statement, including INSERT/UPDATE/DELETE. A transaction rollback can reduce persistent DML impact in a lab, but triggers, volatile functions, locks, external side effects, and resource consumption can still occur—do not use it as a production safety trick.</p>
+</section>
+<section id="nodes">
+<p class="section-kicker">04 · Core nodes</p>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Node</th>
+<th>Meaning</th>
+<th>Question</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Seq Scan</td>
+<td>Read relation sequentially</td>
+<td>Is result fraction large enough that this is sensible?</td>
+</tr>
+<tr>
+<td>Index Scan / Index Only Scan</td>
+<td>Use index path (latter needs visibility/map conditions)</td>
+<td>Are fetches/filter rows still high?</td>
+</tr>
+<tr>
+<td>Bitmap scan</td>
+<td>Combine/build matching tuple locations</td>
+<td>Does many-row selectivity justify it?</td>
+</tr>
+<tr>
+<td>Nested Loop</td>
+<td>Repeat inner work per outer row</td>
+<td>Are outer estimate/inner lookup reasonable?</td>
+</tr>
+<tr>
+<td>Hash Join</td>
+<td>Build hash table, probe other input</td>
+<td>Does build side fit memory/work settings?</td>
+</tr>
+<tr>
+<td>Sort/Aggregate</td>
+<td>Order/group intermediate rows</td>
+<td>Can input/order/cardinality be reduced?</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="estimates">
+<p class="section-kicker">05 · Compare estimates to actuals</p>
+<p>For each costly node read estimated <code>rows</code> versus <code>actual rows</code> and <code>loops</code>; a large mismatch compounds through joins. Actual time includes this execution’s cache/concurrency conditions. With <code>BUFFERS</code>, inspect shared/local/temp reads/hits to reason about I/O, but do not invent metrics not shown in your plan. Statistics, correlated predicates, skew, stale data, parameter values, and expressions can cause estimation error.</p>
+</section>
+<section id="workflow">
+<p class="section-kicker">06 · Safe diagnosis workflow</p>
+<ol class="steps">
+<li>
+<b>Confirm semantics.</b>Save query, parameters shape, result count, and expected time range.</li>
+<li>
+<b>Read plain EXPLAIN bottom-up.</b>Find scan, join, sort, and estimated row expansion.</li>
+<li>
+<b>Hypothesize one cause.</b>Example: tenant/time predicate is unselective or stats miss correlation.</li>
+<li>
+<b>Use controlled ANALYZE.</b>Only authorized SELECT/lab workload; capture actual rows/loops/buffers.</li>
+<li>
+<b>Change one thing.</b>Query shape, stats, or justified index; verify result equality and new plan.</li>
+</ol>
+</section>
+<section id="safety">
+<p class="section-kicker">07 · Safety</p>
+<div class="callout danger">
+<b>Plans can expose sensitive schema and literals</b>Store sanitized plan artifacts with query parameters redacted. Do not run expensive explain-analyze queries against a production incident system without authority, timeout/resource limits, and a rollback/impact plan. A plan is evidence, not permission to create an index.</div>
+</section>
+<section id="sqlite">
+<p class="section-kicker">08 · SQLite differs</p>
+<pre>
+<code>-- SQLite-compatible local plan inspection; output is not PostgreSQL node syntax
+EXPLAIN QUERY PLAN
+SELECT client_ip FROM events WHERE tenant_id = 'lab';</code>
+</pre>
+<p>SQLite <code>EXPLAIN QUERY PLAN</code> gives engine-specific high-level detail; it does not validate PostgreSQL <code>EXPLAIN (ANALYZE, BUFFERS)</code> syntax or node behavior. Label artifacts with engine/version and do not copy a SQLite plan conclusion to PostgreSQL untested.</p>
+</section>
+<section id="scenarios">
+<p class="section-kicker">09 · Detection scenarios</p>
+<article class="scenario">
+<div class="scenario-head">
+<span class="tag">HUNT</span>
+<div>
+<h4>Tenant query scans every event</h4>
+</div>
+</div>
+<p>Check selectivity and actual rows. A sequential scan may be correct; only a measured selective predicate supports an index hypothesis.</p>
+</article>
+<article class="scenario">
+<div class="scenario-head">
+<span class="tag">JOIN</span>
+<div>
+<h4>Account-IP join explodes</h4>
+</div>
+</div>
+<p>Locate estimate mismatch and loops; inspect duplicate/cardinality assumptions before adding an index.</p>
+</article>
+<article class="scenario">
+<div class="scenario-head">
+<span class="tag">SORT</span>
+<div>
+<h4>Top-N plan sorts a huge result</h4>
+</div>
+</div>
+<p>Reduce rows earlier or use an appropriate indexed/order-aware design; confirm tie/result semantics.</p>
+</article>
+<article class="scenario">
+<div class="scenario-head">
+<span class="tag">INCIDENT</span>
+<div>
+<h4>Someone runs ANALYZE on a DELETE</h4>
+</div>
+</div>
+<p>It executes. Stop treating EXPLAIN ANALYZE as harmless; use plain EXPLAIN or a disposable copy.</p>
+</article>
+</section>
+<section id="drills">
+<p class="section-kicker">10 · Practice</p>
+<h2>Hands-on drills</h2>
+<article class="drill">
+<div class="drill-head">
+<h3>1. Annotate a plan</h3>
+<span class="time">30 min</span>
+</div>
+<p>On synthetic SQLite plan output or supplied PostgreSQL plan, annotate scan, join/sort, estimated/actual fields that exist.</p>
+<ul class="checklist">
+<li>Save <code>artifacts/6.2-plan-annotation.md</code>.</li>
+<li>Never fabricate PostgreSQL actual values.</li>
+<li>State engine/version.</li>
+</ul>
+</article>
+<article class="drill">
+<div class="drill-head">
+<h3>2. Safe before/after</h3>
+<span class="time">25 min</span>
+</div>
+<p>Run a local SELECT plan before/after a justified index.</p>
+<ul class="checklist">
+<li>Save both plans and identical results.</li>
+<li>Explain one changed access choice.</li>
+<li>Include why it might differ in PostgreSQL.</li>
+</ul>
+</article>
+<article class="drill">
+<div class="drill-head">
+<h3>3. Node narrative</h3>
+<span class="time">20 min</span>
+</div>
+<p>Write a bottom-up explanation of seq/index scan, nested loop, hash join, and sort using one plan or diagram.</p>
+<ul class="checklist">
+<li>Save <code>artifacts/6.2-nodes.md</code>.</li>
+<li>Identify rows/loops caveat.</li>
+<li>Recommend no untested production change.</li>
+</ul>
+</article>
+</section>
+<section id="cheatsheet">
+<p class="section-kicker">11 · Recall</p>
+<h2>Cheat sheet</h2>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Need</th>
+<th>Use</th>
+<th>Risk</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Estimate only</td>
+<td>PostgreSQL <code>EXPLAIN</code>
+</td>
+<td>not actual runtime</td>
+</tr>
+<tr>
+<td>Actual execution</td>
+<td>
+<code>EXPLAIN ANALYZE</code>
+</td>
+<td>executes statement</td>
+</tr>
+<tr>
+<td>Read mismatch</td>
+<td>rows × loops</td>
+<td>stats/skew/correlation</td>
+</tr>
+<tr>
+<td>Cache/I/O clue</td>
+<td>
+<code>BUFFERS</code>
+</td>
+<td>only if shown/authorized</td>
+</tr>
+<tr>
+<td>Local SQLite</td>
+<td>
+<code>EXPLAIN QUERY PLAN</code>
+</td>
+<td>not PostgreSQL plan syntax</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="pass">
+<p class="section-kicker">12 · Completion</p>
+<h2>Ready to pass Topic 6.2?</h2>
+<div class="exit-grid">
+<div class="exit-item">
+<b>Read</b>Explain each node of an EXPLAIN ANALYZE output without notes.</div>
+<div class="exit-item">
+<b>Compare</b>Interpret estimated versus actual rows/loops and buffers when supplied.</div>
+<div class="exit-item">
+<b>Protect</b>Explain why ANALYZE must not be run casually on DML.</div>
+<div class="exit-item">
+<b>Diagnose</b>Propose one testable performance hypothesis, not a guess.</div>
+</div>
+</section>
+<section id="resources">
+<p class="section-kicker">13 · Primary resources</p>
+<h2>Primary resources</h2>
+<div class="resources">
+<a class="resource" href="https://www.postgresql.org/docs/current/using-explain.html">
+<b>PostgreSQL EXPLAIN</b>
+<span>Official plan interpretation guide.</span>
+</a>
+<a class="resource" href="https://www.postgresql.org/docs/current/sql-explain.html">
+<b>EXPLAIN syntax</b>
+<span>Official ANALYZE/BUFFERS behavior.</span>
+</a>
+<a class="resource" href="https://sqlite.org/eqp.html">
+<b>SQLite EQP</b>
+<span>Official SQLite plan documentation.</span>
+</a>
+</div>
+</section>
+</main>
+</div>
+<footer class="footer">Detection Engineering Learning Console · Week 6 · Topic 6.2 · Treat execution plans as controlled evidence.</footer>
+</div>
+</body>
+</html>

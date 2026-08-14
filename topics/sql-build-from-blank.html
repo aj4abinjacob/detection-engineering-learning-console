@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="Post-diagnostic review field guide for building a tiny users and orders schema and writing foundational SQL queries." />
+<title>SQL Build-from-Blank — Detection Engineering Learning Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/guide.css" /><script src="assets/guide.js" defer></script>
+</head>
+<body>
+<div class="topbar"><div class="topbar-inner"><a class="back" href="../index.html#w0"><span>←</span> Back to curriculum</a><span class="topic-id">Week 0 · Topic 0.2</span></div></div>
+<div class="shell"><header class="hero"><p class="eyebrow">Post-diagnostic review material · SQL</p><h1>Ask relational data a question it can <span>prove.</span></h1><p class="lede">Do not use this before the unprepared diagnostic. After saving what you attempted from blank, review the small users/orders database: how keys make rows relate, how joins change cardinality, and how grouping turns events into evidence without inventing rows.</p><div class="hero-grid" aria-label="Guide summary"><div class="hero-stat"><b>13 concepts</b><span>Schema &amp; queries</span></div><div class="hero-stat"><b>4 scenarios</b><span>Detection work</span></div><div class="hero-stat"><b>3 drills</b><span>Saved artifacts</span></div></div></header>
+<div class="layout"><nav class="toc" aria-label="On this page"><p class="toc-title">On this page</p><a href="#why">Why it matters</a><a href="#model">Relational model</a><a href="#schema">Build the schema</a><a href="#join">Join correctly</a><a href="#aggregate">Group &amp; filter</a><a href="#performance">Predict slowness</a><a href="#platform">SQLite &amp; PostgreSQL</a><a href="#scenarios">Work scenarios</a><a class="toc-practice" href="#drills">Hands-on drills</a><a href="#cheatsheet">Cheat sheet &amp; exit</a></nav>
+<main>
+<section id="why"><p class="section-kicker">01 · Purpose</p><h2>Why SQL is a detection-engineering language</h2><p class="intro">Detection data is usually a collection of related facts: an account, its requests, a device, a transaction, a rule decision. SQL makes you state how those facts connect and exactly which population each aggregate describes.</p><div class="cards"><article class="card"><span class="num">INVESTIGATE</span><h4>Build a cohort</h4><p>Join an event to its owner, then ask which accounts, routes, or source keys behave unusually.</p></article><article class="card"><span class="num">VALIDATE</span><h4>Measure a rule</h4><p>Group by time or decision to compare volume, error, conversion, or false-positive evidence.</p></article><article class="card"><span class="num">OPERATE</span><h4>Respect scale</h4><p>A query that scans a small lab table can become expensive or disruptive against high-volume telemetry.</p></article><article class="card"><span class="num">AUDIT</span><h4>Make assumptions inspectable</h4><p>Schema constraints, query text, and parameter values are a trail another engineer can review.</p></article></div><div class="callout warn"><b>Diagnostic rule</b>Keep the exact original attempt and your “guessed this” notes. This guide is for post-diagnostic review, not a way to improve the Week 0 measurement retroactively.</div></section>
+
+<section id="model"><p class="section-kicker">02 · Mental model</p><h2>Rows have identity; relationships have cardinality</h2><p class="intro">A table models one kind of thing. A primary key identifies a row; a foreign key states that a value must refer to a row in another table. A join creates combinations that satisfy the relation—so its row count is part of the answer.</p><div class="model"><div class="model-track"><div class="model-box"><b>users</b><span>One row per account.</span><code>id PRIMARY KEY</code></div><div class="arrow">1 → many</div><div class="model-box"><b>orders</b><span>Many purchases may belong to one account.</span><code>user_id FOREIGN KEY</code></div><div class="arrow">→</div><div class="model-box"><b>query result</b><span>One row per selected relationship or aggregate group.</span><code>JOIN + GROUP BY</code></div></div><p class="model-caption">A join is not “put the tables side by side.” It pairs rows. If a user has three orders, that user appears three times before grouping.</p></div><pre><code>-- Logical question: which users have orders?
+-- Result grain before grouping: one row per matching order.
+SELECT u.id, u.email, o.id AS order_id, o.amount_cents
+FROM users AS u
+JOIN orders AS o ON o.user_id = u.id;</code></pre></section>
+
+<section id="schema"><p class="section-kicker">03 · Foundation</p><h2>Create a small users/orders schema from blank</h2><p class="intro">Use integer money units in this learning schema to avoid floating-point rounding. Real commerce needs additional business rules—currency, refunds, status transitions, retention, and access control—which this tiny model deliberately leaves out.</p><pre><code>-- SQLite: first enable this for every connection.
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE users (
+  id INTEGER PRIMARY KEY,
+  email TEXT NOT NULL UNIQUE,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE orders (
+  id INTEGER PRIMARY KEY,
+  user_id INTEGER NOT NULL,
+  amount_cents INTEGER NOT NULL CHECK (amount_cents &gt;= 0),
+  status TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE INDEX orders_user_id_idx ON orders(user_id);</code></pre><div class="table-wrap"><table><thead><tr><th>Choice</th><th>What it guarantees</th><th>What it does not guarantee</th></tr></thead><tbody><tr><td><code>PRIMARY KEY</code></td><td>A non-null unique row identifier.</td><td>That an ID means the correct real-world person.</td></tr><tr><td><code>FOREIGN KEY</code></td><td>An order references an existing user when enforcement is active.</td><td>That an order is authorized or not fraudulent.</td></tr><tr><td><code>UNIQUE(email)</code></td><td>No duplicate exact stored email value.</td><td>Case-insensitive or normalized identity semantics.</td></tr><tr><td><code>CHECK(amount_cents &gt;= 0)</code></td><td>A simple local invariant.</td><td>Currency correctness or refund policy.</td></tr></tbody></table></div><pre><code>INSERT INTO users (id, email, created_at) VALUES
+  (1, 'a@example.test', '2026-08-01T09:00:00Z'),
+  (2, 'b@example.test', '2026-08-01T09:01:00Z'),
+  (3, 'c@example.test', '2026-08-01T09:02:00Z');
+INSERT INTO orders (id, user_id, amount_cents, status, created_at) VALUES
+  (101, 1, 1299, 'paid', '2026-08-02T10:00:00Z'),
+  (102, 1, 2500, 'paid', '2026-08-02T10:03:00Z'),
+  (103, 2, 499, 'failed', '2026-08-02T10:05:00Z');</code></pre><div class="callout danger"><b>Never use real customer data for a blank-folder exercise</b>Use <code>.test</code> addresses and synthetic amounts. Querying production requires least-privilege access, approved data handling, a bounded time range, and an understanding of the workload it creates.</div></section>
+
+<section id="join"><p class="section-kicker">04 · Relationships</p><h2>Write the two-table join deliberately</h2><p class="intro">The join condition belongs in <code>ON</code>. Put row filters in <code>WHERE</code> unless you deliberately need to preserve unmatched rows from an outer join.</p><pre><code>-- All orders with their owner's email: inner join omits users with no orders.
+SELECT o.id, u.email, o.amount_cents, o.status, o.created_at
+FROM orders AS o
+JOIN users AS u ON u.id = o.user_id
+ORDER BY o.created_at, o.id;
+
+-- Keep every user, even where no order exists.
+SELECT u.id, u.email, o.id AS order_id
+FROM users AS u
+LEFT JOIN orders AS o ON o.user_id = u.id
+ORDER BY u.id, o.id;</code></pre><div class="command-list"><div class="command"><code>JOIN ... ON u.id = o.user_id</code><p><b>Return matching pairs.</b>Use for the required two-table relationship. Check the result grain: each order produces one row with this one-to-many schema.</p></div><div class="command"><code>LEFT JOIN</code><p><b>Preserve rows on the left.</b>Use to find users with no orders, then test <code>WHERE o.id IS NULL</code>.</p></div><div class="command"><code>COUNT(*) vs COUNT(o.id)</code><p><b>Count rows versus non-null joined values.</b>With a left join, <code>COUNT(*)</code> counts the preserved user row; <code>COUNT(o.id)</code> counts actual orders.</p></div></div><div class="callout warn"><b>Classic counting bug</b>A <code>LEFT JOIN</code> followed by <code>WHERE o.status = 'paid'</code> removes null order rows and behaves like an inner join. Put the status predicate in <code>ON</code> when “users with zero paid orders” must remain.</div></section>
+
+<section id="aggregate"><p class="section-kicker">05 · Questions</p><h2>Group first, then use HAVING on groups</h2><p class="intro"><code>WHERE</code> chooses input rows before aggregation. <code>GROUP BY</code> creates groups. <code>HAVING</code> filters the computed groups. The ordering of clauses describes the logical question.</p><pre><code>-- Orders per user, sorted from most to least.
+SELECT u.id, u.email, COUNT(o.id) AS orders_per_user
+FROM users AS u
+LEFT JOIN orders AS o ON o.user_id = u.id
+GROUP BY u.id, u.email
+ORDER BY orders_per_user DESC, u.id ASC;
+
+-- Accounts with at least two successful orders.
+SELECT o.user_id, COUNT(*) AS paid_orders, SUM(o.amount_cents) AS paid_cents
+FROM orders AS o
+WHERE o.status = 'paid'
+GROUP BY o.user_id
+HAVING COUNT(*) &gt;= 2
+ORDER BY paid_orders DESC, o.user_id ASC;</code></pre><div class="table-wrap"><table><thead><tr><th>Clause</th><th>Question it answers</th><th>Example</th></tr></thead><tbody><tr><td><code>WHERE</code></td><td>Which individual order rows count?</td><td><code>WHERE status = 'paid'</code></td></tr><tr><td><code>GROUP BY</code></td><td>What is one output group?</td><td><code>GROUP BY user_id</code></td></tr><tr><td><code>HAVING</code></td><td>Which computed groups survive?</td><td><code>HAVING COUNT(*) &gt;= 2</code></td></tr><tr><td><code>ORDER BY</code></td><td>How should stable output be presented?</td><td><code>ORDER BY orders_per_user DESC, user_id</code></td></tr></tbody></table></div><p><strong>Portable discipline:</strong> select only grouped columns or aggregate expressions. Some engines allow looser expressions in some modes; relying on them makes a query's meaning engine-dependent.</p></section>
+
+<section id="performance"><p class="section-kicker">06 · Scale</p><h2>Predict one slow query—and say why</h2><p class="intro">The diagnostic asks for a query you expect to be slow plus one sentence of reasoning. A prediction is valuable when it names data volume, access path, and the operation that must process many rows.</p><pre><code>-- Expected to become slow as orders grows if no suitable index exists.
+SELECT user_id, COUNT(*)
+FROM orders
+WHERE created_at &gt;= '2026-08-01T00:00:00Z'
+GROUP BY user_id
+ORDER BY COUNT(*) DESC;
+
+-- Reason: without an index that helps the time predicate, the engine may scan
+-- every order in the time range (or whole table), then build aggregate/sort state.</code></pre><p>An index is not a magic “make it fast” switch. It costs storage and makes writes more expensive. Query planners choose among available paths using statistics; verify your prediction with the engine's plan, not elapsed time from one warmed-up laptop run.</p><pre><code>-- SQLite CLI
+EXPLAIN QUERY PLAN
+SELECT user_id, COUNT(*) FROM orders
+WHERE created_at &gt;= '2026-08-01T00:00:00Z'
+GROUP BY user_id;
+
+-- PostgreSQL: do this only on approved, bounded data.
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT user_id, COUNT(*) FROM orders
+WHERE created_at &gt;= TIMESTAMPTZ '2026-08-01 00:00:00+00'
+GROUP BY user_id;</code></pre><div class="callout danger"><b>Plan inspection can execute work</b><code>EXPLAIN ANALYZE</code> actually runs the statement in PostgreSQL. It is not a harmless preview for write statements or an unbounded production query. Use plain <code>EXPLAIN</code> first and follow local access and change controls.</div></section>
+
+<section id="platform"><p class="section-kicker">07 · Platform</p><h2>SQLite and PostgreSQL are not interchangeable laboratories</h2><div class="table-wrap"><table><thead><tr><th>Concern</th><th>SQLite</th><th>PostgreSQL</th></tr></thead><tbody><tr><td>Starting local state</td><td><code>sqlite3 diagnostic.db</code> creates a file database.</td><td>Requires a running server, role, database, and network/local socket connection.</td></tr><tr><td>Foreign keys</td><td>Enforcement must be enabled per connection with <code>PRAGMA foreign_keys = ON</code>.</td><td>Foreign keys are enforced by the server when declared.</td></tr><tr><td>Time types</td><td>Stores values using dynamic typing conventions; choose and document a text/epoch convention.</td><td>Has typed temporal values; use <code>timestamptz</code> for an instant with timezone-aware semantics.</td></tr><tr><td>Parameters in application code</td><td>Use the driver’s parameter markers, never string interpolation.</td><td>Also use driver parameters; marker syntax depends on the driver, not SQL itself.</td></tr></tbody></table></div><pre><code># Disposable SQLite lab only; creates a file in the current directory.
+mkdir -p sql-diagnostic-lab
+cd sql-diagnostic-lab
+sqlite3 diagnostic.db &lt; schema.sql
+sqlite3 -header -column diagnostic.db &lt; queries.sql
+
+# PostgreSQL: use a separate PostgreSQL-specific file, never the SQLite schema.
+# postgres-schema.sql uses BIGINT GENERATED BY DEFAULT AS IDENTITY,
+# TIMESTAMPTZ, REFERENCES, and CHECK; it contains no SQLite PRAGMA.
+psql --dbname=diagnostic_lab --file=postgres-schema.sql</code></pre><p>SQLite's <code>schema.sql</code> is not valid PostgreSQL input: <code>PRAGMA</code>, identity generation, and temporal typing differ. On Windows, use the appropriate SQLite or PostgreSQL client; shell redirection syntax differs in PowerShell. Never put passwords in a shell command, SQL file, screenshot, or committed configuration.</p></section>
+
+<section id="scenarios"><p class="section-kicker">08 · On the job</p><h2>Detection-engineering scenarios</h2><article class="scenario"><div class="scenario-head"><span class="tag">FRAUD</span><div><h4>Many failed payments converge on one account</h4></div></div><p>Filter a bounded time window, group by account and failure state, then join the account only for the attributes you are authorized to view. The count identifies a review cohort; it does not establish intent or allow an account action without corroboration.</p></article><article class="scenario"><div class="scenario-head"><span class="tag">DATA LOSS</span><div><h4>Users “disappear” from a dashboard</h4></div></div><p>An inner join removes users with no matching event/order. Compare it with a left join and count null event IDs. This distinguishes an absent activity record from an unintended population filter.</p></article><article class="scenario"><div class="scenario-head"><span class="tag">RULE QA</span><div><h4>A conversion metric changed after a rule rollout</h4></div></div><p>Write the denominator before the query: all eligible users, all attempts, or only completed orders. Then use <code>WHERE</code> for eligibility and <code>HAVING</code> for thresholded cohorts. Different denominators can reverse the apparent result.</p></article><article class="scenario"><div class="scenario-head"><span class="tag">COST</span><div><h4>An incident query overloads telemetry storage</h4></div></div><p>Start with a narrow time partition and a projection of only necessary columns, inspect the plan, and coordinate with the data owner. A full scan plus large sort may be technically correct yet operationally irresponsible.</p></article></section>
+
+<section id="drills"><p class="section-kicker">09 · Practice</p><h2>Hands-on drills</h2><p class="intro">All drills produce a reviewable artifact. Preserve the diagnostic attempt, then use a separate disposable <code>sql-diagnostic-lab</code> directory.</p><article class="drill"><div class="drill-head"><h3>1. Build and query a tiny SQLite database</h3><span class="time">35 min</span></div><p>Save <code>schema.sql</code>, <code>seed.sql</code>, and <code>results.txt</code>. Include the required two-table join, orders-per-user sorted, and a user with no orders.</p><ul class="checklist"><li>Draw the primary-key/foreign-key relationship and name the result grain of each query.</li><li>Explain why <code>COUNT(o.id)</code> differs from <code>COUNT(*)</code> under your left join.</li><li>Show <code>PRAGMA foreign_keys</code> is enabled before testing a bad insert.</li></ul></article><article class="drill"><div class="drill-head"><h3>2. Add GROUP BY + HAVING evidence</h3><span class="time">25 min</span></div><p>Save <code>aggregate.sql</code> and <code>aggregate-explanation.md</code>. Write one query for paid orders per user and one cohort query using <code>HAVING</code>.</p><ul class="checklist"><li>State exactly which rows <code>WHERE</code> removes before grouping.</li><li>Calculate one group by hand and compare it to output.</li><li>Add a deterministic secondary sort so output does not depend on accident.</li></ul></article><article class="drill"><div class="drill-head"><h3>3. Make a performance prediction</h3><span class="time">20 min</span></div><p>Save <code>slow-query.sql</code>, <code>query-plan.txt</code>, and <code>guesses.md</code>. Include the one-sentence reason you would have given during the diagnostic.</p><ul class="checklist"><li>Name the filter, expected scan/sort/aggregate work, and index that might change the plan.</li><li>Label the plan engine and version; do not claim that SQLite and PostgreSQL plans mean the same thing.</li><li>Keep “what I guessed” separate from “what the plan showed.”</li></ul></article></section>
+
+<section id="cheatsheet"><p class="section-kicker">10 · Desk reference</p><h2>Cheat sheet and completion test</h2><div class="table-wrap"><table><thead><tr><th>Intent</th><th>Pattern</th></tr></thead><tbody><tr><td>Relate rows</td><td><code>JOIN orders o ON o.user_id = u.id</code></td></tr><tr><td>Retain unmatched left rows</td><td><code>LEFT JOIN ...</code></td></tr><tr><td>Filter source rows</td><td><code>WHERE status = 'paid'</code></td></tr><tr><td>Create groups</td><td><code>GROUP BY user_id</code></td></tr><tr><td>Filter group result</td><td><code>HAVING COUNT(*) &gt;= 2</code></td></tr><tr><td>Count only existing right rows</td><td><code>COUNT(o.id)</code></td></tr><tr><td>Inspect SQLite plan</td><td><code>EXPLAIN QUERY PLAN ...</code></td></tr><tr><td>Use a safe lab</td><td><code>sqlite3 diagnostic.db</code> in an explicit disposable folder</td></tr></tbody></table></div><h3>Ready to pass Topic 0.2 without AI?</h3><div class="exit-grid"><div class="exit-item"><b>Model</b>Create users and orders with a declared key and foreign-key relationship.</div><div class="exit-item"><b>Query</b>Write a two-table join, a grouped count, a <code>HAVING</code> cohort, and sorted orders-per-user from blank.</div><div class="exit-item"><b>Reason</b>Predict how an outer join changes rows and why an unindexed, wide time-range aggregate can be slow.</div><div class="exit-item"><b>Audit</b>Keep your original guesses and explain SQLite versus PostgreSQL assumptions without AI.</div></div><h3>Primary resources</h3><div class="resources"><a class="resource" href="https://www.sqlite.org/lang.html" target="_blank" rel="noopener"><b>SQLite SQL language</b><span>Syntax and semantics</span></a><a class="resource" href="https://www.sqlite.org/foreignkeys.html" target="_blank" rel="noopener"><b>SQLite foreign keys</b><span>Per-connection enforcement</span></a><a class="resource" href="https://www.postgresql.org/docs/current/queries-table-expressions.html" target="_blank" rel="noopener"><b>PostgreSQL table expressions</b><span>Joins and grouping</span></a><a class="resource" href="https://www.postgresql.org/docs/current/using-explain.html" target="_blank" rel="noopener"><b>PostgreSQL EXPLAIN</b><span>Plans and ANALYZE caveat</span></a></div></section>
+<footer class="footer">Post-diagnostic review material for the <a href="../index.html#w0">Detection Engineering Learning Console</a> · Week 0, Topic 0.2</footer>
+</main></div></div>
+</body></html>

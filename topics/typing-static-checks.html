@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="description" content="Practical field guide to modern Python annotations and static checking for detection code.">
+<title>Typing &amp; Static Checks — Detection Engineering Learning Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/guide.css">
+<script src="assets/guide.js" defer>
+</script>
+</head>
+<body>
+<div class="topbar">
+<div class="topbar-inner">
+<a class="back" href="../index.html#w3">
+<span>←</span> Back to curriculum</a>
+<span class="topic-id">Week 3 · Topic 3.4</span>
+</div>
+</div>
+<div class="shell">
+<header class="hero">
+<p class="eyebrow">Python internals II · contracts</p>
+<h1>Make data-shape assumptions <span>reviewable before runtime.</span>
+</h1>
+<p class="lede">Annotations describe the values your parser, rule, and adapter expect. A static checker finds incompatible paths early; it does not validate an untrusted payload, replace tests, or make an <code>Any</code> boundary safe.</p>
+<div class="hero-grid">
+<div class="hero-stat">
+<b>11 concepts</b>
+<span>Type contracts</span>
+</div>
+<div class="hero-stat">
+<b>4 scenarios</b>
+<span>Detection work</span>
+</div>
+<div class="hero-stat">
+<b>3 drills</b>
+<span>Saved artifacts</span>
+</div>
+</div>
+</header>
+<div class="layout">
+<nav class="toc" aria-label="On this page">
+<p class="toc-title">On this page</p>
+<a href="#why">Why it matters</a>
+<a href="#model">Mental model</a>
+<a href="#annotations">Modern annotations</a>
+<a href="#optional">Missing vs null</a>
+<a href="#callable">Callable &amp; Protocol</a>
+<a href="#narrowing">Narrowing</a>
+<a href="#checker">Checker workflow</a>
+<a href="#failures">Limits &amp; safety</a>
+<a href="#scenarios">Work scenarios</a>
+<a class="toc-practice" href="#drills">Hands-on drills</a>
+<a href="#cheatsheet">Cheat sheet &amp; exit</a>
+</nav>
+<main>
+<section id="why">
+<p class="section-kicker">01 · Purpose</p>
+<h2>Typing makes an evidence contract visible</h2>
+<p class="intro">Detection pipelines translate untrusted input into structured events, then into rules and outputs. A useful annotation names which values may be absent, which transformations return failures, and which interfaces a dependency must provide—before an incident path reaches production.</p>
+<div class="cards">
+<article class="card">
+<span class="num">REVIEW</span>
+<h4>Shape is explicit</h4>
+<p>
+<code>dict[str, str]</code> and <code>dict[str, object]</code> make materially different promises.</p>
+</article>
+<article class="card">
+<span class="num">REFACTOR</span>
+<h4>Call sites are checked</h4>
+<p>Changing a parser return type lets a checker find consumers that still assume the old shape.</p>
+</article>
+<article class="card">
+<span class="num">BOUNDARY</span>
+<h4>Runtime remains real</h4>
+<p>JSON, environment variables, and network payloads require actual validation before they receive a trusted type.</p>
+</article>
+<article class="card">
+<span class="num">DISCIPLINE</span>
+<h4>Find uncertainty</h4>
+<p>
+<code>Any</code>, casts, and ignores are debt markers to inspect, not permissions to stop thinking.</p>
+</article>
+</div>
+</section>
+<section id="model">
+<p class="section-kicker">02 · Mental model</p>
+<h2>Annotations are claims; a checker reasons about paths</h2>
+<div class="model">
+<div class="model-track">
+<div class="model-box">
+<b>Input boundary</b>
+<span>Unknown JSON or strings need validation.</span>
+<code>object</code>
+</div>
+<div class="arrow">→</div>
+<div class="model-box">
+<b>Typed core</b>
+<span>Functions state accepted and returned values.</span>
+<code>Event | None</code>
+</div>
+<div class="arrow">→</div>
+<div class="model-box">
+<b>Static report</b>
+<span>Checker flags impossible or unsafe use.</span>
+<code>mypy</code>
+</div>
+</div>
+<p class="model-caption">The checker analyzes source and configured stubs; it normally does not execute your program. Tests prove runtime behavior on examples, while validation proves a specific input meets a contract.</p>
+</div>
+</section>
+<section id="annotations">
+<p class="section-kicker">03 · Core syntax</p>
+<h2>Use modern, concrete annotations</h2>
+<pre>
+<code>from dataclasses import dataclass
+from collections.abc import Iterable
+
+@dataclass(frozen=True)
+class Event:
+    source_ip: str
+    status: int
+
+def count_errors(events: Iterable[Event]) -&gt; int:
+    return sum(event.status &gt;= 500 for event in events)
+
+def labels(event: Event) -&gt; dict[str, str]:
+    return {"source_ip": event.source_ip, "status": str(event.status)}</code>
+</pre>
+<div class="command-list">
+<div class="command">
+<code>list[str]</code>, <code>dict[str, int]</code>
+<p>
+<b>Describe parameterized containers.</b>Use concrete key/value types at trusted boundaries. It assumes the container contents conform; the runtime does not enforce insertion types.</p>
+</div>
+<div class="command">
+<code>Iterable[Event]</code>
+<p>
+<b>Accept any one-pass or reusable event source.</b>Use it when only iteration is required. Do not annotate <code>list</code> if the function need not index, mutate, or reuse the source.</p>
+</div>
+<div class="command">
+<code>@dataclass(frozen=True)</code>
+<p>
+<b>Model a small record with named fields.</b>Useful after validation. Frozen prevents ordinary reassignment but does not recursively freeze nested mutable values.</p>
+</div>
+</div>
+</section>
+<section id="optional">
+<p class="section-kicker">04 · Absence</p>
+<h2>
+<code>None</code> is a value; a missing key is a different state</h2>
+<pre>
+<code>from typing import TypedDict
+
+class RawLogin(TypedDict, total=False):
+    user_id: str          # may be absent
+    device_id: str | None # if present, may explicitly be null
+
+def device_label(raw: RawLogin) -&gt; str:
+    if "device_id" not in raw:
+        return "not-provided"
+    if raw["device_id"] is None:
+        return "explicit-null"
+    return raw["device_id"]</code>
+</pre>
+<p>
+<code>Optional[T]</code> is spelling for <code>T | None</code>; it does not mean “argument may be omitted.” Use a default parameter for an omitted argument, and distinguish absent JSON fields from explicit JSON <code>null</code> where your event contract needs both. Narrow before using a union member.</p>
+</section>
+<section id="callable">
+<p class="section-kicker">05 · Interfaces</p>
+<h2>Type what you require, not a whole implementation</h2>
+<pre>
+<code>from collections.abc import Callable
+from typing import Protocol
+
+Predicate = Callable[[Event], bool]
+
+class EventSink(Protocol):
+    def emit(self, event: Event) -&gt; None: ...
+
+def deliver(events: Iterable[Event], accept: Predicate, sink: EventSink) -&gt; None:
+    for event in events:
+        if accept(event):
+            sink.emit(event)</code>
+</pre>
+<p>
+<code>Callable[[Event], bool]</code> describes a function-like rule with that signature. A <code>Protocol</code> uses structural typing: an object need not inherit from it, but must provide compatible members. This makes a production sink and a test fake interchangeable without coupling the core to a vendor SDK.</p>
+</section>
+<section id="narrowing">
+<p class="section-kicker">06 · Control flow</p>
+<h2>Prove a union branch before using it</h2>
+<pre>
+<code>def normalized_status(value: int | str | None) -&gt; int | None:
+    if value is None:
+        return None
+    if isinstance(value, int):
+        return value
+    if value.isdecimal():
+        return int(value)
+    return None</code>
+</pre>
+<p>
+<code>isinstance</code>, <code>is None</code>, membership checks for typed dictionaries, and explicit return paths let a checker narrow a union. Prefer validation functions that return a trusted model or a deliberate error; do not use <code>cast()</code> to pretend unvalidated external input is safe.</p>
+</section>
+<section id="checker">
+<p class="section-kicker">07 · Static workflow</p>
+<h2>Run the checker, then inspect each finding</h2>
+<pre>
+<code># pyproject.toml: pin tool behavior with your project
+[tool.mypy]
+python_version = "3.11"
+warn_unused_ignores = true
+check_untyped_defs = true
+
+# Shell: use the project environment and target a package deliberately
+python -m mypy src/analyzer</code>
+</pre>
+<p>Use a pinned mypy version in project dependencies or CI; flags and inference evolve. <code>python_version</code> describes the code you target, not necessarily the interpreter executing mypy. On Windows, invoke the same Python command in PowerShell; shell activation syntax differs, but mypy’s configuration semantics do not.</p>
+<div class="callout warn">
+<b>Review, do not obey blindly</b>A finding can reveal a real defect, an incomplete third-party stub, or an intentionally dynamic boundary. Fix the code or contract where possible. If an ignore is justified, make it narrow (<code># type: ignore[error-code]</code>), explain it in review, and keep <code>warn_unused_ignores</code> enabled so stale debt is visible.</div>
+</section>
+<section id="failures">
+<p class="section-kicker">08 · Limits &amp; safety</p>
+<h2>Types reduce classes of mistakes; they do not validate reality</h2>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Trap</th>
+<th>Why it fails</th>
+<th>Response</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>Any</code> spreads</td>
+<td>Operations are permitted without useful checking.</td>
+<td>Contain it at an adapter, validate into a typed model, and record remaining Any boundaries.</td>
+</tr>
+<tr>
+<td>Broad ignore</td>
+<td>Suppresses unrelated future mistakes on that line.</td>
+<td>Use error-code-specific ignores; remove them when stubs or code improve.</td>
+</tr>
+<tr>
+<td>Type annotation as validation</td>
+<td>Python normally accepts wrong runtime values.</td>
+<td>Parse and validate untrusted input; test error paths.</td>
+</tr>
+<tr>
+<td>Incorrect config</td>
+<td>Checker scope/version differs locally and in CI.</td>
+<td>Commit config, pin tool versions, and show the exact invocation.</td>
+</tr>
+<tr>
+<td>Secret-bearing types in logs</td>
+<td>Helpful representations can expose tokens/PII.</td>
+<td>Redact at the logging boundary; types do not classify or protect data automatically.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="scenarios">
+<p class="section-kicker">09 · On the job</p>
+<h2>Detection-engineering scenarios</h2>
+<article class="scenario">
+<div class="scenario-head">
+<span class="tag">PARSER</span>
+<div>
+<h4>Schema change makes device ID nullable</h4>
+</div>
+</div>
+<p>Change the raw contract to <code>str | None</code>, let the checker find string-only consumers, and decide per detection whether absence is a missing signal, a neutral value, or a rejection.</p>
+</article>
+<article class="scenario">
+<div class="scenario-head">
+<span class="tag">RULES</span>
+<div>
+<h4>Vendor SDK client blocks tests</h4>
+</div>
+</div>
+<p>Define the small Protocol the rule needs, then use a fake that records <code>emit</code> calls. The test proves your code’s interaction without pretending an integration has happened.</p>
+</article>
+<article class="scenario">
+<div class="scenario-head">
+<span class="tag">MIGRATION</span>
+<div>
+<h4>Refactor changes an event field</h4>
+</div>
+</div>
+<p>Run the checker on the complete package and inspect each caller. A clean report complements tests; neither proves that a live upstream has honored the new field contract.</p>
+</article>
+<article class="scenario">
+<div class="scenario-head">
+<span class="tag">QUALITY</span>
+<div>
+<h4>Ignore count rises each sprint</h4>
+</div>
+</div>
+<p>Treat ignores and <code>Any</code> as a visible risk inventory. Prioritize boundaries that feed enforcement or high-confidence detections, rather than pursuing a decorative “zero errors” metric.</p>
+</article>
+</section>
+<section id="drills">
+<p class="section-kicker">10 · Practice</p>
+<h2>Hands-on drills</h2>
+<article class="drill">
+<div class="drill-head">
+<h3>1. Type an event core</h3>
+<span class="time">35 min</span>
+</div>
+<p>Save <code>artifacts/types/events.py</code>, <code>pyproject.toml</code>, and <code>mypy-before-after.txt</code>. Type an event model, an iterable aggregation function, and an output label function.</p>
+<ul class="checklist">
+<li>Use <code>list[str]</code>, <code>dict[str, str]</code>, and a return annotation deliberately.</li>
+<li>Introduce one mismatched call, capture the checker result, then repair it.</li>
+<li>Name Python and mypy versions used.</li>
+</ul>
+</article>
+<article class="drill">
+<div class="drill-head">
+<h3>2. Model missing versus null</h3>
+<span class="time">25 min</span>
+</div>
+<p>Save <code>raw_login.py</code> and <code>absence-matrix.md</code> with examples for missing, explicit null, valid string, and invalid type from synthetic data.</p>
+<ul class="checklist">
+<li>Explain why Optional does not mean a key can be absent.</li>
+<li>Show narrowing before a string operation.</li>
+<li>Describe the rule behavior for every state.</li>
+</ul>
+</article>
+<article class="drill">
+<div class="drill-head">
+<h3>3. Replace a dependency with a Protocol</h3>
+<span class="time">30 min</span>
+</div>
+<p>Save <code>sink_protocol.py</code>, <code>fake_sink_test.py</code>, and <code>checker-output.txt</code>. Deliver synthetic events through a Callable predicate and Protocol sink.</p>
+<ul class="checklist">
+<li>State the minimum required interface.</li>
+<li>Show the fake’s captured events.</li>
+<li>Identify what the static check cannot prove about the real vendor adapter.</li>
+</ul>
+</article>
+</section>
+<section id="cheatsheet">
+<p class="section-kicker">11 · Desk reference</p>
+<h2>Cheat sheet and completion test</h2>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Intent</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Modern union</td>
+<td>
+<code>str | None</code>
+</td>
+</tr>
+<tr>
+<td>Typed mapping</td>
+<td>
+<code>dict[str, int]</code>
+</td>
+</tr>
+<tr>
+<td>Callable rule</td>
+<td>
+<code>Callable[[Event], bool]</code>
+</td>
+</tr>
+<tr>
+<td>Minimal dependency</td>
+<td>
+<code>class Sink(Protocol): ...</code>
+</td>
+</tr>
+<tr>
+<td>Narrow nullable value</td>
+<td>
+<code>if value is not None:</code>
+</td>
+</tr>
+<tr>
+<td>Check project</td>
+<td>
+<code>python -m mypy src/analyzer</code>
+</td>
+</tr>
+<tr>
+<td>Suppress narrowly</td>
+<td>
+<code># type: ignore[code]</code> with rationale</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3>Ready to pass Topic 3.4 without AI?</h3>
+<div class="exit-grid">
+<div class="exit-item">
+<b>Model</b>Type a small analyzer using containers, union returns, and named event records.</div>
+<div class="exit-item">
+<b>Explain</b>Distinguish absent values, explicit <code>None</code>, and runtime validation.</div>
+<div class="exit-item">
+<b>Compose</b>Use a Callable and Protocol without coupling the core to an adapter.</div>
+<div class="exit-item">
+<b>Review</b>Run mypy and fix or justify each finding without hiding uncertainty in <code>Any</code>.</div>
+</div>
+<h3>Primary resources</h3>
+<div class="resources">
+<a class="resource" href="https://docs.python.org/3/library/typing.html" target="_blank" rel="noopener">
+<b>Python typing</b>
+<span>Standard type system</span>
+</a>
+<a class="resource" href="https://typing.python.org/en/latest/spec/" target="_blank" rel="noopener">
+<b>Typing specification</b>
+<span>Typing semantics</span>
+</a>
+<a class="resource" href="https://mypy.readthedocs.io/en/stable/getting_started.html" target="_blank" rel="noopener">
+<b>mypy documentation</b>
+<span>Configuration and checks</span>
+</a>
+</div>
+</section>
+<footer class="footer">Detection Engineering Learning Console · <a href="../index.html#w3">Week 3, Topic 3.4</a>
+</footer>
+</main>
+</div>
+</div>
+</body>
+</html>

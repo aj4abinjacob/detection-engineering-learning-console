@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Trace a TLS 1.3 handshake packet by packet, identify the encryption boundary, and reason safely about record-layer visibility.">
+<title>TLS Handshake and Record Protocol — Detection Engineering Learning Console</title>
+<link rel="stylesheet" href="assets/guide.css">
+<script src="assets/guide.js" defer>
+</script>
+</head>
+<body>
+<div class="topbar">
+<div class="topbar-inner">
+<a class="back" href="../index.html#w9">Back to curriculum</a>
+<span class="topic-id">Week 9 · Topic 9.1</span>
+</div>
+</div>
+<div class="shell">
+<header class="hero">
+<p class="eyebrow">TLS deeply</p>
+<h1>Mark the encryption boundary <span>before interpreting TLS.</span>
+</h1>
+<p class="lede">TLS 1.3 handshake derives keys and authenticates; record protocol carries protected content. ClientHello and ServerHello are visible, later handshake messages are encrypted.</p>
+<div class="hero-grid">
+<div class="hero-stat">
+<b>11 concepts</b>
+<span>Protocol</span>
+</div>
+<div class="hero-stat">
+<b>4 scenarios</b>
+<span>Detection</span>
+</div>
+<div class="hero-stat">
+<b>3 drills</b>
+<span>Artifacts</span>
+</div>
+</div>
+</header>
+<div class="layout">
+<nav class="toc">
+<a href="#why">Why</a>
+<a href="#model">Model</a>
+<a href="#flights">Flights</a>
+<a href="#record">Records</a>
+<a href="#keys">Keys</a>
+<a href="#boundary">Boundary</a>
+<a href="#zero">0-RTT</a>
+<a href="#limits">Limits</a>
+<a href="#scenarios">Scenarios</a>
+<a href="#drills">Drills</a>
+<a href="#exit">Exit</a>
+</nav>
+<main>
+<section id="why">
+<h2>Why it matters</h2>
+<p>TLS evidence is positioned evidence. A passive trace can show handshake metadata but cannot convert encrypted application bytes into HTTP meaning; a terminator and origin see different facts.</p>
+</section>
+<section id="model">
+<h2>Handshake versus records</h2>
+<div class="model">
+<div class="model-track">
+<div class="model-box">
+<b>Handshake</b>
+<span>Negotiates, authenticates, derives keys.</span>
+</div>
+<div class="arrow">→</div>
+<div class="model-box">
+<b>Record</b>
+<span>Frames/protects content.</span>
+</div>
+<div class="arrow">→</div>
+<div class="model-box">
+<b>Application</b>
+<span>Encrypted after keys.</span>
+</div>
+</div>
+</div>
+</section>
+<section id="flights">
+<h2>TLS 1.3 full flight</h2>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Direction</th><th>Message</th><th>Passive observer</th><th>What changes</th></tr></thead>
+<tbody>
+<tr><td>Client → server</td><td>ClientHello</td><td>Visible in conventional TLS</td><td>Offers versions, suites, extensions, and a key share; transcript begins.</td></tr>
+<tr><td>Server → client</td><td>ServerHello</td><td>Visible</td><td>Selects parameters and a key share. Both peers can now derive handshake traffic keys.</td></tr>
+<tr><td>Server → client</td><td>EncryptedExtensions, Certificate, CertificateVerify, Finished</td><td>Encrypted</td><td>Confirms extensions and authenticates the server/transcript. Both peers derive application traffic secrets after the server Finished.</td></tr>
+<tr><td>Client → server</td><td>Finished</td><td>Encrypted</td><td>Client authenticates the transcript. Its normal application data follows this Finished.</td></tr>
+<tr><td>Either direction</td><td>Application Data</td><td>Encrypted</td><td>The server may send protected application data before it receives client Finished; the client sends normal application data after its Finished. Record boundaries still do not equal HTTP boundaries.</td></tr>
+</tbody>
+</table>
+</div>
+<p>A compatibility ChangeCipherSpec record can appear and is ignored by TLS 1.3 peers. HelloRetryRequest, client authentication, resumption, post-handshake messages, and 0-RTT change the observed flight, so annotate the messages actually present instead of forcing every trace into this baseline.</p>
+</section>
+<section id="record">
+<h2>Record protocol</h2>
+<pre><code>TLSPlaintext header = content_type (1) | legacy_record_version (2) | length (2)
+payload length       = unsigned 16-bit length; validate before slicing
+protected record     = outer application_data | ciphertext-and-tag
+inner plaintext      = content | inner content type | optional zero padding</code></pre>
+<p>Before keys exist, a record can carry plaintext handshake bytes such as ClientHello. After ServerHello, TLS 1.3 normally makes the outer record type <code>application_data</code>; the authenticated inner content type says whether the recovered content is handshake, alert, or application data. One handshake message can cross records, several can share a record, and one HTTP message can cross many TLS records.</p>
+</section>
+<section id="keys">
+<h2>Key schedule</h2>
+<p>HKDF derives handshake/application traffic secrets from PSK if any, ephemeral exchange, and transcript hashes. Captured traffic alone is not plaintext access; ephemeral exchange provides forward secrecy when used correctly.</p>
+</section>
+<section id="boundary">
+<h2>Exact encryption boundary</h2>
+<p>Conventional TLS 1.3 exposes ClientHello and ServerHello. After ServerHello, Certificate and Finished are encrypted. With ECH, a visible ClientHelloOuter can carry an encrypted ClientHelloInner, so an observer does not automatically see the private SNI or ALPN. Client, server, and an authorized TLS terminator can see plaintext at their boundary; a passive PCAP alone cannot.</p>
+</section>
+<section id="zero">
+<h2>0-RTT caveat</h2>
+<p>Resumption may send early data before handshake completion. It has replay risk; accept only replay-safe/idempotent operations under explicit server policy. Capability does not prove acceptance or abuse.</p>
+</section>
+<section id="limits">
+<h2>Safety and limits</h2>
+<p>Use supplied sanitized PCAP or learner-owned loopback/AbuseGuard only. Do not capture others, export keys, or retain sensitive payloads. Loss, offload, middleboxes, resumption, and capture point change traces.</p>
+</section>
+<section id="scenarios">
+<h2>Detection scenarios</h2>
+<article class="scenario">
+<h4>Handshake succeeds, app fails</h4>
+<p>TLS success does not prove HTTP authorization or origin processing.</p>
+</article>
+<article class="scenario">
+<h4>Certificate absent in trace</h4>
+<p>Its TLS 1.3 handshake record is encrypted after ServerHello.</p>
+</article>
+<article class="scenario">
+<h4>0-RTT review</h4>
+<p>Assess replay policy and method semantics, not an early-data verdict.</p>
+</article>
+<article class="scenario">
+<h4>Client metadata rule</h4>
+<p>ClientHello correlation is low-confidence, not identity.</p>
+</article>
+</section>
+<section id="drills">
+<h2>Saved-evidence drills</h2>
+<article class="drill">
+<h3>1. Flight diagram</h3>
+<p>Save <code>artifacts/tls/tls-handshake.md</code> from memory, then reconcile it against an authorized sanitized trace. For every packet, record frame number, direction, outer record type, handshake message when visible, and why the payload is or is not readable.</p>
+<ul class="checklist">
+<li>Mark ServerHello boundary.</li>
+<li>Name CertificateVerify and Finished semantics.</li>
+<li>Account for retransmission, coalescing, or compatibility CCS instead of silently discarding it.</li>
+</ul>
+</article>
+<article class="drill">
+<h3>2. Visibility matrix</h3>
+<p>Save <code>tls-visibility.md</code> for client, observer, terminator, origin.</p>
+<ul class="checklist">
+<li>Include unsupported inference.</li>
+<li>Include cert visibility.</li>
+</ul>
+</article>
+<article class="drill">
+<h3>3. Record annotation</h3>
+<p>With Wireshark or TShark available, read—not live-capture—a supplied or learner-owned loopback trace and save a reproducible packet index:</p>
+<pre><code>mkdir -p artifacts/tls
+tshark -r fixtures/tls13-loopback.pcapng -Y tls \
+  -T fields -e frame.number -e ip.src -e ip.dst -e _ws.col.Info \
+  &gt; artifacts/tls/tls-frames.tsv</code></pre>
+<p>If TShark is unavailable, export the same four columns from Wireshark. Save <code>record-annotation.md</code> beside the TSV and identify what extra endpoint evidence would be required to interpret encrypted bytes.</p>
+<ul class="checklist">
+<li>Separate records/handshakes.</li>
+<li>State no plaintext recovered.</li>
+<li>Record capture point, tool version, authorization, and fixture hash.</li>
+</ul>
+</article>
+</section>
+<section id="exit">
+<h2>Ready to pass Topic 9.1 without AI?</h2>
+<div class="exit-grid">
+<div class="exit-item">
+<b>Draw</b>Full TLS 1.3 flights.</div>
+<div class="exit-item">
+<b>Mark</b>Encryption boundary.</div>
+<div class="exit-item">
+<b>Explain</b>Record versus handshake.</div>
+<div class="exit-item">
+<b>Bound</b>0-RTT/observer claims.</div>
+</div>
+<h3>Primary resources</h3>
+<div class="resources">
+<a class="resource" href="https://www.rfc-editor.org/rfc/rfc8446">
+<b>RFC 8446</b>
+<span>TLS 1.3</span>
+</a>
+<a class="resource" href="https://tls13.xargs.org/">
+<b>Illustrated TLS</b>
+<span>Flights</span>
+</a>
+<a class="resource" href="https://www.openssl.org/docs/manmaster/man1/openssl-s_client.html">
+<b>OpenSSL</b>
+<span>Authorized inspection</span>
+</a>
+</div>
+</section>
+<footer class="footer">
+<a href="../index.html#w9">Week 9, Topic 9.1</a>
+</footer>
+</main>
+</div>
+</div>
+</body>
+</html>

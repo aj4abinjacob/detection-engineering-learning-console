@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Map the current OWASP Web and API Top 10 categories to concrete AbuseGuard controls, tests, evidence, owners, and residual gaps.">
+<title>OWASP Top 10 and API Top 10 — Detection Engineering Learning Console</title>
+<link rel="stylesheet" href="assets/guide.css">
+<script src="assets/guide.js" defer>
+</script>
+</head>
+<body>
+<div class="topbar">
+<div class="topbar-inner">
+<a class="back" href="../index.html#w12">Back</a>
+<span class="topic-id">Week 12 · Topic 12.2</span>
+</div>
+</div>
+<div class="shell">
+<header class="hero">
+<h1>Map risk categories to <span>implemented controls.</span>
+</h1>
+<p class="lede">OWASP lists are versioned awareness frameworks, not a compliance checkbox. Record the Web/API Top 10 edition used and map each applicable category to AbuseGuard control, test, evidence, and gap.</p>
+<div class="hero-grid">
+<div class="hero-stat">
+<b>10 concepts</b>
+<span>Risk map</span>
+</div>
+<div class="hero-stat">
+<b>4 scenarios</b>
+<span>Defense</span>
+</div>
+<div class="hero-stat">
+<b>3 drills</b>
+<span>Artifacts</span>
+</div>
+</div>
+</header>
+<div class="layout">
+<nav class="toc">
+<a href="#why">Why</a>
+<a href="#versions">Versions</a>
+<a href="#web">Web categories</a>
+<a href="#api">API categories</a>
+<a href="#bola">BOLA</a>
+<a href="#mass">Mass assignment</a>
+<a href="#controls">Controls</a>
+<a href="#evidence">Evidence</a>
+<a href="#limits">Limits</a>
+<a href="#scenarios">Scenarios</a>
+<a href="#drills">Drills</a>
+<a href="#cheatsheet">Cheat sheet</a>
+<a href="#exit">Exit</a>
+</nav>
+<main>
+<section id="why">
+<h2>Why it matters</h2>
+<p>Category names help organize review, but each finding needs an actual entry point, asset, control, and test. Record source edition/date because OWASP categories change.</p>
+</section>
+<section id="versions">
+<h2>Record current source version</h2>
+<p>As checked against the official projects in August 2026, the current released editions are <strong>OWASP Top 10:2025</strong> and <strong>OWASP API Security Top 10:2023</strong>. Write both edition names and your retrieval/review date in the matrix. Recheck the primary project pages when doing the drill; do not silently mix categories from older editions.</p>
+</section>
+<section id="web">
+<h2>Web Top 10 mapping</h2>
+<p>The 2025 Web list is: Broken Access Control; Security Misconfiguration; Software Supply Chain Failures; Cryptographic Failures; Injection; Insecure Design; Authentication Failures; Software or Data Integrity Failures; Security Logging and Alerting Failures; and Mishandling of Exceptional Conditions. Use these exact edition-qualified names, then map each to actual AbuseGuard routes/components. Do not paste a 2021 list and label it 2025.</p>
+</section>
+<section id="api">
+<h2>API Top 10 mapping</h2>
+<p>The 2023 API list separates broken object-, property-, and function-level authorization; unrestricted resource consumption; unrestricted access to sensitive business flows; SSRF; security misconfiguration; improper inventory management; and unsafe consumption of APIs, alongside broken authentication. This API lens helps distinguish “may access this report?” from “may change this report field?” and “may call this admin function?”</p>
+</section>
+<section id="bola">
+<h2>BOLA is object authorization</h2>
+<p>Every object ID must be scoped to authenticated principal and tenant server-side. Opaque IDs and UI hiding are not controls. Test read/update/delete/export with two synthetic tenants.</p>
+</section>
+<section id="mass">
+<h2>Mass assignment/property authorization</h2>
+<p>Accept declared request models, ignore/reject privileged fields, and map input to allowed domain fields explicitly. Validation is not enough if an allowed-looking field changes role, tenant, price, or policy.</p>
+</section>
+<section id="controls">
+<h2>Control mapping</h2>
+<div class="table-wrap">
+<table>
+<tr>
+<th>Risk</th>
+<th>Control</th>
+<th>Evidence</th>
+</tr>
+<tr>
+<td>Access control</td>
+<td>Tenant/object check</td>
+<td>Denied tests</td>
+</tr>
+<tr>
+<td>Injection</td>
+<td>Parameterized query</td>
+<td>Repository test</td>
+</tr>
+<tr>
+<td>Auth failure</td>
+<td>Argon2/session rotation</td>
+<td>Auth tests</td>
+</tr>
+<tr>
+<td>Misconfiguration</td>
+<td>Narrow proxy/CORS</td>
+<td>Config review</td>
+</tr>
+</table>
+</div>
+</section>
+<section id="evidence">
+<h2>Evidence is more than a code claim</h2>
+<p>Attach test name, configuration path, review date, owner, and residual risk. A passing unit test does not prove production headers, proxy trust, dependency posture, or operational monitoring.</p>
+</section>
+<section id="limits">
+<h2>Safety and limits</h2>
+<p>Review local synthetic AbuseGuard only; do not test public targets. The lists are not exhaustive and no control is universal. Apply threat-model context and accepted-risk review.</p>
+</section>
+<section id="scenarios">
+<h2>Defensive scenarios</h2>
+<article class="scenario">
+<h4>BOLA report ID</h4>
+<p>Map object authorization category to tenant-scoped lookup and denial tests.</p>
+</article>
+<article class="scenario">
+<h4>Role field in JSON</h4>
+<p>Map property authorization/mass assignment to explicit model mapping.</p>
+</article>
+<article class="scenario">
+<h4>Dependency advisory</h4>
+<p>Map component risk to pinned inventory/update review, not blind upgrade.</p>
+</article>
+<article class="scenario">
+<h4>Missing audit event</h4>
+<p>Map logging/monitoring to safe event requirements and test.</p>
+</article>
+</section>
+<section id="drills">
+<h2>Artifact drills</h2>
+<article class="drill">
+<h3>1. Versioned category map</h3>
+<p>Save <code>artifacts/owasp/category-map.md</code>.</p>
+<ul class="checklist">
+<li>Record edition/date.</li>
+<li>One control/evidence per relevant category.</li>
+</ul>
+</article>
+<article class="drill">
+<h3>2. BOLA/mass assignment tests</h3>
+<p>Save <code>api_authz_tests.py</code>.</p>
+<ul class="checklist">
+<li>Two synthetic tenants.</li>
+<li>Privileged input rejected.</li>
+</ul>
+</article>
+<article class="drill">
+<h3>3. Gap register</h3>
+<p>Save <code>owasp-gaps.md</code>.</p>
+<ul class="checklist">
+<li>Owner/due/accepted risk.</li>
+<li>No false compliance claim.</li>
+</ul>
+</article>
+</section>
+<section id="cheatsheet">
+<h2>Cheat sheet</h2>
+<div class="table-wrap"><table><thead><tr><th>Matrix column</th><th>Good evidence</th><th>Weak substitute</th></tr></thead><tbody>
+<tr><td>Edition/category</td><td>Exact official identifier and review date</td><td>Unversioned “OWASP issue”</td></tr>
+<tr><td>Applicability</td><td>Named AbuseGuard component/data flow</td><td>Generic industry claim</td></tr>
+<tr><td>Control</td><td>Implemented preventive/detective boundary</td><td>Policy intention</td></tr>
+<tr><td>Verification</td><td>Test/config/review artifact with result</td><td>Code exists</td></tr>
+<tr><td>Gap</td><td>Owner, priority, due/review date, residual risk</td><td>Silent blank</td></tr>
+</tbody></table></div>
+</section>
+<section id="exit">
+<h2>Ready to pass Topic 12.2 without AI?</h2>
+<div class="exit-grid">
+<div class="exit-item">
+<b>Record</b>Source versions.</div>
+<div class="exit-item">
+<b>Map</b>Categories to controls.</div>
+<div class="exit-item">
+<b>Test</b>BOLA/property boundaries.</div>
+<div class="exit-item">
+<b>State</b>Residual gaps.</div>
+</div>
+<h3>Primary sources</h3>
+<div class="resources">
+<a class="resource" href="https://owasp.org/www-project-top-ten/">
+<b>OWASP Top 10</b>
+<span>Web framework</span>
+</a>
+<a class="resource" href="https://owasp.org/www-project-api-security/">
+<b>OWASP API Security</b>
+<span>API framework</span>
+</a>
+</div>
+</section>
+<footer class="footer">
+<a href="../index.html#w12">Week 12 Topic 12.2</a>
+</footer>
+</main>
+</div>
+</div>
+</body>
+</html>

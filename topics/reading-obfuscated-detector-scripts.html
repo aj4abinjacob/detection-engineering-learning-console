@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Safely format and trace a synthetic or learner-authored minified detector from one consented browser signal to a local first-party request.">
+<title>Reading Obfuscated Detector Scripts — Detection Engineering Learning Console</title>
+<link rel="stylesheet" href="assets/guide.css">
+<script src="assets/guide.js" defer>
+</script>
+</head>
+<body>
+<div class="topbar">
+<div class="topbar-inner">
+<a class="back" href="../index.html#w16">Back</a>
+<span class="topic-id">Week 16 · Topic 16.1</span>
+</div>
+</div>
+<div class="shell">
+<header class="hero">
+<h1>Trace one consented signal from source <span>to a local first-party request.</span>
+</h1>
+<p class="lede">The goal is not to reverse vendors or evade detection. Use only a supplied synthetic or learner-authored minified snippet to identify collection, transformation, request construction, and local endpoint.</p>
+<div class="hero-grid">
+<div class="hero-stat">
+<b>10 concepts</b>
+<span>Analysis</span>
+</div>
+<div class="hero-stat">
+<b>4 scenarios</b>
+<span>Defense</span>
+</div>
+<div class="hero-stat">
+<b>3 drills</b>
+<span>Artifacts</span>
+</div>
+</div>
+</header>
+<div class="layout">
+<nav class="toc">
+<a href="#why">Why</a>
+<a href="#scope">Scope</a>
+<a href="#format">Format</a>
+<a href="#debugger">Debugger</a>
+<a href="#ast">AST</a>
+<a href="#trace">Trace</a>
+<a href="#network">Request</a>
+<a href="#consent">Consent</a>
+<a href="#limits">Limits</a>
+<a href="#scenarios">Scenarios</a>
+<a href="#drills">Drills</a>
+<a href="#exit">Exit</a>
+</nav>
+<main>
+<section id="why">
+<h2>Why it matters</h2>
+<p>Defenders need enough code literacy to assess telemetry purpose, minimization, and endpoint controls. Minification/obfuscation raises review cost; it does not make data collection self-justifying.</p>
+</section>
+<section id="scope">
+<h2>Strict scope</h2>
+<p>Use only a supplied synthetic snippet or code you authored for local AbuseGuard. Do not fetch, execute, instrument, decrypt, or reverse real vendor scripts; do not use tokens, proprietary assets, or techniques intended to evade a third-party defense.</p>
+</section>
+<section id="format">
+<h2>Format before interpretation</h2>
+<p>Pretty-print/minify formatting changes layout, not behavior. Rename local variables in notes, preserve original hash/version, and avoid running unknown code. Formatter output can hide malicious behavior if you execute it blindly.</p>
+</section>
+<section id="debugger">
+<h2>Browser debugger on owned code</h2>
+<p>Use Sources pretty-print, breakpoint on learner-authored function, step over/into, and inspect only synthetic values. Set a precise question: “where is capability value read?” Stop when source-to-local-request path is documented.</p>
+</section>
+<section id="ast">
+<h2>AST view</h2>
+<p>An abstract syntax tree represents calls, literals, member access, functions, and control flow. AST Explorer is useful for local/synthetic code to distinguish string literal, property read, and call expression; it is a code representation, not automatic intent analysis.</p>
+</section>
+<section id="trace">
+<h2>Trace source → transformation → sink</h2>
+<pre>
+<code>const p = navigator.language; const body = JSON.stringify({ schema: 1, language: p }); fetch("/telemetry", { method: "POST", body });</code>
+</pre>
+<p>Document source (<code>navigator.language</code>), transformation (object/JSON), sink (fetch body), endpoint, method, schema, consent, validation, and retention. Do not treat a hashed value as automatically anonymous.</p>
+</section>
+<section id="network">
+<h2>Local request boundary</h2>
+<p>For owned local endpoint, inspect request schema/response in DevTools and server test logs. Server must authenticate/authorize where relevant, validate size/types, rate limit, redact logs, and reject unexpected origins/fields. Network panel proves browser attempted a request, not that server stored it safely.</p>
+</section>
+<section id="consent">
+<h2>Purpose and minimization</h2>
+<p>State first-party purpose, user notice/consent model, fields, retention, access, and deletion policy. Prefer a capability boolean over raw high-entropy fingerprint field when it meets the purpose.</p>
+</section>
+<section id="limits">
+<h2>Safety and limits</h2>
+<p>Static/dynamic analysis can miss feature flags, server behavior, generated code, and environment differences. Never inspect real vendor code for this curriculum. Debugger/AST artifacts may contain URLs/data; sanitize before sharing.</p>
+</section>
+<section id="scenarios">
+<h2>Defensive scenarios</h2>
+<article class="scenario">
+<h4>Minified local probe</h4>
+<p>
+<b>Trigger:</b> unreadable variable names. <b>Artifact:</b> formatted owned snippet. <b>Observation:</b> one navigator read. <b>Reasoning:</b> trace to local body. <b>Limit:</b> formatting does not prove purpose.</p>
+</article>
+<article class="scenario">
+<h4>Unexpected telemetry key</h4>
+<p>
+<b>Trigger:</b> server reject. <b>Artifact:</b> schema failure. <b>Observation:</b> client version mismatch. <b>Reasoning:</b> update/version policy. <b>Limit:</b> mismatch is not hostile.</p>
+</article>
+<article class="scenario">
+<h4>Hashed field request</h4>
+<p>
+<b>Trigger:</b> hash added. <b>Artifact:</b> data-flow note. <b>Observation:</b> stable correlation possible. <b>Reasoning:</b> privacy review. <b>Limit:</b> hash is not automatically anonymous.</p>
+</article>
+<article class="scenario">
+<h4>Endpoint error</h4>
+<p>
+<b>Trigger:</b> local fetch failure. <b>Artifact:</b> sanitized network/test record. <b>Observation:</b> CSP/network policy. <b>Reasoning:</b> validate config. <b>Limit:</b> not automation proof.</p>
+</article>
+</section>
+<section id="drills">
+<h2>Saved-artifact drills</h2>
+<article class="drill">
+<h3>1. Beautify owned snippet</h3>
+<p>Save <code>artifacts/js/pretty.js</code> and <code>trace.md</code>.</p>
+<ul class="checklist">
+<li>Original provenance/hash.</li>
+<li>No vendor code.</li>
+</ul>
+</article>
+<article class="drill">
+<h3>2. AST worksheet</h3>
+<p>Save <code>ast-notes.md</code>.</p>
+<ul class="checklist">
+<li>Source/Call/Object nodes.</li>
+<li>One uncertainty.</li>
+</ul>
+</article>
+<article class="drill">
+<h3>3. Local signal trace</h3>
+<p>Save <code>local-telemetry-flow.md</code>.</p>
+<ul class="checklist">
+<li>Consent/schema/endpoint.</li>
+<li>Server validation/log redaction.</li>
+</ul>
+</article>
+</section>
+<section id="exit">
+<h2>Ready to pass Topic 16.1 without AI?</h2>
+<div class="exit-grid">
+<div class="exit-item">
+<b>Format</b>Synthetic code safely.</div>
+<div class="exit-item">
+<b>Read</b>Debugger/AST concepts.</div>
+<div class="exit-item">
+<b>Trace</b>One source to sink.</div>
+<div class="exit-item">
+<b>Bound</b>Scope/privacy/uncertainty.</div>
+</div>
+<h3>Primary sources</h3>
+<div class="resources">
+<a class="resource" href="https://developer.chrome.com/docs/devtools/javascript/">
+<b>Chrome DevTools</b>
+<span>Debug JavaScript</span>
+</a>
+<a class="resource" href="https://astexplorer.net/">
+<b>AST Explorer</b>
+<span>AST visualization</span>
+</a>
+<a class="resource" href="https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API">
+<b>MDN Fetch</b>
+<span>Request sink</span>
+</a>
+</div>
+</section>
+<footer class="footer">
+<a href="../index.html#w16">Week 16 Topic 16.1</a>
+</footer>
+</main>
+</div>
+</div>
+</body>
+</html>

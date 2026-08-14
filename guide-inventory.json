@@ -1,0 +1,5196 @@
+{
+  "generatedAt": "2026-08-14T01:35:53.088Z",
+  "expectedTopicCount": 161,
+  "expectedGuidePageCount": 160,
+  "existingGuidePageCount": 6,
+  "plannedNewGuidePageCount": 154,
+  "topics": [
+    {
+      "phase": {
+        "id": "p0",
+        "label": "Phase 0",
+        "name": "Diagnostic & de-passengering"
+      },
+      "week": {
+        "number": 0,
+        "title": "Unprepared Diagnostic"
+      },
+      "marker": "0.1",
+      "name": "Python build-from-blank",
+      "curriculumBullets": [
+        "Log analyzer from an empty folder: parse access logs, top-N IPs, error rate, requests/min",
+        "Package it, add an argparse CLI, write ≥5 tests"
+      ],
+      "exercise": [
+        "Time-box 4–6h. Whatever you can't do, STOP and write it down — don't look it up"
+      ],
+      "currentResources": [],
+      "guideStatus": "created-and-linked",
+      "target": "topics/python-build-from-blank.html",
+      "assignedBatch": "P0-B01",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p0",
+        "label": "Phase 0",
+        "name": "Diagnostic & de-passengering"
+      },
+      "week": {
+        "number": 0,
+        "title": "Unprepared Diagnostic"
+      },
+      "marker": "0.2",
+      "name": "SQL build-from-blank",
+      "curriculumBullets": [
+        "Tiny users/orders schema; from blank: 2-table join, GROUP BY + HAVING, orders-per-user sorted",
+        "One query you expect to be slow + a sentence on why"
+      ],
+      "exercise": [
+        "Note which ones you had to guess at — that's your Week 5–6 target list"
+      ],
+      "currentResources": [],
+      "guideStatus": "created-and-linked",
+      "target": "topics/sql-build-from-blank.html",
+      "assignedBatch": "P0-B01",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p0",
+        "label": "Phase 0",
+        "name": "Diagnostic & de-passengering"
+      },
+      "week": {
+        "number": 0,
+        "title": "Unprepared Diagnostic"
+      },
+      "marker": "0.3",
+      "name": "Git recovery drills",
+      "curriculumBullets": [
+        "Commit, branch, merge; manufacture and resolve a conflict",
+        "Lose a commit and recover via reflog; enter and exit detached HEAD"
+      ],
+      "exercise": [
+        "Record a transcript; note steps you didn't understand"
+      ],
+      "currentResources": [
+        {
+          "t": "tool",
+          "l": "Learn Git Branching",
+          "u": "https://learngitbranching.js.org/"
+        }
+      ],
+      "guideStatus": "reused-and-linked",
+      "target": "topics/git.html",
+      "assignedBatch": null,
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p0",
+        "label": "Phase 0",
+        "name": "Diagnostic & de-passengering"
+      },
+      "week": {
+        "number": 0,
+        "title": "Unprepared Diagnostic"
+      },
+      "marker": "0.4",
+      "name": "Written mental models (no notes, no AI)",
+      "curriculumBullets": [
+        "1 page: what happens between typing a URL and your handler running",
+        "1 page: how does Cloudflare decide you're a bot? — SAVE this, you compare it in Week 14"
+      ],
+      "exercise": [
+        "Keep both files; they're a before/after measurement"
+      ],
+      "currentResources": [],
+      "guideStatus": "created-and-linked",
+      "target": "topics/written-mental-models.html",
+      "assignedBatch": "P0-B01",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 1,
+        "title": "Shell, OS, and Git"
+      },
+      "marker": "1.1",
+      "name": "The shell & command execution",
+      "curriculumBullets": [
+        "What a shell is; PATH and command lookup (which, type)",
+        "Quoting & word-splitting; expansion order; globbing",
+        "Startup files: what runs when"
+      ],
+      "exercise": [
+        "Trace how the shell finds python via PATH",
+        "Write an idempotent setup+test script"
+      ],
+      "currentResources": [
+        {
+          "t": "watch",
+          "l": "MIT Missing Semester — Shell + lectures",
+          "u": "https://missing.csail.mit.edu/"
+        }
+      ],
+      "guideStatus": "reused-and-linked",
+      "target": "topics/shell-command-execution.html",
+      "assignedBatch": null,
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 1,
+        "title": "Shell, OS, and Git"
+      },
+      "marker": "1.2",
+      "name": "Filesystem, paths, permissions",
+      "curriculumBullets": [
+        "Absolute vs relative paths; . .. ~",
+        "Inodes; hard vs symbolic links",
+        "user/group/other + rwx; chmod, chown; shebang"
+      ],
+      "exercise": [
+        "Make a script executable, run it, remove the bit, read the exact error"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Missing Semester — course-shell",
+          "u": "https://missing.csail.mit.edu/2020/course-shell/"
+        }
+      ],
+      "guideStatus": "reused-and-linked",
+      "target": "topics/filesystem-paths-permissions.html",
+      "assignedBatch": null,
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 1,
+        "title": "Shell, OS, and Git"
+      },
+      "marker": "1.3",
+      "name": "Processes & signals",
+      "curriculumBullets": [
+        "PID/PPID; fg/bg (& jobs fg bg)",
+        "ps/top/pgrep; lsof; /proc/<pid>/",
+        "SIGINT/TERM/KILL/HUP; exit codes & $?"
+      ],
+      "exercise": [
+        "Find your analyzer's PID, list open files, SIGTERM it, check exit code"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Missing Semester — CLI environment",
+          "u": "https://missing.csail.mit.edu/2020/command-line/"
+        }
+      ],
+      "guideStatus": "reused-and-linked",
+      "target": "topics/processes-signals.html",
+      "assignedBatch": null,
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 1,
+        "title": "Shell, OS, and Git"
+      },
+      "marker": "1.4",
+      "name": "Streams, pipes, redirection",
+      "curriculumBullets": [
+        "stdin/stdout/stderr (0/1/2)",
+        "> >> < 2> 2>&1 /dev/null",
+        "Filters: grep/cut/sort/uniq -c/awk"
+      ],
+      "exercise": [
+        "Compute top-10 IPs using ONLY shell pipes — feel the difference from your Python"
+      ],
+      "currentResources": [
+        {
+          "t": "watch",
+          "l": "Missing Semester — Data Wrangling",
+          "u": "https://missing.csail.mit.edu/2020/data-wrangling/"
+        }
+      ],
+      "guideStatus": "reused-and-linked",
+      "target": "topics/streams-pipes-redirection.html",
+      "assignedBatch": null,
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 1,
+        "title": "Shell, OS, and Git"
+      },
+      "marker": "1.5",
+      "name": "Software installation & environments",
+      "curriculumBullets": [
+        "System (apt) vs language (pip) vs isolated (venv)",
+        "What a venv is; how activation changes PATH"
+      ],
+      "exercise": [
+        "echo $PATH before/after activating a venv; explain the change"
+      ],
+      "currentResources": [
+        {
+          "t": "docs",
+          "l": "Python venv",
+          "u": "https://docs.python.org/3/library/venv.html"
+        }
+      ],
+      "guideStatus": "reused-and-linked",
+      "target": "topics/software-installation-environments.html",
+      "assignedBatch": null,
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 1,
+        "title": "Shell, OS, and Git"
+      },
+      "marker": "1.6",
+      "name": "Git: the object model",
+      "curriculumBullets": [
+        "Working tree, index, repository",
+        "blob/tree/commit/tag; content-addressing by SHA",
+        "Refs & HEAD; a branch is a movable pointer"
+      ],
+      "exercise": [
+        "git cat-file -p HEAD → tree → blob; trace the chain by hand"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Pro Git — ch.10 Internals",
+          "u": "https://git-scm.com/book/en/v2/Git-Internals-Plumbing-and-Porcelain"
+        },
+        {
+          "t": "tool",
+          "l": "Learn Git Branching",
+          "u": "https://learngitbranching.js.org/"
+        }
+      ],
+      "guideStatus": "reused-and-linked",
+      "target": "topics/git.html#model",
+      "assignedBatch": null,
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 1,
+        "title": "Shell, OS, and Git"
+      },
+      "marker": "1.7",
+      "name": "Git: branching, merging, remotes",
+      "curriculumBullets": [
+        "Fast-forward vs three-way merge",
+        "Conflict markers; resolving & completing",
+        "fetch/pull/push; rebase vs merge concept"
+      ],
+      "exercise": [
+        "Manufacture a conflict, resolve it, explain each marker"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Pro Git — ch.3 Branching",
+          "u": "https://git-scm.com/book/en/v2/Git-Branching-Branches-in-a-Nutshell"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/git-branching-merging-remotes.html",
+      "assignedBatch": "P1-B01",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 1,
+        "title": "Shell, OS, and Git"
+      },
+      "marker": "1.8",
+      "name": "Git: recovery & safety",
+      "curriculumBullets": [
+        "reflog: the safety net",
+        "reset --soft/--mixed/--hard",
+        "restore/checkout; detached HEAD; revert vs reset"
+      ],
+      "exercise": [
+        "Redo the 5 recovery drills, now explaining WHY each works"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Pro Git — Reset Demystified",
+          "u": "https://git-scm.com/book/en/v2/Git-Tools-Reset-Demystified"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/git-recovery-safety.html",
+      "assignedBatch": "P1-B01",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 2,
+        "title": "Python Internals I: The Data Model"
+      },
+      "marker": "2.1",
+      "name": "Objects, names, references",
+      "curriculumBullets": [
+        "A variable is a name bound to an object",
+        "is vs ==, id()",
+        "b = a for a list vs an int; ref counting/GC"
+      ],
+      "exercise": [
+        "Two names, one list; mutate through one, observe the other; explain with id()"
+      ],
+      "currentResources": [
+        {
+          "t": "repo",
+          "l": "fluentpython/example-code-2e",
+          "u": "https://github.com/fluentpython/example-code-2e"
+        },
+        {
+          "t": "read",
+          "l": "Real Python — names & values",
+          "u": "https://realpython.com/python-variables/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/objects-names-references.html",
+      "assignedBatch": "P1-B02",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 2,
+        "title": "Python Internals I: The Data Model"
+      },
+      "marker": "2.2",
+      "name": "Mutability & classic traps",
+      "curriculumBullets": [
+        "Mutable vs immutable types",
+        "Mutable-default-argument trap",
+        "Shallow vs deep copy"
+      ],
+      "exercise": [
+        "Reproduce the mutable-default bug, explain exactly why, fix it two ways"
+      ],
+      "currentResources": [
+        {
+          "t": "docs",
+          "l": "Python copy module",
+          "u": "https://docs.python.org/3/library/copy.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/mutability-classic-traps.html",
+      "assignedBatch": "P1-B02",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 2,
+        "title": "Python Internals I: The Data Model"
+      },
+      "marker": "2.3",
+      "name": "Object model & dunder methods",
+      "curriculumBullets": [
+        "__init__ __repr__ __eq__ __hash__ __len__ __iter__",
+        "The __eq__/__hash__ contract",
+        "Truthiness"
+      ],
+      "exercise": [
+        "Write a RequestKey class usable as a dict key; break the eq/hash contract and watch the dict break"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Python data model reference",
+          "u": "https://docs.python.org/3/reference/datamodel.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/object-model-dunder-methods.html",
+      "assignedBatch": "P1-B02",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 2,
+        "title": "Python Internals I: The Data Model"
+      },
+      "marker": "2.4",
+      "name": "Iterators & generators",
+      "curriculumBullets": [
+        "The iterator protocol; StopIteration",
+        "What a for loop actually does",
+        "yield, generator expressions, lazy eval; streaming vs loading"
+      ],
+      "exercise": [
+        "From blank: an iterator class AND a generator that stream file records",
+        "Rewrite your Week 0 analyzer to stream via a generator"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Python — iterators & generators",
+          "u": "https://docs.python.org/3/howto/functional.html#iterators"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/iterators-generators.html",
+      "assignedBatch": "P1-B03",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 2,
+        "title": "Python Internals I: The Data Model"
+      },
+      "marker": "2.5",
+      "name": "Scope & closures",
+      "curriculumBullets": [
+        "LEGB; global/nonlocal",
+        "Closures; late-binding-in-a-loop gotcha"
+      ],
+      "exercise": [
+        "Write a closure counter; reproduce & fix the late-binding loop bug"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Real Python — inner functions/closures",
+          "u": "https://realpython.com/inner-functions-what-are-they-good-for/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/scope-closures.html",
+      "assignedBatch": "P1-B03",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 2,
+        "title": "Python Internals I: The Data Model"
+      },
+      "marker": "2.6",
+      "name": "Binary data: bytes, bytearray, struct",
+      "curriculumBullets": [
+        "bytes vs str; encoding/decoding; reading hex",
+        "bytearray, memoryview; slicing fixed-width fields",
+        "struct.pack/unpack; endianness — this is exactly what you need to parse a raw TLS ClientHello in Week 9 without falling back on AI"
+      ],
+      "exercise": [
+        "From blank: parse a real binary header (PNG or WAV) with struct and print each field with its byte offset"
+      ],
+      "currentResources": [
+        {
+          "t": "docs",
+          "l": "Python — struct module",
+          "u": "https://docs.python.org/3/library/struct.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/binary-data-bytes-bytearray-struct.html",
+      "assignedBatch": "P1-B03",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 3,
+        "title": "Python Internals II: Production Code, Testing, Debugging"
+      },
+      "marker": "3.1",
+      "name": "Modules, packages, imports",
+      "curriculumBullets": [
+        "Modules vs packages; import system & sys.path",
+        "Absolute vs relative; breaking circular imports",
+        "Installable package + CLI entry point"
+      ],
+      "exercise": [
+        "Restructure the analyzer into a package; pip install -e . ; run by name"
+      ],
+      "currentResources": [
+        {
+          "t": "docs",
+          "l": "Python Packaging tutorial",
+          "u": "https://packaging.python.org/en/latest/tutorials/packaging-projects/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/modules-packages-imports.html",
+      "assignedBatch": "P1-B04",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 3,
+        "title": "Python Internals II: Production Code, Testing, Debugging"
+      },
+      "marker": "3.2",
+      "name": "Exceptions & error handling",
+      "curriculumBullets": [
+        "Exception hierarchy; try/except/else/finally",
+        "Never bare except:; raise ... from ...",
+        "Errors as user-facing behaviour (exit codes)"
+      ],
+      "exercise": [
+        "Add 3 failure modes, each with a clear message + correct exit code + tests"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Python — Errors & Exceptions",
+          "u": "https://docs.python.org/3/tutorial/errors.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/exceptions-error-handling.html",
+      "assignedBatch": "P1-B04",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 3,
+        "title": "Python Internals II: Production Code, Testing, Debugging"
+      },
+      "marker": "3.3",
+      "name": "Context managers",
+      "curriculumBullets": [
+        "with and __enter__/__exit__ (behaviour on exceptions)",
+        "Class-based and contextlib.contextmanager"
+      ],
+      "exercise": [
+        "Write a timing context manager (reused for latency later); prove cleanup runs on error"
+      ],
+      "currentResources": [
+        {
+          "t": "docs",
+          "l": "Python contextlib",
+          "u": "https://docs.python.org/3/library/contextlib.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/context-managers.html",
+      "assignedBatch": "P1-B04",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 3,
+        "title": "Python Internals II: Production Code, Testing, Debugging"
+      },
+      "marker": "3.4",
+      "name": "Typing & static checks",
+      "curriculumBullets": [
+        "Hints: list[str], Optional, dict, Callable",
+        "What a type checker can/can't prove",
+        "Inspect, don't blindly obey"
+      ],
+      "exercise": [
+        "Type-hint the analyzer; run mypy; fix or justify each finding in writing"
+      ],
+      "currentResources": [
+        {
+          "t": "docs",
+          "l": "mypy — Getting Started",
+          "u": "https://mypy.readthedocs.io/en/stable/getting_started.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/typing-static-checks.html",
+      "assignedBatch": "P1-B05",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 3,
+        "title": "Python Internals II: Production Code, Testing, Debugging"
+      },
+      "marker": "3.5",
+      "name": "Logging & configuration",
+      "curriculumBullets": [
+        "logging vs print; levels/handlers/formatters",
+        "Structured logging (foundation for Phase 4 telemetry)",
+        "Config precedence: default < file < env < flag"
+      ],
+      "exercise": [
+        "Replace prints with structured logs + run ID; demo flag>env>default precedence"
+      ],
+      "currentResources": [
+        {
+          "t": "docs",
+          "l": "Python Logging HOWTO",
+          "u": "https://docs.python.org/3/howto/logging.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/logging-configuration.html",
+      "assignedBatch": "P1-B05",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 3,
+        "title": "Python Internals II: Production Code, Testing, Debugging"
+      },
+      "marker": "3.6",
+      "name": "Testing with pytest",
+      "curriculumBullets": [
+        "Fixtures, parametrization",
+        "Unit vs integration; testing failure paths",
+        "Coverage as a signal not a target"
+      ],
+      "exercise": [
+        "≥20 meaningful tests: normal/boundary/failure, with a fixture + parametrized parser tests"
+      ],
+      "currentResources": [
+        {
+          "t": "docs",
+          "l": "pytest — Get Started",
+          "u": "https://docs.pytest.org/en/stable/getting-started.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/testing-with-pytest.html",
+      "assignedBatch": "P1-B05",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 3,
+        "title": "Python Internals II: Production Code, Testing, Debugging"
+      },
+      "marker": "3.7",
+      "name": "Debugging & profiling",
+      "curriculumBullets": [
+        "pdb/breakpoint(): stepping, inspecting",
+        "Reading a traceback bottom-up",
+        "cProfile: find the real hot path"
+      ],
+      "exercise": [
+        "Seed one bug + one perf regression; find with pdb and cProfile; fix both"
+      ],
+      "currentResources": [
+        {
+          "t": "docs",
+          "l": "Python pdb",
+          "u": "https://docs.python.org/3/library/pdb.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/debugging-profiling.html",
+      "assignedBatch": "P1-B05",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 4,
+        "title": "Data Structures, Complexity & the Detection Primitive"
+      },
+      "marker": "4.1",
+      "name": "Core structures & their costs",
+      "curriculumBullets": [
+        "list; dict/set (hash tables); tuple",
+        "deque: O(1) both ends — right for windows",
+        "Counter, defaultdict, heapq"
+      ],
+      "exercise": [
+        "For each: one line on cost + when to choose it; verify one by benchmark"
+      ],
+      "currentResources": [
+        {
+          "t": "docs",
+          "l": "Python collections",
+          "u": "https://docs.python.org/3/library/collections.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/core-structures-costs.html",
+      "assignedBatch": "P1-B06",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 4,
+        "title": "Data Structures, Complexity & the Detection Primitive"
+      },
+      "marker": "4.2",
+      "name": "Hashing",
+      "curriculumBullets": [
+        "What a hash function does; how dict/set use it",
+        "Collisions; bad __hash__ → O(n)",
+        "Never mutate a key after insertion"
+      ],
+      "exercise": [
+        "Dict keyed by your RequestKey; show mutating a key corrupts lookups"
+      ],
+      "currentResources": [
+        {
+          "t": "watch",
+          "l": "Computerphile — Hashing",
+          "u": "https://www.youtube.com/results?search_query=computerphile+hashing"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/hashing.html",
+      "assignedBatch": "P1-B06",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 4,
+        "title": "Data Structures, Complexity & the Detection Primitive"
+      },
+      "marker": "4.3",
+      "name": "Big-O for real",
+      "curriculumBullets": [
+        "O(1)/log/n/n log n/n² — how each feels as data grows",
+        "Average vs worst case; space complexity"
+      ],
+      "exercise": [
+        "Write the complexity of every operation in your analyzer; find the worst; say if it matters"
+      ],
+      "currentResources": [
+        {
+          "t": "repo",
+          "l": "trekhleb/javascript-algorithms",
+          "u": "https://github.com/trekhleb/javascript-algorithms"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/big-o-for-real.html",
+      "assignedBatch": "P1-B06",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 4,
+        "title": "Data Structures, Complexity & the Detection Primitive"
+      },
+      "marker": "4.4",
+      "name": "The sliding-window counter (detection primitive)",
+      "curriculumBullets": [
+        "Fixed vs sliding vs tumbling windows",
+        "Bounded memory: expire old events",
+        "Per-entity counting with a dict of deques"
+      ],
+      "exercise": [
+        "From blank: per-IP count in last 60s, expiring old entries; test burst + quiet. KEEP for Week 21"
+      ],
+      "currentResources": [
+        {
+          "t": "do",
+          "l": "Build it yourself — no copy",
+          "u": ""
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/sliding-window-counter.html",
+      "assignedBatch": "P1-B06",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 4,
+        "title": "Data Structures, Complexity & the Detection Primitive"
+      },
+      "marker": "4.5",
+      "name": "Top-N, done right",
+      "curriculumBullets": [
+        "Full sort vs Counter.most_common vs streaming heap",
+        "Which at which data size"
+      ],
+      "exercise": [
+        "Implement 3 ways; benchmark; state which for a 10 GB log and why"
+      ],
+      "currentResources": [],
+      "guideStatus": "created-and-linked",
+      "target": "topics/top-n-done-right.html",
+      "assignedBatch": "P1-B06",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 5,
+        "title": "SQL Depth I: Relational Model, Joins, Transactions"
+      },
+      "marker": "5.1",
+      "name": "Relational model & schema design",
+      "curriculumBullets": [
+        "Tables/keys; PK/FK & referential integrity",
+        "Normalization 1NF→3NF; deliberate denormalization",
+        "Constraints: NOT NULL/UNIQUE/CHECK/FK"
+      ],
+      "exercise": [
+        "Design a normalized schema for access logs + rejected requests + accounts; load data"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "PostgreSQL tutorial",
+          "u": "https://www.postgresql.org/docs/current/tutorial.html"
+        },
+        {
+          "t": "tool",
+          "l": "PGExercises",
+          "u": "https://pgexercises.com/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/relational-model-schema-design.html",
+      "assignedBatch": "P1-B07",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 5,
+        "title": "SQL Depth I: Relational Model, Joins, Transactions"
+      },
+      "marker": "5.2",
+      "name": "Joins — and above all, cardinality",
+      "curriculumBullets": [
+        "INNER/LEFT/RIGHT/FULL/CROSS — what rows each yields",
+        "Predicting row count BEFORE running",
+        "Self-joins; multi-column; N+1"
+      ],
+      "exercise": [
+        "For each join type: predict row count first, then verify",
+        "Self-join: accounts sharing an IP"
+      ],
+      "currentResources": [
+        {
+          "t": "tool",
+          "l": "PGExercises — Joins",
+          "u": "https://pgexercises.com/questions/joins/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/joins-cardinality.html",
+      "assignedBatch": "P1-B07",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 5,
+        "title": "SQL Depth I: Relational Model, Joins, Transactions"
+      },
+      "marker": "5.3",
+      "name": "Aggregation & grouping",
+      "curriculumBullets": [
+        "GROUP BY, COUNT/SUM/AVG/MIN/MAX",
+        "HAVING vs WHERE",
+        "DISTINCT, COUNT(DISTINCT)"
+      ],
+      "exercise": [
+        "Requests per IP; error rate per path; accounts with > N failed logins (HAVING)"
+      ],
+      "currentResources": [
+        {
+          "t": "tool",
+          "l": "PGExercises — Aggregation",
+          "u": "https://pgexercises.com/questions/aggregates/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/aggregation-grouping.html",
+      "assignedBatch": "P1-B07",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 5,
+        "title": "SQL Depth I: Relational Model, Joins, Transactions"
+      },
+      "marker": "5.4",
+      "name": "Transactions & integrity",
+      "curriculumBullets": [
+        "ACID; BEGIN/COMMIT/ROLLBACK",
+        "Isolation levels at a high level"
+      ],
+      "exercise": [
+        "In a transaction: insert valid, trigger a constraint violation, roll back, prove no change"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "PostgreSQL — Transactions",
+          "u": "https://www.postgresql.org/docs/current/tutorial-transactions.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/transactions-integrity.html",
+      "assignedBatch": "P1-B07",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 5,
+        "title": "SQL Depth I: Relational Model, Joins, Transactions"
+      },
+      "marker": "5.5",
+      "name": "Safe SQL (parameterization)",
+      "curriculumBullets": [
+        "Why string-built SQL is injection",
+        "Parameterized queries; link to OWASP Top 10"
+      ],
+      "exercise": [
+        "Same query safe vs unsafe; explain exactly why the unsafe one is exploitable"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "OWASP — SQL Injection Prevention",
+          "u": "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/safe-sql-parameterization.html",
+      "assignedBatch": "P1-B07",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 6,
+        "title": "SQL Depth II: Indexes, Query Plans, Window Functions"
+      },
+      "marker": "6.1",
+      "name": "Indexes: what they actually are",
+      "curriculumBullets": [
+        "B-tree structure; why lookups become O(log n)",
+        "When an index helps vs is ignored",
+        "Cost of indexes; composite & column order"
+      ],
+      "exercise": [
+        "Three slow queries → justified indexes → measure the improvement"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Use The Index, Luke",
+          "u": "https://use-the-index-luke.com/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/database-indexes.html",
+      "assignedBatch": "P1-B08",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 6,
+        "title": "SQL Depth II: Indexes, Query Plans, Window Functions"
+      },
+      "marker": "6.2",
+      "name": "Reading query plans",
+      "curriculumBullets": [
+        "EXPLAIN vs EXPLAIN ANALYZE; estimated vs actual",
+        "Plan nodes: seq/index scan, nested loop, hash join, sort",
+        "Spotting the problem"
+      ],
+      "exercise": [
+        "EXPLAIN ANALYZE before/after an index; explain each node and why the plan changed"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Use The Index, Luke — Execution Plans",
+          "u": "https://use-the-index-luke.com/sql/explain-plan"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/query-plans.html",
+      "assignedBatch": "P1-B08",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 6,
+        "title": "SQL Depth II: Indexes, Query Plans, Window Functions"
+      },
+      "marker": "6.3",
+      "name": "Window functions (detection backbone)",
+      "curriculumBullets": [
+        "OVER (PARTITION BY ... ORDER BY ...) vs GROUP BY",
+        "ROW_NUMBER/RANK/DENSE_RANK",
+        "LAG/LEAD (inter-arrival); rolling aggregates; frames"
+      ],
+      "exercise": [
+        "From blank: per-IP velocity in rolling 1-min windows; LAG inter-arrival; rank failed-login bursts. SAVE these"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "PostgreSQL — Window Functions",
+          "u": "https://www.postgresql.org/docs/current/tutorial-window.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/sql-window-functions.html",
+      "assignedBatch": "P1-B08",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 6,
+        "title": "SQL Depth II: Indexes, Query Plans, Window Functions"
+      },
+      "marker": "6.4",
+      "name": "CTEs & query organization",
+      "curriculumBullets": [
+        "WITH for readable multi-step queries",
+        "Subqueries vs CTEs vs joins"
+      ],
+      "exercise": [
+        "Rewrite one window query using a CTE; compare readability"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "PostgreSQL — WITH Queries",
+          "u": "https://www.postgresql.org/docs/current/queries-with.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/sql-ctes-query-organization.html",
+      "assignedBatch": "P1-B08",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 7,
+        "title": "Networking From the Wire Up"
+      },
+      "marker": "7.1",
+      "name": "Layered model & encapsulation",
+      "curriculumBullets": [
+        "TCP/IP layers and what each adds",
+        "Encapsulation: Ethernet → IP → TCP → HTTP",
+        "Where a signal lives at each layer"
+      ],
+      "exercise": [
+        "Draw the encapsulation of one HTTP request down the layers"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Beej's Network Concepts",
+          "u": "https://beej.us/guide/bgnet0/"
+        },
+        {
+          "t": "watch",
+          "l": "Kurose & Ross lectures",
+          "u": "https://gaia.cs.umass.edu/kurose_ross/online_lectures.htm"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/layered-model-encapsulation.html",
+      "assignedBatch": "P1-B09",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 7,
+        "title": "Networking From the Wire Up"
+      },
+      "marker": "7.2",
+      "name": "IP addressing & routing",
+      "curriculumBullets": [
+        "IPv4, CIDR, subnets; public vs private",
+        "Routing & NAT (why home devices share one IP)",
+        "ASN concept — reused for reputation"
+      ],
+      "exercise": [
+        "Predict 3 CIDR membership cases",
+        "Look up your own IP's ASN; explain what it reveals and doesn't"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Beej's — addressing",
+          "u": "https://beej.us/guide/bgnet0/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/ip-addressing-routing.html",
+      "assignedBatch": "P1-B09",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 7,
+        "title": "Networking From the Wire Up"
+      },
+      "marker": "7.3",
+      "name": "TCP & UDP",
+      "curriculumBullets": [
+        "TCP: 3-way handshake, teardown, seq/ack, reliability",
+        "UDP: connectionless (DNS, QUIC)",
+        "Ports & sockets; the 4-tuple"
+      ],
+      "exercise": [
+        "Capture a TCP handshake in Wireshark; annotate flags & sequence numbers"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Beej's — TCP/UDP",
+          "u": "https://beej.us/guide/bgnet0/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/tcp-udp.html",
+      "assignedBatch": "P1-B09",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 7,
+        "title": "Networking From the Wire Up"
+      },
+      "marker": "7.4",
+      "name": "DNS",
+      "curriculumBullets": [
+        "Resolver → root/TLD/authoritative",
+        "Record types (A/AAAA/CNAME/MX/TXT)",
+        "Visible metadata even under HTTPS"
+      ],
+      "exercise": [
+        "dig a domain and trace the answer; capture one DNS lookup and explain it"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "MDN — What is DNS",
+          "u": "https://developer.mozilla.org/en-US/docs/Glossary/DNS"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/dns.html",
+      "assignedBatch": "P1-B09",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p1",
+        "label": "Phase 1",
+        "name": "Fundamentals under the hood"
+      },
+      "week": {
+        "number": 7,
+        "title": "Networking From the Wire Up"
+      },
+      "marker": "7.5",
+      "name": "Diagnostic tools & packet capture",
+      "curriculumBullets": [
+        "ping/traceroute/dig/ss/lsof — what each proves",
+        "tcpdump & Wireshark on your own traffic",
+        "Know your evidence's limits"
+      ],
+      "exercise": [
+        "Capture loading a page; isolate DNS, TCP handshake, start of TLS; packet-by-packet explanation"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Wireshark — capturing packets",
+          "u": "https://www.wireshark.org/docs/wsug_html_chunked/ChapterCapture.html"
+        },
+        {
+          "t": "read",
+          "l": "Wireshark — display filters",
+          "u": "https://www.wireshark.org/docs/wsug_html_chunked/ChWorkBuildDisplayFilterSection.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/diagnostic-tools-packet-capture.html",
+      "assignedBatch": "P1-B09",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p2",
+        "label": "Phase 2",
+        "name": "How the web actually works + build what you'll defend"
+      },
+      "week": {
+        "number": 8,
+        "title": "HTTP, deeply"
+      },
+      "marker": "8.1",
+      "name": "HTTP messages & semantics",
+      "curriculumBullets": [
+        "Methods (GET/POST/PUT/PATCH/DELETE/HEAD/OPTIONS)",
+        "Status code families; safety & idempotency",
+        "Request/response structure"
+      ],
+      "exercise": [
+        "Hand-write a raw request/response; classify 10 status codes with meaning"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "MDN — HTTP overview",
+          "u": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Overview"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/http-messages-semantics.html",
+      "assignedBatch": "P2-B01",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p2",
+        "label": "Phase 2",
+        "name": "How the web actually works + build what you'll defend"
+      },
+      "week": {
+        "number": 8,
+        "title": "HTTP, deeply"
+      },
+      "marker": "8.2",
+      "name": "Headers, cookies, caching",
+      "curriculumBullets": [
+        "Request/response/representation headers; header ORDER & casing (weaponised in Phase 3)",
+        "Set-Cookie attributes (HttpOnly/Secure/SameSite)",
+        "Cache-Control/ETag/conditional requests; proxies & X-Forwarded-For"
+      ],
+      "exercise": [
+        "Inspect a real site's headers in devtools; explain each cache header"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "MDN — HTTP caching",
+          "u": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Caching"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/headers-cookies-caching.html",
+      "assignedBatch": "P2-B01",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p2",
+        "label": "Phase 2",
+        "name": "How the web actually works + build what you'll defend"
+      },
+      "week": {
+        "number": 8,
+        "title": "HTTP, deeply"
+      },
+      "marker": "8.3",
+      "name": "HTTP/1.1 framing",
+      "curriculumBullets": [
+        "Connection lifecycle, keep-alive",
+        "Content-Length vs Transfer-Encoding: chunked",
+        "Framing ambiguity → request smuggling concept"
+      ],
+      "exercise": [
+        "Build a raw HTTP/1.1 client parsing chunked + content-length; test malformed/empty bodies"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "High Performance Browser Networking (chapter: HTTP/1.x)",
+          "u": "https://hpbn.co/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/http-1-1-framing.html",
+      "assignedBatch": "P2-B01",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p2",
+        "label": "Phase 2",
+        "name": "How the web actually works + build what you'll defend"
+      },
+      "week": {
+        "number": 8,
+        "title": "HTTP, deeply"
+      },
+      "marker": "8.4",
+      "name": "HTTP/2 & HTTP/3",
+      "curriculumBullets": [
+        "Multiplexing, streams, HPACK, SETTINGS frames, pseudo-headers",
+        "Head-of-line blocking",
+        "QUIC / HTTP/3 — UDP-based, changes what the network can observe"
+      ],
+      "exercise": [
+        "Capture HTTP/2 in devtools; explain multiplexing and what the server observes about a client"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "HPBN (chapter: HTTP/2)",
+          "u": "https://hpbn.co/"
+        },
+        {
+          "t": "read",
+          "l": "Cloudflare — what is HTTP/3 / QUIC",
+          "u": "https://www.cloudflare.com/learning/performance/what-is-http3/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/http-2-http-3.html",
+      "assignedBatch": "P2-B01",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p2",
+        "label": "Phase 2",
+        "name": "How the web actually works + build what you'll defend"
+      },
+      "week": {
+        "number": 8,
+        "title": "HTTP, deeply"
+      },
+      "marker": "8.5",
+      "name": "Beyond request/response: WebSockets & GraphQL",
+      "curriculumBullets": [
+        "WebSocket upgrade handshake; persistent bidirectional frames",
+        "GraphQL: single endpoint, client-shaped queries — why per-route rules don't map",
+        "Both are detection blind spots: abuse often rides them to bypass REST-oriented controls"
+      ],
+      "exercise": [
+        "Add a WebSocket or GraphQL endpoint to AbuseGuard; note what per-route telemetry breaks and how you'd observe it instead"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "MDN — WebSockets API",
+          "u": "https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API"
+        },
+        {
+          "t": "read",
+          "l": "GraphQL — Learn",
+          "u": "https://graphql.org/learn/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/websockets-graphql-detection-visibility.html",
+      "assignedBatch": "P2-B01",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p2",
+        "label": "Phase 2",
+        "name": "How the web actually works + build what you'll defend"
+      },
+      "week": {
+        "number": 9,
+        "title": "TLS, deeply"
+      },
+      "marker": "9.1",
+      "name": "Handshake & record protocol",
+      "curriculumBullets": [
+        "TLS 1.3 full handshake; key exchange; record layer",
+        "What's encrypted, and when"
+      ],
+      "exercise": [
+        "Annotate a captured handshake packet by packet"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "The Illustrated TLS 1.3 Connection",
+          "u": "https://tls13.xargs.org/"
+        },
+        {
+          "t": "read",
+          "l": "HPBN (chapter: TLS)",
+          "u": "https://hpbn.co/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/tls-handshake-record-protocol.html",
+      "assignedBatch": "P2-B02",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p2",
+        "label": "Phase 2",
+        "name": "How the web actually works + build what you'll defend"
+      },
+      "week": {
+        "number": 9,
+        "title": "TLS, deeply"
+      },
+      "marker": "9.2",
+      "name": "Certificates & trust",
+      "curriculumBullets": [
+        "X.509, chains, CAs, validation",
+        "SNI; what SNI leaks; revocation"
+      ],
+      "exercise": [
+        "openssl s_client to inspect a cert chain; explain each cert's role"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "HPBN (chapter: TLS — certs)",
+          "u": "https://hpbn.co/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/tls-certificates-trust.html",
+      "assignedBatch": "P2-B02",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p2",
+        "label": "Phase 2",
+        "name": "How the web actually works + build what you'll defend"
+      },
+      "week": {
+        "number": 9,
+        "title": "TLS, deeply"
+      },
+      "marker": "9.3",
+      "name": "ClientHello structure",
+      "curriculumBullets": [
+        "Version, cipher suites, extensions & extension ORDER",
+        "Supported groups, ALPN, GREASE",
+        "Use RFC 8446 as a reference after the Illustrated TLS walkthrough, not as the primary teacher"
+      ],
+      "exercise": [
+        "Parse a ClientHello with your hello_dissect.py; list extensions in order"
+      ],
+      "currentResources": [
+        {
+          "t": "docs",
+          "l": "RFC 8446 (TLS 1.3 reference)",
+          "u": "https://www.rfc-editor.org/rfc/rfc8446.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/tls-clienthello-structure.html",
+      "assignedBatch": "P2-B02",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p2",
+        "label": "Phase 2",
+        "name": "How the web actually works + build what you'll defend"
+      },
+      "week": {
+        "number": 9,
+        "title": "TLS, deeply"
+      },
+      "marker": "9.4",
+      "name": "JA3/JA4 from first principles",
+      "curriculumBullets": [
+        "How the fingerprint hash is built",
+        "JA3 vs JA4 improvements; the JA4 family"
+      ],
+      "exercise": [
+        "Compute JA3 & JA4 by hand from your capture; compare curl/python/chrome/playwright"
+      ],
+      "currentResources": [
+        {
+          "t": "repo",
+          "l": "FoxIO-LLC/ja4",
+          "u": "https://github.com/FoxIO-LLC/ja4"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/ja3-ja4-first-principles.html",
+      "assignedBatch": "P2-B02",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p2",
+        "label": "Phase 2",
+        "name": "How the web actually works + build what you'll defend"
+      },
+      "week": {
+        "number": 10,
+        "title": "Web application internals: build AbuseGuard"
+      },
+      "marker": "10.1",
+      "name": "Request lifecycle & routing",
+      "curriculumBullets": [
+        "ASGI vs WSGI; path operations; dependency injection",
+        "Request/response objects"
+      ],
+      "exercise": [
+        "Build register/login/product routes; diagram the lifecycle tied to your code"
+      ],
+      "currentResources": [
+        {
+          "t": "docs",
+          "l": "FastAPI tutorial",
+          "u": "https://fastapi.tiangolo.com/tutorial/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/fastapi-request-lifecycle-routing.html",
+      "assignedBatch": "P2-B03",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p2",
+        "label": "Phase 2",
+        "name": "How the web actually works + build what you'll defend"
+      },
+      "week": {
+        "number": 10,
+        "title": "Web application internals: build AbuseGuard"
+      },
+      "marker": "10.2",
+      "name": "Data validation & models",
+      "curriculumBullets": [
+        "Pydantic models, validation, serialization",
+        "Structured error responses"
+      ],
+      "exercise": [
+        "Define request/response schemas with validation; test invalid input"
+      ],
+      "currentResources": [
+        {
+          "t": "docs",
+          "l": "Pydantic — models",
+          "u": "https://docs.pydantic.dev/latest/concepts/models/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/pydantic-validation-models.html",
+      "assignedBatch": "P2-B03",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p2",
+        "label": "Phase 2",
+        "name": "How the web actually works + build what you'll defend"
+      },
+      "week": {
+        "number": 10,
+        "title": "Web application internals: build AbuseGuard"
+      },
+      "marker": "10.3",
+      "name": "Sessions & persistence boundary",
+      "curriculumBullets": [
+        "Cookies/sessions; DB layer behind a repository boundary",
+        "SQLite for this week only"
+      ],
+      "exercise": [
+        "Implement a login session; keep persistence behind a boundary; test it"
+      ],
+      "currentResources": [
+        {
+          "t": "docs",
+          "l": "FastAPI — SQL databases",
+          "u": "https://fastapi.tiangolo.com/tutorial/sql-databases/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/sessions-persistence-boundary.html",
+      "assignedBatch": "P2-B03",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p2",
+        "label": "Phase 2",
+        "name": "How the web actually works + build what you'll defend"
+      },
+      "week": {
+        "number": 10,
+        "title": "Web application internals: build AbuseGuard"
+      },
+      "marker": "10.4",
+      "name": "Templates & the protected page",
+      "curriculumBullets": [
+        "Server-rendered vs API responses",
+        "A protected account page; a basic authz gate"
+      ],
+      "exercise": [
+        "Protected account page requiring login; rebuild one full feature from a blank module"
+      ],
+      "currentResources": [
+        {
+          "t": "docs",
+          "l": "FastAPI — templates",
+          "u": "https://fastapi.tiangolo.com/advanced/templates/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/server-templates-protected-page.html",
+      "assignedBatch": "P2-B03",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p2",
+        "label": "Phase 2",
+        "name": "How the web actually works + build what you'll defend"
+      },
+      "week": {
+        "number": 11,
+        "title": "Auth, authz & secure deployment"
+      },
+      "marker": "11.1",
+      "name": "Authentication & password storage",
+      "curriculumBullets": [
+        "authn vs authz; session vs token auth",
+        "For new FastAPI code use pwdlib[argon2]; passlib is mainly for compatibility with legacy hashes",
+        "Never roll your own password hashing"
+      ],
+      "exercise": [
+        "Hash + verify passwords with pwdlib[argon2]; explain your KDF choice and legacy-hash migration path in writing"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "OWASP — Password Storage Cheat Sheet",
+          "u": "https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html"
+        },
+        {
+          "t": "docs",
+          "l": "FastAPI — password hashing with pwdlib + Argon2",
+          "u": "https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/authentication-password-storage.html",
+      "assignedBatch": "P2-B04",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p2",
+        "label": "Phase 2",
+        "name": "How the web actually works + build what you'll defend"
+      },
+      "week": {
+        "number": 11,
+        "title": "Auth, authz & secure deployment"
+      },
+      "marker": "11.2",
+      "name": "Sessions, cookies, CSRF, CORS",
+      "curriculumBullets": [
+        "Secure cookie attributes",
+        "CSRF tokens; CORS policy & preflight"
+      ],
+      "exercise": [
+        "Add CSRF protection; configure a narrow CORS policy; test both"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "OWASP — Session Management Cheat Sheet",
+          "u": "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html"
+        },
+        {
+          "t": "read",
+          "l": "MDN — CORS",
+          "u": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/sessions-cookies-csrf-cors.html",
+      "assignedBatch": "P2-B04",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p2",
+        "label": "Phase 2",
+        "name": "How the web actually works + build what you'll defend"
+      },
+      "week": {
+        "number": 11,
+        "title": "Auth, authz & secure deployment"
+      },
+      "marker": "11.3",
+      "name": "Authorization models",
+      "curriculumBullets": [
+        "RBAC; tenant isolation; server-side checks",
+        "IDOR / broken access control"
+      ],
+      "exercise": [
+        "Role boundary + tests proving users can't reach each other's data"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "PortSwigger — Access control",
+          "u": "https://portswigger.net/web-security/access-control"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/authorization-models.html",
+      "assignedBatch": "P2-B04",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p2",
+        "label": "Phase 2",
+        "name": "How the web actually works + build what you'll defend"
+      },
+      "week": {
+        "number": 11,
+        "title": "Auth, authz & secure deployment"
+      },
+      "marker": "11.4",
+      "name": "Secrets & crypto choices",
+      "curriculumBullets": [
+        "CSPRNG vs KDF vs MAC vs signature vs encryption vs AEAD",
+        "Secrets handling; nothing in logs/git"
+      ],
+      "exercise": [
+        "Write which primitive for which job; verify no secrets are logged or committed"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "OWASP — Cryptographic Storage Cheat Sheet",
+          "u": "https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/secrets-crypto-choices.html",
+      "assignedBatch": "P2-B04",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p2",
+        "label": "Phase 2",
+        "name": "How the web actually works + build what you'll defend"
+      },
+      "week": {
+        "number": 11,
+        "title": "Auth, authz & secure deployment"
+      },
+      "marker": "11.5",
+      "name": "Deployment boundary",
+      "curriculumBullets": [
+        "Reverse proxy (Nginx); Docker/Compose; TLS termination",
+        "How the client IP survives the proxy chain: X-Forwarded-For / X-Real-IP across Docker bridge networks and Nginx — a misconfig here makes every IP-based signal a lie",
+        "Migrate SQLite → PostgreSQL intentionally"
+      ],
+      "exercise": [
+        "Write Dockerfile/Compose + Nginx yourself; deploy from a clean checkout",
+        "Prove which client IP your app actually sees through the proxy chain, and configure trusted proxies correctly"
+      ],
+      "currentResources": [
+        {
+          "t": "docs",
+          "l": "Docker — security",
+          "u": "https://docs.docker.com/engine/security/"
+        },
+        {
+          "t": "docs",
+          "l": "FastAPI — behind a proxy",
+          "u": "https://fastapi.tiangolo.com/advanced/behind-a-proxy/"
+        },
+        {
+          "t": "docs",
+          "l": "Nginx — real IP module",
+          "u": "https://nginx.org/en/docs/http/ngx_http_realip_module.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/deployment-boundary.html",
+      "assignedBatch": "P2-B04",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p2",
+        "label": "Phase 2",
+        "name": "How the web actually works + build what you'll defend"
+      },
+      "week": {
+        "number": 12,
+        "title": "Threat modeling & AppSec foundations — v1 + Checkpoint 1"
+      },
+      "marker": "12.1",
+      "name": "Threat modeling",
+      "curriculumBullets": [
+        "Assets, actors, trust boundaries, data flows",
+        "STRIDE; abuse cases; security requirements"
+      ],
+      "exercise": [
+        "Context/container/data-flow diagrams; STRIDE per element"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "OWASP — Threat Modeling Cheat Sheet",
+          "u": "https://cheatsheetseries.owasp.org/cheatsheets/Threat_Modeling_Cheat_Sheet.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/threat-modeling.html",
+      "assignedBatch": "P2-B05",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p2",
+        "label": "Phase 2",
+        "name": "How the web actually works + build what you'll defend"
+      },
+      "week": {
+        "number": 12,
+        "title": "Threat modeling & AppSec foundations — v1 + Checkpoint 1"
+      },
+      "marker": "12.2",
+      "name": "OWASP Top 10 & API Top 10",
+      "curriculumBullets": [
+        "The categories, mapped to AbuseGuard",
+        "API-specific risks (BOLA, mass assignment)"
+      ],
+      "exercise": [
+        "Map each Top-10 risk to a concrete control in your app"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "OWASP Top 10",
+          "u": "https://owasp.org/www-project-top-ten/"
+        },
+        {
+          "t": "read",
+          "l": "OWASP API Security Top 10",
+          "u": "https://owasp.org/www-project-api-security/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/owasp-top-10-api-top-10.html",
+      "assignedBatch": "P2-B05",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p2",
+        "label": "Phase 2",
+        "name": "How the web actually works + build what you'll defend"
+      },
+      "week": {
+        "number": 12,
+        "title": "Threat modeling & AppSec foundations — v1 + Checkpoint 1"
+      },
+      "marker": "12.3",
+      "name": "ASVS L1 verification",
+      "curriculumBullets": [
+        "Requirement / applicability / pass-fail / evidence matrix"
+      ],
+      "exercise": [
+        "Build an ASVS L1 matrix; defend one N/A and one accepted risk"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "OWASP ASVS",
+          "u": "https://owasp.org/www-project-application-security-verification-standard/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/asvs-l1-verification.html",
+      "assignedBatch": "P2-B05",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p2",
+        "label": "Phase 2",
+        "name": "How the web actually works + build what you'll defend"
+      },
+      "week": {
+        "number": 12,
+        "title": "Threat modeling & AppSec foundations — v1 + Checkpoint 1"
+      },
+      "marker": "12.4",
+      "name": "Source-to-sink review",
+      "curriculumBullets": [
+        "Trace one input path: transformations, validation, sink, encodings"
+      ],
+      "exercise": [
+        "Manual source-to-sink of one path; convert 5 threats into security tests"
+      ],
+      "currentResources": [
+        {
+          "t": "tool",
+          "l": "PortSwigger Web Security Academy",
+          "u": "https://portswigger.net/web-security"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/source-to-sink-review.html",
+      "assignedBatch": "P2-B05",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p2",
+        "label": "Phase 2",
+        "name": "How the web actually works + build what you'll defend"
+      },
+      "week": {
+        "number": 12,
+        "title": "Threat modeling & AppSec foundations — v1 + Checkpoint 1"
+      },
+      "marker": "12.5",
+      "name": "v1 release",
+      "curriculumBullets": [
+        "≥40 meaningful tests; clean Docker; README",
+        "Article: what happens between a URL and my handler"
+      ],
+      "exercise": [
+        "Ship v1; a stranger deploys it from the README alone"
+      ],
+      "currentResources": [
+        {
+          "t": "do",
+          "l": "Portfolio release checklist",
+          "u": ""
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/abuseguard-v1-release.html",
+      "assignedBatch": "P2-B05",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p3",
+        "label": "Phase 3",
+        "name": "The offense you must master to defend"
+      },
+      "week": {
+        "number": 13,
+        "title": "Web-abuse taxonomy"
+      },
+      "marker": "13.1",
+      "name": "The attack catalogue",
+      "curriculumBullets": [
+        "Scraping, credential stuffing, ATO, enumeration",
+        "Fake accounts, inventory/denial-of-inventory, carding, API abuse"
+      ],
+      "exercise": [
+        "For each threat, write preconditions / observable signals / possible controls for AbuseGuard"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "OWASP — Automated Threats to Web Apps",
+          "u": "https://owasp.org/www-project-automated-threats-to-web-applications/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/web-abuse-attack-catalogue.html",
+      "assignedBatch": "P3-B01",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p3",
+        "label": "Phase 3",
+        "name": "The offense you must master to defend"
+      },
+      "week": {
+        "number": 13,
+        "title": "Web-abuse taxonomy"
+      },
+      "marker": "13.2",
+      "name": "Intent vs traffic shape",
+      "curriculumBullets": [
+        "Why the same shape = bot or power user",
+        "Facts observed at request time vs inferences vs labels"
+      ],
+      "exercise": [
+        "Table separating request-time facts from inferences; two ambiguous-signal cases"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "MITRE CAPEC (auth/resource abuse)",
+          "u": "https://capec.mitre.org/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/intent-vs-traffic-shape.html",
+      "assignedBatch": "P3-B01",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p3",
+        "label": "Phase 3",
+        "name": "The offense you must master to defend"
+      },
+      "week": {
+        "number": 13,
+        "title": "Web-abuse taxonomy"
+      },
+      "marker": "13.3",
+      "name": "Mapping to your app",
+      "curriculumBullets": [
+        "Normal vs abusive journeys with observable signals"
+      ],
+      "exercise": [
+        "Turn five journeys into controlled experiment specs"
+      ],
+      "currentResources": [
+        {
+          "t": "do",
+          "l": "Your AbuseGuard journeys",
+          "u": ""
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/abuseguard-threat-journey-mapping.html",
+      "assignedBatch": "P3-B01",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p3",
+        "label": "Phase 3",
+        "name": "The offense you must master to defend"
+      },
+      "week": {
+        "number": 14,
+        "title": "How anti-bot detection actually works (the crux)"
+      },
+      "marker": "14.1",
+      "name": "The detection stack overview",
+      "curriculumBullets": [
+        "Layers: network → TLS → HTTP → browser → behavioral → reputation",
+        "Defense in depth; why no single signal is trusted"
+      ],
+      "exercise": [
+        "Write the REAL answer to your Week-0 Cloudflare guess, layer by layer"
+      ],
+      "currentResources": [
+        {
+          "t": "repo",
+          "l": "niespodd/browser-fingerprinting",
+          "u": "https://github.com/niespodd/browser-fingerprinting"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/detection-stack-overview.html",
+      "assignedBatch": "P3-B02",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p3",
+        "label": "Phase 3",
+        "name": "The offense you must master to defend"
+      },
+      "week": {
+        "number": 14,
+        "title": "How anti-bot detection actually works (the crux)"
+      },
+      "marker": "14.2",
+      "name": "Network & IP signals",
+      "curriculumBullets": [
+        "IP reputation; ASN; datacenter/residential/mobile",
+        "Proxy/VPN detection; rate & distribution"
+      ],
+      "exercise": [
+        "Classify these signals; find a legit user case that trips each"
+      ],
+      "currentResources": [
+        {
+          "t": "repo",
+          "l": "niespodd/browser-fingerprinting (IP section)",
+          "u": "https://github.com/niespodd/browser-fingerprinting"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/network-ip-signals.html",
+      "assignedBatch": "P3-B02",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p3",
+        "label": "Phase 3",
+        "name": "The offense you must master to defend"
+      },
+      "week": {
+        "number": 14,
+        "title": "How anti-bot detection actually works (the crux)"
+      },
+      "marker": "14.3",
+      "name": "TLS & HTTP signals",
+      "curriculumBullets": [
+        "JA3/JA4; cipher & extension order",
+        "HTTP/2 fingerprint; header order & consistency"
+      ],
+      "exercise": [
+        "Relate each to your Week-9 captures; note which your own scraper would fail"
+      ],
+      "currentResources": [
+        {
+          "t": "repo",
+          "l": "FoxIO-LLC/ja4",
+          "u": "https://github.com/FoxIO-LLC/ja4"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/tls-http-signals.html",
+      "assignedBatch": "P3-B02",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p3",
+        "label": "Phase 3",
+        "name": "The offense you must master to defend"
+      },
+      "week": {
+        "number": 14,
+        "title": "How anti-bot detection actually works (the crux)"
+      },
+      "marker": "14.4",
+      "name": "Browser & behavioral signals",
+      "curriculumBullets": [
+        "Headless tells; navigator; CDP artifacts; canvas/WebGL/audio",
+        "Mouse/timing behaviour"
+      ],
+      "exercise": [
+        "Install the detector; run it on sites; log which signals fire"
+      ],
+      "currentResources": [
+        {
+          "t": "repo",
+          "l": "scrapfly/Antibot-Detector",
+          "u": "https://github.com/scrapfly/Antibot-Detector"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/browser-behavioral-signals.html",
+      "assignedBatch": "P3-B03",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p3",
+        "label": "Phase 3",
+        "name": "The offense you must master to defend"
+      },
+      "week": {
+        "number": 14,
+        "title": "How anti-bot detection actually works (the crux)"
+      },
+      "marker": "14.5",
+      "name": "Vendor systems",
+      "curriculumBullets": [
+        "How Cloudflare / Akamai / DataDome / PerimeterX / Kasada layer",
+        "Challenge / risk-scoring behaviour"
+      ],
+      "exercise": [
+        "Profile three vendors' observable behaviour from the writeups"
+      ],
+      "currentResources": [
+        {
+          "t": "repo",
+          "l": "niespodd (vendor analyses)",
+          "u": "https://github.com/niespodd/browser-fingerprinting"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/vendor-antibot-systems.html",
+      "assignedBatch": "P3-B03",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p3",
+        "label": "Phase 3",
+        "name": "The offense you must master to defend"
+      },
+      "week": {
+        "number": 14,
+        "title": "How anti-bot detection actually works (the crux)"
+      },
+      "marker": "14.6",
+      "name": "TCP/OS-level fingerprinting",
+      "curriculumBullets": [
+        "Below TLS, a TCP peer's stack exposes TTL, MSS, window size, and option ordering that can support a passive OS inference",
+        "Observation point matters: behind a CDN or terminating proxy, p0f may fingerprint the edge/proxy peer rather than the end user's machine",
+        "A User-Agent / TCP-stack mismatch is evidence to investigate, not proof of a proxy, a particular OS, or malicious intent"
+      ],
+      "exercise": [
+        "Run p0f on your own captures; for each result record the observation point, TCP peer, inferred property, confidence, and possible intermediary"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "p0f v3 — passive OS fingerprinting",
+          "u": "https://lcamtuf.coredump.cx/p0f3/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/tcp-os-fingerprinting.html",
+      "assignedBatch": "P3-B03",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p3",
+        "label": "Phase 3",
+        "name": "The offense you must master to defend"
+      },
+      "week": {
+        "number": 15,
+        "title": "TLS & HTTP fingerprinting, deep"
+      },
+      "marker": "15.1",
+      "name": "ClientHello & extension ordering",
+      "curriculumBullets": [
+        "Full structure; GREASE; extension-order stability",
+        "Use RFC 8446 as a reference after the Illustrated TLS walkthrough"
+      ],
+      "exercise": [
+        "Diff ClientHellos across clients; explain GREASE's purpose"
+      ],
+      "currentResources": [
+        {
+          "t": "docs",
+          "l": "RFC 8446 (TLS 1.3 reference)",
+          "u": "https://www.rfc-editor.org/rfc/rfc8446.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/clienthello-extension-ordering.html",
+      "assignedBatch": "P3-B04",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p3",
+        "label": "Phase 3",
+        "name": "The offense you must master to defend"
+      },
+      "week": {
+        "number": 15,
+        "title": "TLS & HTTP fingerprinting, deep"
+      },
+      "marker": "15.2",
+      "name": "JA3 limits & the JA4 family",
+      "curriculumBullets": [
+        "JA3 weaknesses; JA4/JA4H/JA4T/JA4S/JA4L",
+        "Licensing is per method: the JA4 TLS-client method has its own permissive LICENSE-JA4; other JA4+ methods use the repository's separate license — verify the exact method and implementation before use",
+        "uTLS is a BSD-licensed Go TLS fork for ClientHello mimicry / fingerprint resistance, not an alternative fingerprint algorithm"
+      ],
+      "exercise": [
+        "Compute JA4+ variants from a capture; record the exact method, implementation, and applicable license before using it",
+        "Use or inspect uTLS to change a ClientHello, then measure rather than assume what the resulting fingerprint imitates"
+      ],
+      "currentResources": [
+        {
+          "t": "repo",
+          "l": "FoxIO-LLC/ja4 (spec + per-method licenses)",
+          "u": "https://github.com/FoxIO-LLC/ja4"
+        },
+        {
+          "t": "repo",
+          "l": "refraction-networking/utls — ClientHello mimicry / fingerprint resistance",
+          "u": "https://github.com/refraction-networking/utls"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/ja3-limits-ja4-family.html",
+      "assignedBatch": "P3-B04",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p3",
+        "label": "Phase 3",
+        "name": "The offense you must master to defend"
+      },
+      "week": {
+        "number": 15,
+        "title": "TLS & HTTP fingerprinting, deep"
+      },
+      "marker": "15.3",
+      "name": "HTTP/2 fingerprinting",
+      "curriculumBullets": [
+        "SETTINGS, WINDOW_UPDATE, pseudo-header order",
+        "The Akamai HTTP/2 fingerprint format"
+      ],
+      "exercise": [
+        "Capture & compute an HTTP/2 fingerprint for curl vs chrome"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "HPBN (chapter: HTTP/2)",
+          "u": "https://hpbn.co/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/http-2-fingerprinting.html",
+      "assignedBatch": "P3-B04",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p3",
+        "label": "Phase 3",
+        "name": "The offense you must master to defend"
+      },
+      "week": {
+        "number": 15,
+        "title": "TLS & HTTP fingerprinting, deep"
+      },
+      "marker": "15.4",
+      "name": "Intermediaries",
+      "curriculumBullets": [
+        "How proxies/CDNs/TLS-terminators alter fingerprints"
+      ],
+      "exercise": [
+        "Capture through a proxy; show precisely what changed"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "HPBN",
+          "u": "https://hpbn.co/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/fingerprint-altering-intermediaries.html",
+      "assignedBatch": "P3-B04",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p3",
+        "label": "Phase 3",
+        "name": "The offense you must master to defend"
+      },
+      "week": {
+        "number": 16,
+        "title": "Browser fingerprinting & automation detection"
+      },
+      "marker": "16.0",
+      "name": "JavaScript essentials for the browser layer",
+      "curriculumBullets": [
+        "Just enough JS to read detection scripts: types, objects, functions, promises/async, the DOM, events, fetch",
+        "How a fingerprinting script runs in the page and what it can access",
+        "You're Python-strong but the browser layer is JS — close this gap before reading detector source"
+      ],
+      "exercise": [
+        "Read a small fingerprinting script and explain each line; add a first-party JS probe to AbuseGuard"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "MDN — JavaScript Guide",
+          "u": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/javascript-browser-layer-essentials.html",
+      "assignedBatch": "P3-B05",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p3",
+        "label": "Phase 3",
+        "name": "The offense you must master to defend"
+      },
+      "week": {
+        "number": 16,
+        "title": "Browser fingerprinting & automation detection"
+      },
+      "marker": "16.1",
+      "name": "Reading obfuscated detector scripts",
+      "curriculumBullets": [
+        "Real anti-bot scripts (Cloudflare, DataDome) are heavily obfuscated — as a defender you must read enough to understand what telemetry they collect, not fully reverse them",
+        "Browser debugger, pretty-print/beautify, breakpoints; the AST view of code",
+        "Scoped goal: trace one collected signal from source to the request that ships it — understanding, not full reversing"
+      ],
+      "exercise": [
+        "Beautify one minified detector snippet; trace one collected signal from source to the request that exfiltrates it"
+      ],
+      "currentResources": [
+        {
+          "t": "tool",
+          "l": "AST Explorer",
+          "u": "https://astexplorer.net/"
+        },
+        {
+          "t": "docs",
+          "l": "Chrome DevTools — debug JavaScript",
+          "u": "https://developer.chrome.com/docs/devtools/javascript/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/reading-obfuscated-detector-scripts.html",
+      "assignedBatch": "P3-B05",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p3",
+        "label": "Phase 3",
+        "name": "The offense you must master to defend"
+      },
+      "week": {
+        "number": 16,
+        "title": "Browser fingerprinting & automation detection"
+      },
+      "marker": "16.2",
+      "name": "The fingerprint surface",
+      "curriculumBullets": [
+        "navigator, screen, timezone, fonts, plugins",
+        "UA & Client Hints; entropy vs stability",
+        "Open-source FingerprintJS is currently v5: use it as a client-side educational baseline for the mechanics, with explicit spoofing and reverse-engineering limitations — not as the frontier of production device intelligence"
+      ],
+      "exercise": [
+        "Enumerate your browser's exposed surface; reason about each signal's entropy"
+      ],
+      "currentResources": [
+        {
+          "t": "repo",
+          "l": "fingerprintjs/fingerprintjs",
+          "u": "https://github.com/fingerprintjs/fingerprintjs"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/browser-fingerprint-surface.html",
+      "assignedBatch": "P3-B05",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p3",
+        "label": "Phase 3",
+        "name": "The offense you must master to defend"
+      },
+      "week": {
+        "number": 16,
+        "title": "Browser fingerprinting & automation detection"
+      },
+      "marker": "16.3",
+      "name": "Canvas / WebGL / audio",
+      "curriculumBullets": [
+        "How rendering entropy is collected",
+        "Stability vs uniqueness vs privacy cost"
+      ],
+      "exercise": [
+        "Read the canvas fingerprint source; explain the signal in your own words"
+      ],
+      "currentResources": [
+        {
+          "t": "repo",
+          "l": "fingerprintjs (canvas source)",
+          "u": "https://github.com/fingerprintjs/fingerprintjs"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/canvas-webgl-audio-fingerprinting.html",
+      "assignedBatch": "P3-B06",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p3",
+        "label": "Phase 3",
+        "name": "The offense you must master to defend"
+      },
+      "week": {
+        "number": 16,
+        "title": "Browser fingerprinting & automation detection"
+      },
+      "marker": "16.4",
+      "name": "Headless & automation tells",
+      "curriculumBullets": [
+        "navigator.webdriver; CDP artifacts",
+        "Missing/altered properties; headless-chrome differences"
+      ],
+      "exercise": [
+        "Compare headed vs headless properties on your app"
+      ],
+      "currentResources": [
+        {
+          "t": "repo",
+          "l": "niespodd (headless section)",
+          "u": "https://github.com/niespodd/browser-fingerprinting"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/headless-automation-tells.html",
+      "assignedBatch": "P3-B06",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p3",
+        "label": "Phase 3",
+        "name": "The offense you must master to defend"
+      },
+      "week": {
+        "number": 16,
+        "title": "Browser fingerprinting & automation detection"
+      },
+      "marker": "16.5",
+      "name": "CDP & WebDriver",
+      "curriculumBullets": [
+        "How automation frameworks drive the browser",
+        "Page-side automation artifacts and first-party probes vs ordinary HTTP-visible signals — the server does not observe CDP directly"
+      ],
+      "exercise": [
+        "Automate your app; trace page-side automation artifacts / probe results into first-party telemetry, and distinguish them from ordinary HTTP-visible signals"
+      ],
+      "currentResources": [
+        {
+          "t": "docs",
+          "l": "Chrome DevTools Protocol",
+          "u": "https://chromedevtools.github.io/devtools-protocol/"
+        },
+        {
+          "t": "docs",
+          "l": "Playwright",
+          "u": "https://playwright.dev/docs/intro"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/cdp-webdriver.html",
+      "assignedBatch": "P3-B06",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p3",
+        "label": "Phase 3",
+        "name": "The offense you must master to defend"
+      },
+      "week": {
+        "number": 16,
+        "title": "Browser fingerprinting & automation detection"
+      },
+      "marker": "16.6",
+      "name": "Mobile app attestation & API abuse",
+      "curriculumBullets": [
+        "The other half of the battle: advanced abuse rides mobile-app APIs, not browsers — browser fingerprinting misses it entirely",
+        "Play Integrity (Android) & App Attest / DeviceCheck (iOS): hardware-backed keystores and attestation tokens",
+        "How attackers spoof, relay, or farm attestation — and what a defender can and can't trust from a token"
+      ],
+      "exercise": [
+        "One-pager: what a valid Play Integrity / App Attest token proves, what it doesn't, and how a determined attacker defeats it"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Android — Play Integrity API",
+          "u": "https://developer.android.com/google/play/integrity"
+        },
+        {
+          "t": "read",
+          "l": "Apple — DeviceCheck / App Attest",
+          "u": "https://developer.apple.com/documentation/devicecheck"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/mobile-app-attestation-api-abuse.html",
+      "assignedBatch": "P3-B06",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p3",
+        "label": "Phase 3",
+        "name": "The offense you must master to defend"
+      },
+      "week": {
+        "number": 17,
+        "title": "Behavioral & network-reputation signals"
+      },
+      "marker": "17.1",
+      "name": "Behavioral biometrics",
+      "curriculumBullets": [
+        "Mouse/keystroke/scroll/touch dynamics; timing"
+      ],
+      "exercise": [
+        "Capture behavioral features from your human vs scraper generators"
+      ],
+      "currentResources": [
+        {
+          "t": "repo",
+          "l": "niespodd (behavioral notes)",
+          "u": "https://github.com/niespodd/browser-fingerprinting"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/behavioral-biometrics.html",
+      "assignedBatch": "P3-B07",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p3",
+        "label": "Phase 3",
+        "name": "The offense you must master to defend"
+      },
+      "week": {
+        "number": 17,
+        "title": "Behavioral & network-reputation signals"
+      },
+      "marker": "17.2",
+      "name": "Navigation & session coherence",
+      "curriculumBullets": [
+        "Navigation graphs; referer chains; session consistency"
+      ],
+      "exercise": [
+        "Build a navigation-graph feature; show scraper vs human difference"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "OWASP — Automated Threats",
+          "u": "https://owasp.org/www-project-automated-threats-to-web-applications/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/navigation-session-coherence.html",
+      "assignedBatch": "P3-B07",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p3",
+        "label": "Phase 3",
+        "name": "The offense you must master to defend"
+      },
+      "week": {
+        "number": 17,
+        "title": "Behavioral & network-reputation signals"
+      },
+      "marker": "17.3",
+      "name": "IP / ASN reputation",
+      "curriculumBullets": [
+        "Reputation feeds; ASN classification",
+        "Residential/DC/mobile; proxy detection"
+      ],
+      "exercise": [
+        "Enrich requests with ASN; explain the false-positive risks"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "niespodd (IP section)",
+          "u": "https://github.com/niespodd/browser-fingerprinting"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/ip-asn-reputation.html",
+      "assignedBatch": "P3-B07",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p3",
+        "label": "Phase 3",
+        "name": "The offense you must master to defend"
+      },
+      "week": {
+        "number": 18,
+        "title": "Authorized attack lab"
+      },
+      "marker": "18.1",
+      "name": "Traffic generators (repurpose, don't rebuild)",
+      "curriculumBullets": [
+        "Reuse your existing scrapers as the high-rate and human-like generators — this is your unfair advantage; don't rebuild from scratch",
+        "Add only the ones you lack: slow-distributed, cred-stuffing, enumeration, legit-API",
+        "Make load / identity pool / duration / seed configurable"
+      ],
+      "exercise": [
+        "Point your existing scraper at local AbuseGuard as generator #1; build only the missing generators"
+      ],
+      "currentResources": [
+        {
+          "t": "do",
+          "l": "Adapt your own scraper code",
+          "u": ""
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/authorized-traffic-generators.html",
+      "assignedBatch": "P3-B08",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p3",
+        "label": "Phase 3",
+        "name": "The offense you must master to defend"
+      },
+      "week": {
+        "number": 18,
+        "title": "Authorized attack lab"
+      },
+      "marker": "18.2",
+      "name": "Safety engineering",
+      "curriculumBullets": [
+        "Target loopback/localhost ONLY — all traffic stays on the box. Never point load at your ISP, a cloud VM's public IP, or any third party (you'll trip upstream blocks or throttle yourself)",
+        "Scope allowlist; hard rate caps; emergency stop wired before any load",
+        "No real credentials or third-party targets"
+      ],
+      "exercise": [
+        "A test proving a safety limit blocks an out-of-scope target",
+        "Confirm with a capture that no attack traffic ever leaves localhost"
+      ],
+      "currentResources": [
+        {
+          "t": "do",
+          "l": "Design safety rails first",
+          "u": ""
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/attack-lab-safety-engineering.html",
+      "assignedBatch": "P3-B08",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p3",
+        "label": "Phase 3",
+        "name": "The offense you must master to defend"
+      },
+      "week": {
+        "number": 18,
+        "title": "Authorized attack lab"
+      },
+      "marker": "18.3",
+      "name": "Labeling & manifests",
+      "curriculumBullets": [
+        "Label sessions outside the request stream (avoid leakage)",
+        "Reproducible manifest; cleanup"
+      ],
+      "exercise": [
+        "Reproducible experiment manifest + cleanup steps"
+      ],
+      "currentResources": [
+        {
+          "t": "do",
+          "l": "Experiment manifest",
+          "u": ""
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/experiment-labeling-manifests.html",
+      "assignedBatch": "P3-B08",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p3",
+        "label": "Phase 3",
+        "name": "The offense you must master to defend"
+      },
+      "week": {
+        "number": 19,
+        "title": "Consolidation: the attacker's-eye report — Checkpoint 2"
+      },
+      "marker": "19.1",
+      "name": "Detection-vs-evasion writeup",
+      "curriculumBullets": [
+        "Per attack: how you'd detect it, how it evades naive detection"
+      ],
+      "exercise": [
+        "Produce a portfolio-quality document"
+      ],
+      "currentResources": [
+        {
+          "t": "do",
+          "l": "Your Phase 3 work",
+          "u": ""
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/detection-evasion-writeup.html",
+      "assignedBatch": "P3-B08",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p3",
+        "label": "Phase 3",
+        "name": "The offense you must master to defend"
+      },
+      "week": {
+        "number": 19,
+        "title": "Consolidation: the attacker's-eye report — Checkpoint 2"
+      },
+      "marker": "19.2",
+      "name": "Present & defend",
+      "curriculumBullets": [
+        "A 10-minute technical presentation"
+      ],
+      "exercise": [
+        "Present the stack + lab; defend which signals you'd trust and which you wouldn't"
+      ],
+      "currentResources": [
+        {
+          "t": "do",
+          "l": "Practice out loud",
+          "u": ""
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/detection-stack-presentation-defense.html",
+      "assignedBatch": "P3-B08",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 20,
+        "title": "Telemetry & signal design"
+      },
+      "marker": "20.1",
+      "name": "What to collect / never collect",
+      "curriculumBullets": [
+        "Fields worth collecting; PII/secrets exclusion",
+        "No unbounded bodies or raw tokens"
+      ],
+      "exercise": [
+        "Define collect / never-collect lists for AbuseGuard"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "OWASP — Logging Cheat Sheet",
+          "u": "https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html"
+        },
+        {
+          "t": "read",
+          "l": "SANS SEC555 — Detection Engineering poster",
+          "u": "https://www.sans.org/posters/detection-engineering/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/detection-telemetry-collection-boundaries.html",
+      "assignedBatch": "P4-B01",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 20,
+        "title": "Telemetry & signal design"
+      },
+      "marker": "20.2",
+      "name": "Schema & redaction",
+      "curriculumBullets": [
+        "Versioned schema; pseudonymization/hashing",
+        "Normalized routes before storage"
+      ],
+      "exercise": [
+        "Versioned telemetry schema + validation; redaction before storage"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Splunk — Detection Engineering guide",
+          "u": "https://www.splunk.com/en_us/blog/learn/detection-engineering.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/telemetry-schema-redaction.html",
+      "assignedBatch": "P4-B01",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 20,
+        "title": "Telemetry & signal design"
+      },
+      "marker": "20.3",
+      "name": "Data quality & retention",
+      "curriculumBullets": [
+        "Counters: missing/invalid/late/duplicate",
+        "Retention & deletion policy"
+      ],
+      "exercise": [
+        "Add counters; write a retention note; trace one request → decision"
+      ],
+      "currentResources": [
+        {
+          "t": "do",
+          "l": "Data-quality counters",
+          "u": ""
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/data-quality-retention.html",
+      "assignedBatch": "P4-B01",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 20,
+        "title": "Telemetry & signal design"
+      },
+      "marker": "20.4",
+      "name": "Querying telemetry: SIEM & log-analytics",
+      "curriculumBullets": [
+        "Log query languages detection engineers use daily: Elastic KQL / ES|QL and Splunk SPL — not just SQL",
+        "ClickHouse is an optional comparison for high-volume columnar log analytics; use the focused observability learning path rather than treating its whole documentation site as a course",
+        "Stand up a local Elastic (ELK) stack; ingest your AbuseGuard telemetry as JSON",
+        "Filter, aggregate, and time-window over raw logs; think in ECS-style fields"
+      ],
+      "exercise": [
+        "Ingest AbuseGuard logs into a local Elastic stack; write 5 detection queries in KQL over them"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Elastic — KQL (Kibana Query Language)",
+          "u": "https://www.elastic.co/docs/explore-analyze/query-filter/languages/kql"
+        },
+        {
+          "t": "read",
+          "l": "ClickHouse — observability learning path (optional)",
+          "u": "https://clickhouse.com/learn/observability"
+        },
+        {
+          "t": "repo",
+          "l": "st0pp3r/awesome-detection-engineer (SIEM/query section)",
+          "u": "https://github.com/st0pp3r/awesome-detection-engineer"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/siem-log-analytics-queries.html",
+      "assignedBatch": "P4-B02",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 20,
+        "title": "Telemetry & signal design"
+      },
+      "marker": "20.5",
+      "name": "Upstream data quality is the real enemy",
+      "curriculumBullets": [
+        "A production truth: most detection failures are upstream — a service rewrite silently drops X-Forwarded-For, a header changes, and your model goes blind without ever erroring",
+        "Contract-test your telemetry: schema checks, presence/shape assertions, and an alert on field-drop",
+        "Trust boundaries on inputs: know which fields can be spoofed or mangled before they reach you"
+      ],
+      "exercise": [
+        "Add a telemetry contract test that fails loudly when a critical field (e.g. client IP / X-Forwarded-For) goes missing or malformed"
+      ],
+      "currentResources": [
+        {
+          "t": "do",
+          "l": "Wire schema/contract tests on ingest",
+          "u": ""
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/upstream-telemetry-contracts.html",
+      "assignedBatch": "P4-B02",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 20,
+        "title": "Telemetry & signal design"
+      },
+      "marker": "20.6",
+      "name": "Label lifecycle & provenance",
+      "curriculumBullets": [
+        "Label sources: controlled-generator truth, analyst review, user reports, challenge outcomes, chargebacks, and delayed downstream events",
+        "Sources disagree and arrive at different times: record source, observed_at, available_at, confidence, and adjudication status",
+        "Keep labels outside request-time features and preserve provenance through training exports"
+      ],
+      "exercise": [
+        "Create a versioned label schema and two conflicting/delayed-label examples; prove a label unavailable at decision time cannot enter a feature"
+      ],
+      "currentResources": [
+        {
+          "t": "do",
+          "l": "Design the label contract before training",
+          "u": ""
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/label-lifecycle-provenance.html",
+      "assignedBatch": "P4-B02",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 21,
+        "title": "Feature engineering for detection"
+      },
+      "marker": "21.1",
+      "name": "Per-entity aggregation",
+      "curriculumBullets": [
+        "Per-IP/session/account/ASN counts, ratios, distinct counts"
+      ],
+      "exercise": [
+        "Build per-entity features over your labeled attack data"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "PostgreSQL — Window Functions",
+          "u": "https://www.postgresql.org/docs/current/tutorial-window.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/per-entity-aggregation.html",
+      "assignedBatch": "P4-B03",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 21,
+        "title": "Feature engineering for detection"
+      },
+      "marker": "21.2",
+      "name": "Velocity & windows",
+      "curriculumBullets": [
+        "Sliding/tumbling windows (reuse Week-4 primitive) — great for learning, but in-memory only",
+        "Rate-limiting algorithms as detection primitives: token bucket, leaky bucket, fixed vs sliding window",
+        "GCRA (Generic Cell Rate Algorithm): handles bursts and distributed state elegantly — the production-grade upgrade (what redis-cell implements)",
+        "Distributed state: your in-memory deque breaks across load-balanced nodes — do it in Redis with atomic INCR/EXPIRE and Lua (EVAL) for a race-free read-decide-update",
+        "Rate features; burst detection"
+      ],
+      "exercise": [
+        "Implement a token bucket in memory, then port it to Redis with an atomic Lua script; prove it holds under two concurrent workers",
+        "Read the Stripe write-up; implement a GCRA limiter and compare its burst behaviour to your token bucket"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Redis — rate limiter (INCR/EXPIRE/Lua)",
+          "u": "https://redis.io/docs/latest/develop/use-cases/rate-limiter/"
+        },
+        {
+          "t": "read",
+          "l": "Stripe — scaling your API with rate limiters",
+          "u": "https://stripe.com/blog/rate-limiters"
+        },
+        {
+          "t": "tool",
+          "l": "Redis — build 5 rate limiters (hands-on)",
+          "u": "https://redis.io/tutorials/howtos/ratelimiting/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/velocity-windows-rate-limiting.html",
+      "assignedBatch": "P4-B03",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 21,
+        "title": "Feature engineering for detection"
+      },
+      "marker": "21.3",
+      "name": "Sessionization & availability-time",
+      "curriculumBullets": [
+        "Session boundaries",
+        "Feature availability at decision time — leakage prevention"
+      ],
+      "exercise": [
+        "Feature dictionary with a leakage-risk column"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Feature stores — concept (Feast docs)",
+          "u": "https://docs.feast.dev/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/sessionization-availability-time.html",
+      "assignedBatch": "P4-B03",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 22,
+        "title": "Explainable rule engine"
+      },
+      "marker": "22.1",
+      "name": "Architecture",
+      "curriculumBullets": [
+        "Separate feature calc / rules / policy thresholds / enforcement",
+        "Deployment ladder: shadow → canary → randomized holdout where ethical → enforce → rollback",
+        "A detection's value is the effect of its intervention, not merely its offline score; define conversion/latency/support guardrails before enforcement"
+      ],
+      "exercise": [
+        "Build the separated components; prove shadow has no side effects",
+        "Write the canary/holdout/enforcement/rollback contract and business guardrails before enabling an action"
+      ],
+      "currentResources": [
+        {
+          "t": "repo",
+          "l": "Palantir — Alerting & Detection Strategy framework",
+          "u": "https://github.com/palantir/alerting-detection-strategy-framework"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/explainable-rule-engine-architecture.html",
+      "assignedBatch": "P4-B04",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 22,
+        "title": "Explainable rule engine"
+      },
+      "marker": "22.2",
+      "name": "Decision contract & reason codes",
+      "curriculumBullets": [
+        "Contract: score + reasons + action",
+        "Response actions beyond block: a hard 403 tells the attacker exactly where the tripwire is. Prefer tarpit, stale/cached data, silent rate-limit, a proof-of-work challenge (make them burn CPU), or a step-up challenge — cost their time/compute without confirming how they were caught",
+        "Stable, owner-facing reason codes"
+      ],
+      "exercise": [
+        "Implement the decision contract; add at least two graceful-degradation actions (e.g. tarpit, proof-of-work challenge) alongside block"
+      ],
+      "currentResources": [
+        {
+          "t": "repo",
+          "l": "SigmaHQ/sigma (rule structure)",
+          "u": "https://github.com/SigmaHQ/sigma"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/decision-contract-reason-codes.html",
+      "assignedBatch": "P4-B04",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 22,
+        "title": "Explainable rule engine"
+      },
+      "marker": "22.3",
+      "name": "Rules with lookalikes",
+      "curriculumBullets": [
+        "Per-rule unit tests + legitimate-lookalike tests",
+        "Bounded state & expiry semantics"
+      ],
+      "exercise": [
+        "Velocity / auth-failure / enumeration rules, each with a legitimate-lookalike test"
+      ],
+      "currentResources": [
+        {
+          "t": "do",
+          "l": "Your rule set",
+          "u": ""
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/rules-with-legitimate-lookalikes.html",
+      "assignedBatch": "P4-B04",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 23,
+        "title": "Detection evaluation I"
+      },
+      "marker": "23.1",
+      "name": "Confusion matrix & metrics",
+      "curriculumBullets": [
+        "Precision, recall, FPR, specificity, F1, MCC",
+        "When to prefer MCC over F1"
+      ],
+      "exercise": [
+        "Hand-compute every metric for a small confusion matrix"
+      ],
+      "currentResources": [
+        {
+          "t": "watch",
+          "l": "StatQuest — confusion matrix, precision/recall, ROC",
+          "u": "https://www.youtube.com/@statquest"
+        },
+        {
+          "t": "read",
+          "l": "scikit-learn — model evaluation",
+          "u": "https://scikit-learn.org/stable/modules/model_evaluation.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/confusion-matrix-metrics.html",
+      "assignedBatch": "P4-B05",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 23,
+        "title": "Detection evaluation I"
+      },
+      "marker": "23.2",
+      "name": "Curves & imbalance",
+      "curriculumBullets": [
+        "PR vs ROC; base rates; why 99% accuracy can be worthless",
+        "Offline metrics describe prediction quality, not the causal effect of blocking, challenging, delaying, or reviewing traffic"
+      ],
+      "exercise": [
+        "Plot a PR curve; explain the accuracy trap for abuse detection",
+        "For one candidate action, pre-register an intervention outcome and two business guardrails that its offline score cannot measure"
+      ],
+      "currentResources": [
+        {
+          "t": "watch",
+          "l": "Google ML Crash Course — Classification",
+          "u": "https://developers.google.com/machine-learning/crash-course/classification"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/curves-class-imbalance.html",
+      "assignedBatch": "P4-B05",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 24,
+        "title": "Detection evaluation II: the traps"
+      },
+      "marker": "24.1",
+      "name": "Splitting correctly",
+      "curriculumBullets": [
+        "Temporal & entity splits; never split one session across train/test",
+        "Delayed outcomes require a label-maturity gap: train only on labels that were actually available by the cutoff"
+      ],
+      "exercise": [
+        "Implement a session/time-aware split with an explicit label-delay period"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "scikit-learn — cross-validation",
+          "u": "https://scikit-learn.org/stable/modules/cross_validation.html"
+        },
+        {
+          "t": "read",
+          "l": "Fraud Detection Handbook — temporal validation with delayed labels",
+          "u": "https://fraud-detection-handbook.github.io/fraud-detection-handbook/Chapter_5_ModelValidationAndSelection/ValidationStrategies.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/temporal-entity-splitting.html",
+      "assignedBatch": "P4-B05",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 24,
+        "title": "Detection evaluation II: the traps"
+      },
+      "marker": "24.2",
+      "name": "Leakage & selective labels",
+      "curriculumBullets": [
+        "Target leakage; train/test contamination; features that encode the label",
+        "Selective-label bias: blocked traffic often never yields the outcome you wanted to predict, so enforcement can create a self-confirming dataset",
+        "Separate policy decision, intervention, observed outcome, and adjudicated label"
+      ],
+      "exercise": [
+        "Find leakage in three contrived cases, including one selective-label failure caused by a previous blocking policy"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "scikit-learn — common pitfalls",
+          "u": "https://scikit-learn.org/stable/common_pitfalls.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/leakage-selective-labels.html",
+      "assignedBatch": "P4-B05",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 24,
+        "title": "Detection evaluation II: the traps"
+      },
+      "marker": "24.3",
+      "name": "Calibration, costs & intervention thresholds",
+      "curriculumBullets": [
+        "Reliability diagrams; Brier score; a raw score is not automatically a probability",
+        "Cost of a false block vs a missed attack; expected-cost threshold selection on validation data",
+        "Shadow → canary → randomized holdout where ethical → enforce → rollback, with business guardrails and predeclared success/failure criteria"
+      ],
+      "exercise": [
+        "On held-out data, plot a reliability diagram, compute Brier score, choose an expected-cost threshold, and inspect FPs/FNs individually",
+        "Run a controlled AbuseGuard intervention experiment or document why a randomized holdout is not ethical/meaningful; preserve a rollback path"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Baesens, Van Vlasselaer & Verbeke — Fraud Analytics Using Descriptive, Predictive, and Social Network Techniques (Wiley, 2015)",
+          "u": ""
+        },
+        {
+          "t": "read",
+          "l": "scikit-learn — probability calibration",
+          "u": "https://scikit-learn.org/stable/modules/calibration.html"
+        },
+        {
+          "t": "read",
+          "l": "scikit-learn — decision-threshold tuning",
+          "u": "https://scikit-learn.org/stable/modules/classification_threshold.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/calibration-costs-intervention-thresholds.html",
+      "assignedBatch": "P4-B05",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 25,
+        "title": "Statistics for detection"
+      },
+      "marker": "25.1",
+      "name": "Descriptive stats & uncertainty",
+      "curriculumBullets": [
+        "Distributions, quantiles, sampling, confidence"
+      ],
+      "exercise": [
+        "Quantify uncertainty on your metrics — no single point estimate as truth"
+      ],
+      "currentResources": [
+        {
+          "t": "watch",
+          "l": "StatQuest — statistics fundamentals",
+          "u": "https://www.youtube.com/@statquest"
+        },
+        {
+          "t": "tool",
+          "l": "Seeing Theory (visual stats)",
+          "u": "https://seeing-theory.brown.edu/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/descriptive-statistics-uncertainty.html",
+      "assignedBatch": "P4-B06",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 25,
+        "title": "Statistics for detection"
+      },
+      "marker": "25.2",
+      "name": "Drift & label quality",
+      "curriculumBullets": [
+        "Data drift vs concept drift",
+        "Label noise and its effect"
+      ],
+      "exercise": [
+        "Run a drift check on your traffic; explain data vs concept drift with a bot example"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Evidently — data & concept drift guide",
+          "u": "https://www.evidentlyai.com/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/drift-label-quality.html",
+      "assignedBatch": "P4-B06",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 25,
+        "title": "Statistics for detection"
+      },
+      "marker": "25.3",
+      "name": "Baselines",
+      "curriculumBullets": [
+        "Always-majority; rate-threshold; current rules"
+      ],
+      "exercise": [
+        "Establish the three baselines; state when a metric difference is not meaningful"
+      ],
+      "currentResources": [
+        {
+          "t": "do",
+          "l": "Baseline discipline",
+          "u": ""
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/detection-baselines.html",
+      "assignedBatch": "P4-B06",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 26,
+        "title": "ML for detection I: supervised, honest"
+      },
+      "marker": "26.1",
+      "name": "Pipelines & splits",
+      "curriculumBullets": [
+        "sklearn Pipeline, ColumnTransformer",
+        "Reproducible preprocessing; split by session/time"
+      ],
+      "exercise": [
+        "Build a reproducible pipeline with a session/time split"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "scikit-learn — Pipelines & composite estimators",
+          "u": "https://scikit-learn.org/stable/modules/compose.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/ml-pipelines-splits.html",
+      "assignedBatch": "P4-B07",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 26,
+        "title": "ML for detection I: supervised, honest"
+      },
+      "marker": "26.2",
+      "name": "Logistic regression & trees",
+      "curriculumBullets": [
+        "Fit; interpret coefficients / feature importance cautiously"
+      ],
+      "exercise": [
+        "Fit both; interpret; note instability"
+      ],
+      "currentResources": [
+        {
+          "t": "watch",
+          "l": "StatQuest — logistic regression & decision trees",
+          "u": "https://www.youtube.com/@statquest"
+        },
+        {
+          "t": "read",
+          "l": "scikit-learn — linear models",
+          "u": "https://scikit-learn.org/stable/modules/linear_model.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/logistic-regression-trees.html",
+      "assignedBatch": "P4-B07",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 26,
+        "title": "ML for detection I: supervised, honest"
+      },
+      "marker": "26.3",
+      "name": "Imbalance handling",
+      "curriculumBullets": [
+        "Class weights; resampling (SMOTE) and its dangers",
+        "Cost-sensitive learning"
+      ],
+      "exercise": [
+        "Compare class-weighting vs resampling; document the pitfalls"
+      ],
+      "currentResources": [
+        {
+          "t": "docs",
+          "l": "imbalanced-learn",
+          "u": "https://imbalanced-learn.org/stable/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/imbalance-handling.html",
+      "assignedBatch": "P4-B07",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 26,
+        "title": "ML for detection I: supervised, honest"
+      },
+      "marker": "26.4",
+      "name": "Rules vs ML head-to-head",
+      "curriculumBullets": [
+        "Identical held-out traffic + cost assumptions",
+        "Explicit ship / don't-ship"
+      ],
+      "exercise": [
+        "Compare fairly; make an explicit decision — keep rules if they're better"
+      ],
+      "currentResources": [
+        {
+          "t": "do",
+          "l": "Your eval harness",
+          "u": ""
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/rules-vs-ml.html",
+      "assignedBatch": "P4-B07",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 27,
+        "title": "ML for detection II: unsupervised, discovery & its traps"
+      },
+      "marker": "27.1",
+      "name": "Unsupervised methods",
+      "curriculumBullets": [
+        "Isolation forest, LOF, DBSCAN clustering; autoencoder reconstruction error (concept)",
+        "When each fits high-dimensional traffic vs entity features"
+      ],
+      "exercise": [
+        "Run two different unsupervised methods on your traffic and compare what each flags"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "scikit-learn — outlier detection",
+          "u": "https://scikit-learn.org/stable/modules/outlier_detection.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/unsupervised-detection-methods.html",
+      "assignedBatch": "P4-B08",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 27,
+        "title": "ML for detection II: unsupervised, discovery & its traps"
+      },
+      "marker": "27.2",
+      "name": "Anomaly ≠ malicious",
+      "curriculumBullets": [
+        "Base-rate problem; false-positive explosion at scale",
+        "When unsupervised helps: discovery, not enforcement"
+      ],
+      "exercise": [
+        "Measure how many flagged anomalies are actually legitimate; write up why you wouldn't enforce on it"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Fraud Detection Handbook — free practical reference",
+          "u": "https://fraud-detection-handbook.github.io/fraud-detection-handbook/Foreword.html"
+        },
+        {
+          "t": "read",
+          "l": "Fraud Detection Handbook — validation strategies",
+          "u": "https://fraud-detection-handbook.github.io/fraud-detection-handbook/Chapter_5_ModelValidationAndSelection/ValidationStrategies.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/anomaly-is-not-malicious.html",
+      "assignedBatch": "P4-B08",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 27,
+        "title": "ML for detection II: unsupervised, discovery & its traps"
+      },
+      "marker": "27.3",
+      "name": "Evaluating without labels; peer-group profiling",
+      "curriculumBullets": [
+        "How to judge an unsupervised detector when you have no ground truth",
+        "Peer-group / cohort analysis and seasonality (an entity vs its own normal baseline)",
+        "Using unsupervised output to generate candidate labels for supervised review"
+      ],
+      "exercise": [
+        "Build a peer-group anomaly detector (entity vs its cohort); hand-validate a sample of its top flags"
+      ],
+      "currentResources": [
+        {
+          "t": "repo",
+          "l": "st0pp3r/awesome-detection-engineer",
+          "u": "https://github.com/st0pp3r/awesome-detection-engineer"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/unlabeled-evaluation-peer-groups.html",
+      "assignedBatch": "P4-B08",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 28,
+        "title": "AbuseGuard v2 — Checkpoint 3"
+      },
+      "marker": "28.1",
+      "name": "Corpus & evaluation",
+      "curriculumBullets": [
+        "Sanitized labeled corpus (your app only)",
+        "Held-out evaluation; honest failure cases"
+      ],
+      "exercise": [
+        "Reproduce the dataset & report from documented steps"
+      ],
+      "currentResources": [
+        {
+          "t": "do",
+          "l": "Reproducibility discipline",
+          "u": ""
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/abuseguard-v2-corpus-evaluation.html",
+      "assignedBatch": "P4-B09",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 28,
+        "title": "AbuseGuard v2 — Checkpoint 3"
+      },
+      "marker": "28.2",
+      "name": "Dashboard & runbook",
+      "curriculumBullets": [
+        "Shadow-mode dashboard",
+        "Credential-stuffing incident runbook"
+      ],
+      "exercise": [
+        "Build the dashboard + runbook"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Splunk — Detection Engineering",
+          "u": "https://www.splunk.com/en_us/blog/learn/detection-engineering.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/shadow-dashboard-incident-runbook.html",
+      "assignedBatch": "P4-B09",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p4",
+        "label": "Phase 4",
+        "name": "Detection engineering core"
+      },
+      "week": {
+        "number": 28,
+        "title": "AbuseGuard v2 — Checkpoint 3"
+      },
+      "marker": "28.3",
+      "name": "Article",
+      "curriculumBullets": [
+        "'Why a perfect bot detector on a tiny dataset proves nothing'"
+      ],
+      "exercise": [
+        "Publish the article; deliver a 5-minute presentation"
+      ],
+      "currentResources": [
+        {
+          "t": "do",
+          "l": "Write it in your own words",
+          "u": ""
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/tiny-dataset-detector-article.html",
+      "assignedBatch": "P4-B09",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p5",
+        "label": "Phase 5",
+        "name": "Production detection at scale"
+      },
+      "week": {
+        "number": 29,
+        "title": "Detection data engineering"
+      },
+      "marker": "29.1",
+      "name": "Batch vs streaming",
+      "curriculumBullets": [
+        "Event-driven ingestion; lambda/kappa patterns",
+        "Where each is appropriate"
+      ],
+      "exercise": [
+        "Build an ingest → feature → decision → audit pipeline"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Designing Data-Intensive Applications (Kleppmann)",
+          "u": "https://dataintensive.net/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/batch-vs-streaming-detection.html",
+      "assignedBatch": "P5-B01",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p5",
+        "label": "Phase 5",
+        "name": "Production detection at scale"
+      },
+      "week": {
+        "number": 29,
+        "title": "Detection data engineering"
+      },
+      "marker": "29.2",
+      "name": "Late / duplicate / out-of-order",
+      "curriculumBullets": [
+        "Idempotent aggregation; watermarks; dedup"
+      ],
+      "exercise": [
+        "Handle a duplicate/out-of-order event without corrupting a velocity feature"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "DDIA — stream processing",
+          "u": "https://dataintensive.net/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/late-duplicate-out-of-order-events.html",
+      "assignedBatch": "P5-B01",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p5",
+        "label": "Phase 5",
+        "name": "Production detection at scale"
+      },
+      "week": {
+        "number": 29,
+        "title": "Detection data engineering"
+      },
+      "marker": "29.3",
+      "name": "Storage, partitioning, retention",
+      "curriculumBullets": [
+        "Partitions; retention; backfills; schema evolution"
+      ],
+      "exercise": [
+        "Write a retention + safe backfill plan"
+      ],
+      "currentResources": [
+        {
+          "t": "docs",
+          "l": "PostgreSQL — partitioning",
+          "u": "https://www.postgresql.org/docs/current/ddl-partitioning.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/storage-partitioning-retention.html",
+      "assignedBatch": "P5-B01",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p5",
+        "label": "Phase 5",
+        "name": "Production detection at scale"
+      },
+      "week": {
+        "number": 30,
+        "title": "Real-time detection systems"
+      },
+      "marker": "30.1",
+      "name": "Latency budgets",
+      "curriculumBullets": [
+        "Online decision path; p99; bounded work"
+      ],
+      "exercise": [
+        "Define and measure a latency budget for the online path"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "HPBN (chapter: latency primer)",
+          "u": "https://hpbn.co/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/online-detection-latency-budgets.html",
+      "assignedBatch": "P5-B01",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p5",
+        "label": "Phase 5",
+        "name": "Production detection at scale"
+      },
+      "week": {
+        "number": 30,
+        "title": "Real-time detection systems"
+      },
+      "marker": "30.2",
+      "name": "Online vs offline features & stores",
+      "curriculumBullets": [
+        "Feature store concept; train/serve skew",
+        "Caching & bounded state",
+        "Concept only this week — you build the actual online feature store in Week 31, so it doesn't get crammed in here"
+      ],
+      "exercise": [
+        "Prove conceptually that an offline feature == its online version, or document why it can't"
+      ],
+      "currentResources": [
+        {
+          "t": "docs",
+          "l": "Feast — feature store",
+          "u": "https://docs.feast.dev/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/online-offline-feature-stores.html",
+      "assignedBatch": "P5-B01",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p5",
+        "label": "Phase 5",
+        "name": "Production detection at scale"
+      },
+      "week": {
+        "number": 31,
+        "title": "Distributed & event-driven detection"
+      },
+      "marker": "31.1",
+      "name": "Async & queues",
+      "curriculumBullets": [
+        "Message queues; at-least-once; ordering; back-pressure"
+      ],
+      "exercise": [
+        "Implement a queue-backed detection workflow"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "RabbitMQ tutorials",
+          "u": "https://www.rabbitmq.com/tutorials"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/async-queues.html",
+      "assignedBatch": "P5-B02",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p5",
+        "label": "Phase 5",
+        "name": "Production detection at scale"
+      },
+      "week": {
+        "number": 31,
+        "title": "Distributed & event-driven detection"
+      },
+      "marker": "31.2",
+      "name": "Reliability",
+      "curriculumBullets": [
+        "Idempotency keys; retries with limits",
+        "Dead-letter handling; poison messages"
+      ],
+      "exercise": [
+        "Correctness tests: duplicate delivery, retry exhaustion, poison, out-of-order"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "RabbitMQ — dead letter exchanges",
+          "u": "https://www.rabbitmq.com/docs/dlx"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/queue-reliability-idempotency-retries.html",
+      "assignedBatch": "P5-B02",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p5",
+        "label": "Phase 5",
+        "name": "Production detection at scale"
+      },
+      "week": {
+        "number": 31,
+        "title": "Distributed & event-driven detection"
+      },
+      "marker": "31.3",
+      "name": "Auditable playbook",
+      "curriculumBullets": [
+        "validate → enrich → propose → record → replay/rollback",
+        "SOAR-style, mock data only"
+      ],
+      "exercise": [
+        "Build a mock playbook with an audit trail"
+      ],
+      "currentResources": [
+        {
+          "t": "repo",
+          "l": "st0pp3r/awesome-detection-engineer",
+          "u": "https://github.com/st0pp3r/awesome-detection-engineer"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/auditable-detection-playbook.html",
+      "assignedBatch": "P5-B02",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p5",
+        "label": "Phase 5",
+        "name": "Production detection at scale"
+      },
+      "week": {
+        "number": 31,
+        "title": "Distributed & event-driven detection"
+      },
+      "marker": "31.4",
+      "name": "Online feature store (implementation)",
+      "curriculumBullets": [
+        "Build the online feature store you designed in Week 30 — the hardest real-time data problem in detection",
+        "Serve features with the same values you trained on; catch train/serve skew with a consistency check",
+        "Backfill and point-in-time correctness"
+      ],
+      "exercise": [
+        "Stand up a minimal online feature store for AbuseGuard; add a check that flags train/serve skew"
+      ],
+      "currentResources": [
+        {
+          "t": "docs",
+          "l": "Feast — feature store",
+          "u": "https://docs.feast.dev/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/online-feature-store-implementation.html",
+      "assignedBatch": "P5-B02",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p5",
+        "label": "Phase 5",
+        "name": "Production detection at scale"
+      },
+      "week": {
+        "number": 32,
+        "title": "Cloud, edge & WAF"
+      },
+      "marker": "32.1",
+      "name": "Edge & WAF",
+      "curriculumBullets": [
+        "Cloudflare Free; WAF rules; rate limiting",
+        "Cloudflare Free has no WAF log action: validate with an AbuseGuard app-side shadow rule that mirrors the intended edge expression",
+        "If you test an actual challenge/block action, scope it safely, document the expected match/non-match traffic, and prove rollback immediately"
+      ],
+      "exercise": [
+        "Deploy behind the edge; replay traffic through an app-side non-enforcing shadow rule that mirrors one intended WAF/rate-limit expression",
+        "Optionally run a narrowly scoped challenge/block test only with an explicit rollback procedure"
+      ],
+      "currentResources": [
+        {
+          "t": "docs",
+          "l": "Cloudflare WAF",
+          "u": "https://developers.cloudflare.com/waf/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/edge-waf.html",
+      "assignedBatch": "P5-B03",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p5",
+        "label": "Phase 5",
+        "name": "Production detection at scale"
+      },
+      "week": {
+        "number": 32,
+        "title": "Cloud, edge & WAF"
+      },
+      "marker": "32.2",
+      "name": "One cloud, deeply",
+      "curriculumBullets": [
+        "IAM; networking/security groups; secrets; logging; compute; DB"
+      ],
+      "exercise": [
+        "Explain the whole deployment; use least-privilege IAM"
+      ],
+      "currentResources": [
+        {
+          "t": "docs",
+          "l": "Your chosen cloud's IAM/networking docs",
+          "u": ""
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/one-cloud-deeply.html",
+      "assignedBatch": "P5-B03",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p5",
+        "label": "Phase 5",
+        "name": "Production detection at scale"
+      },
+      "week": {
+        "number": 32,
+        "title": "Cloud, edge & WAF"
+      },
+      "marker": "32.3",
+      "name": "Infrastructure as code",
+      "curriculumBullets": [
+        "Terraform plan/apply/state/rollback",
+        "No secrets in state or Git"
+      ],
+      "exercise": [
+        "Provision a narrow slice with Terraform; prove rollback"
+      ],
+      "currentResources": [
+        {
+          "t": "docs",
+          "l": "Terraform tutorials",
+          "u": "https://developer.hashicorp.com/terraform/tutorials"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/terraform-infrastructure-as-code.html",
+      "assignedBatch": "P5-B03",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p5",
+        "label": "Phase 5",
+        "name": "Production detection at scale"
+      },
+      "week": {
+        "number": 33,
+        "title": "Observability & incident operations"
+      },
+      "marker": "33.1",
+      "name": "Metrics, logs, traces & SLIs",
+      "curriculumBullets": [
+        "The three pillars; SLI/SLO; alert thresholds"
+      ],
+      "exercise": [
+        "Add latency/error/decision metrics and structured logs"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Google SRE — Service Level Objectives",
+          "u": "https://sre.google/sre-book/service-level-objectives/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/metrics-logs-traces-slis.html",
+      "assignedBatch": "P5-B04",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p5",
+        "label": "Phase 5",
+        "name": "Production detection at scale"
+      },
+      "week": {
+        "number": 33,
+        "title": "Observability & incident operations"
+      },
+      "marker": "33.2",
+      "name": "Alerts & runbooks",
+      "curriculumBullets": [
+        "Actionable alerts linked to runbooks; alert fatigue"
+      ],
+      "exercise": [
+        "Wire an alert to a runbook; explain when an alert makes ops worse"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Google SRE — Monitoring Distributed Systems",
+          "u": "https://sre.google/sre-book/monitoring-distributed-systems/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/alerts-runbooks.html",
+      "assignedBatch": "P5-B04",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p5",
+        "label": "Phase 5",
+        "name": "Production detection at scale"
+      },
+      "week": {
+        "number": 33,
+        "title": "Observability & incident operations"
+      },
+      "marker": "33.3",
+      "name": "Incident response",
+      "curriculumBullets": [
+        "Rehearse incidents; blameless postmortems"
+      ],
+      "exercise": [
+        "Run a full incident cycle + a blameless postmortem"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Google SRE — Postmortem Culture",
+          "u": "https://sre.google/sre-book/postmortem-culture/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/incident-response-postmortems.html",
+      "assignedBatch": "P5-B04",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p5",
+        "label": "Phase 5",
+        "name": "Production detection at scale"
+      },
+      "week": {
+        "number": 33,
+        "title": "Observability & incident operations"
+      },
+      "marker": "33.4",
+      "name": "Detection is a negotiation, not just math",
+      "curriculumBullets": [
+        "A technically-correct block gets overruled if it dents conversion or top-line metrics — sometimes bot traffic is quietly counted in growth numbers",
+        "Who owns the false-positive cost, and who signs off on enforcement",
+        "A detection's value is its intervention effect, not its offline score: operate shadow → canary → randomized holdout where ethical → enforce → rollback",
+        "Frame conversion, latency, support load, abuse loss, guardrails, and stop conditions in business terms"
+      ],
+      "exercise": [
+        "Write a one-page enforcement proposal for a non-technical exec: intervention, assignment/holdout plan, expected abuse reduction, conversion risk, guardrails, owner, stop condition, and rollback"
+      ],
+      "currentResources": [
+        {
+          "t": "do",
+          "l": "Real production lesson — write your own stakeholder memo",
+          "u": ""
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/detection-business-negotiation.html",
+      "assignedBatch": "P5-B04",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p5",
+        "label": "Phase 5",
+        "name": "Production detection at scale"
+      },
+      "week": {
+        "number": 34,
+        "title": "Adversarial adaptation"
+      },
+      "marker": "34.1",
+      "name": "The arms race",
+      "curriculumBullets": [
+        "Adversary adaptation; evasion; why detection is never done",
+        "Obfuscation is a speedbump, not a wall: a dedicated attacker reverse-engineers your challenge in ~48h. Raise their maintenance cost until they move to a softer target — don't chase unbreakable",
+        "Assume the attacker has better observability than you: scraping rings run Grafana/PagerDuty and often see your mitigation before it fully propagates. You're fighting a rival engineering org, not a lone hacker",
+        "Red-team your own detector with your Phase-3 toolkit"
+      ],
+      "exercise": [
+        "Evade your own detector; measure how far you get; then estimate the attacker-hours your best control actually costs them"
+      ],
+      "currentResources": [
+        {
+          "t": "repo",
+          "l": "niespodd (attacker's view)",
+          "u": "https://github.com/niespodd/browser-fingerprinting"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/adversarial-detection-arms-race.html",
+      "assignedBatch": "P5-B05",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p5",
+        "label": "Phase 5",
+        "name": "Production detection at scale"
+      },
+      "week": {
+        "number": 34,
+        "title": "Adversarial adaptation"
+      },
+      "marker": "34.2",
+      "name": "Feedback loops & poisoning",
+      "curriculumBullets": [
+        "Label-feedback dangers; poisoning; concept drift under pressure",
+        "Selective-label bias: blocked traffic may never produce an outcome, allowing the detector to confirm its own policy",
+        "Guardrails against feedback contamination: preserve policy/action metadata, delayed mature holdouts, reviewed samples, source-aware labels, and retraining approval",
+        "Retraining cadence"
+      ],
+      "exercise": [
+        "Document a safe retraining cadence and the loop's failure modes",
+        "Simulate one self-confirming loop caused by blocked traffic, then specify the data and review guardrails that expose it"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Evidently — model monitoring & drift",
+          "u": "https://www.evidentlyai.com/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/feedback-loops-poisoning.html",
+      "assignedBatch": "P5-B05",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p5",
+        "label": "Phase 5",
+        "name": "Production detection at scale"
+      },
+      "week": {
+        "number": 35,
+        "title": "AbuseGuard v3 — Checkpoint 4"
+      },
+      "marker": "35.1",
+      "name": "Production release",
+      "curriculumBullets": [
+        "Clean deploy from docs; safe shadow↔enforce switch + rollback",
+        "Load test with stated hardware/traffic model"
+      ],
+      "exercise": [
+        "Reproducible prod-like demo behind a WAF, no secrets in repo"
+      ],
+      "currentResources": [
+        {
+          "t": "do",
+          "l": "Your runbooks",
+          "u": ""
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/abuseguard-v3-production-release.html",
+      "assignedBatch": "P5-B05",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p5",
+        "label": "Phase 5",
+        "name": "Production detection at scale"
+      },
+      "week": {
+        "number": 35,
+        "title": "AbuseGuard v3 — Checkpoint 4"
+      },
+      "marker": "35.2",
+      "name": "Incident + article",
+      "curriculumBullets": [
+        "Full alert → investigate → mitigate → recover → postmortem",
+        "Article on measuring false positives"
+      ],
+      "exercise": [
+        "Run the full incident cycle; publish the article"
+      ],
+      "currentResources": [
+        {
+          "t": "do",
+          "l": "Write it up",
+          "u": ""
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/incident-false-positive-article.html",
+      "assignedBatch": "P5-B05",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p6",
+        "label": "Phase 6",
+        "name": "Specialization & mastery"
+      },
+      "week": {
+        "number": 36,
+        "title": "Cross-layer correlation"
+      },
+      "marker": "36.1",
+      "name": "Fusing layers",
+      "curriculumBullets": [
+        "Pseudonymous IDs; bounded windows",
+        "Joining signals from every layer"
+      ],
+      "exercise": [
+        "Build a cross-layer correlation with explicit reason codes"
+      ],
+      "currentResources": [
+        {
+          "t": "do",
+          "l": "Your Phase 3–4 signals",
+          "u": ""
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/cross-layer-signal-fusion.html",
+      "assignedBatch": "P6-B01",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p6",
+        "label": "Phase 6",
+        "name": "Specialization & mastery"
+      },
+      "week": {
+        "number": 36,
+        "title": "Cross-layer correlation"
+      },
+      "marker": "36.2",
+      "name": "Inconsistency rules",
+      "curriculumBullets": [
+        "Cross-layer contradictions (Chrome UA + Python JA4)",
+        "Testing proxies/version-changes/legit-automation/mobile/missing signals"
+      ],
+      "exercise": [
+        "Add inconsistency rules; show whether cross-layer improves cost-adjusted results"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "niespodd (consistency checks)",
+          "u": "https://github.com/niespodd/browser-fingerprinting"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/cross-layer-inconsistency-rules.html",
+      "assignedBatch": "P6-B01",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p6",
+        "label": "Phase 6",
+        "name": "Specialization & mastery"
+      },
+      "week": {
+        "number": 36,
+        "title": "Cross-layer correlation"
+      },
+      "marker": "36.3",
+      "name": "Entity resolution before graphs",
+      "curriculumBullets": [
+        "An entity link is a weighted, time-bounded hypothesis — not identity truth",
+        "Link confidence, temporal edges, identifier churn, and evidence provenance",
+        "Shared device / NAT / household / corporate-network false positives; never merge solely on a weak shared identifier"
+      ],
+      "exercise": [
+        "Create an entity-link schema with confidence, valid_from/valid_to, evidence source, and merge policy; include three deliberate non-merge lookalikes"
+      ],
+      "currentResources": [
+        {
+          "t": "do",
+          "l": "Design the entity-link contract before ring detection",
+          "u": ""
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/entity-resolution-before-graphs.html",
+      "assignedBatch": "P6-B01",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p6",
+        "label": "Phase 6",
+        "name": "Specialization & mastery"
+      },
+      "week": {
+        "number": 37,
+        "title": "Fraud & abuse domain depth"
+      },
+      "marker": "37.1",
+      "name": "ATO & cred-stuffing economics",
+      "curriculumBullets": [
+        "Attack economics; combo lists; sentry tooling"
+      ],
+      "exercise": [
+        "Model the economics; derive detection implications"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Stripe — How we built it: Stripe Radar",
+          "u": "https://stripe.dev/blog/how-we-built-it-stripe-radar"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/ato-credential-stuffing-economics.html",
+      "assignedBatch": "P6-B02",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p6",
+        "label": "Phase 6",
+        "name": "Specialization & mastery"
+      },
+      "week": {
+        "number": 37,
+        "title": "Fraud & abuse domain depth"
+      },
+      "marker": "37.2",
+      "name": "Fake accounts & payment fraud",
+      "curriculumBullets": [
+        "Fake-account detection; carding; chargebacks",
+        "Device intelligence",
+        "Temporally correct validation when outcomes such as chargebacks arrive late"
+      ],
+      "exercise": [
+        "Build a fake-account detection feature and record when its outcome label becomes mature enough to evaluate"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Fraud Detection Handbook — free practical reference",
+          "u": "https://fraud-detection-handbook.github.io/fraud-detection-handbook/Foreword.html"
+        },
+        {
+          "t": "read",
+          "l": "Fraud Detection Handbook — validation strategies",
+          "u": "https://fraud-detection-handbook.github.io/fraud-detection-handbook/Chapter_5_ModelValidationAndSelection/ValidationStrategies.html"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/fake-accounts-payment-fraud.html",
+      "assignedBatch": "P6-B02",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p6",
+        "label": "Phase 6",
+        "name": "Specialization & mastery"
+      },
+      "week": {
+        "number": 37,
+        "title": "Fraud & abuse domain depth"
+      },
+      "marker": "37.3",
+      "name": "Graph-based detection",
+      "curriculumBullets": [
+        "Link accounts/devices/IPs/payments through the Week-36 confidence-scored temporal entity links",
+        "Connected components and ring features; real-time block vs async investigate",
+        "Review top candidates with explicit shared-device/NAT/household lookalikes; report precision-at-K rather than assuming each dense component is malicious"
+      ],
+      "exercise": [
+        "Build connected-component/ring queries over a graph with planted rings and legitimate shared-identifier components; hand-review the top candidates and compute precision-at-K"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "NetworkX tutorial",
+          "u": "https://networkx.org/documentation/stable/tutorial.html"
+        },
+        {
+          "t": "repo",
+          "l": "infosecB/awesome-detection-engineering",
+          "u": "https://github.com/infosecB/awesome-detection-engineering"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/graph-based-fraud-detection.html",
+      "assignedBatch": "P6-B02",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p6",
+        "label": "Phase 6",
+        "name": "Specialization & mastery"
+      },
+      "week": {
+        "number": 37,
+        "title": "Fraud & abuse domain depth"
+      },
+      "marker": "37.4",
+      "name": "The economics of defense (CAPTCHA & solver farms)",
+      "curriculumBullets": [
+        "Bot defense is an economic war: you win by making the attack cost more than the scraped data is worth",
+        "How solver farms (2Captcha-class services) add per-request cost and latency — and the latency signature that can reveal them defensively",
+        "Modelling the break-even point where the attacker gives up"
+      ],
+      "exercise": [
+        "Model the attacker's per-request cost vs payoff for one AbuseGuard abuse; find the control that pushes them past break-even"
+      ],
+      "currentResources": [
+        {
+          "t": "read",
+          "l": "Baesens, Van Vlasselaer & Verbeke — Fraud Analytics Using Descriptive, Predictive, and Social Network Techniques (Wiley, 2015)",
+          "u": ""
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/defense-economics-captcha-solver-farms.html",
+      "assignedBatch": "P6-B02",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p6",
+        "label": "Phase 6",
+        "name": "Specialization & mastery"
+      },
+      "week": {
+        "number": 38,
+        "title": "Threat research method"
+      },
+      "marker": "38.1",
+      "name": "Experiment design",
+      "curriculumBullets": [
+        "Falsifiable hypotheses; controls; pre-registration; reproducibility"
+      ],
+      "exercise": [
+        "Pre-register one narrow detection experiment; don't change the hypothesis after results"
+      ],
+      "currentResources": [
+        {
+          "t": "repo",
+          "l": "Palantir — ADS framework",
+          "u": "https://github.com/palantir/alerting-detection-strategy-framework"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/detection-experiment-design.html",
+      "assignedBatch": "P6-B03",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p6",
+        "label": "Phase 6",
+        "name": "Specialization & mastery"
+      },
+      "week": {
+        "number": 38,
+        "title": "Threat research method"
+      },
+      "marker": "38.2",
+      "name": "Ethics & disclosure",
+      "curriculumBullets": [
+        "Authorization; responsible disclosure; negative results"
+      ],
+      "exercise": [
+        "Make it reproducible from sanitized artifacts; separate result/inference/speculation"
+      ],
+      "currentResources": [
+        {
+          "t": "do",
+          "l": "Disclosure norms",
+          "u": ""
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/research-ethics-disclosure.html",
+      "assignedBatch": "P6-B03",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p6",
+        "label": "Phase 6",
+        "name": "Specialization & mastery"
+      },
+      "week": {
+        "number": 39,
+        "title": "Portfolio & proof"
+      },
+      "marker": "39.1",
+      "name": "Portfolio index",
+      "curriculumBullets": [
+        "Requirement → artifact mapping for each target role"
+      ],
+      "exercise": [
+        "Build the requirement → artifact index"
+      ],
+      "currentResources": [
+        {
+          "t": "repo",
+          "l": "st0pp3r/awesome-detection-engineer",
+          "u": "https://github.com/st0pp3r/awesome-detection-engineer"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/portfolio-requirement-artifact-index.html",
+      "assignedBatch": "P6-B03",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p6",
+        "label": "Phase 6",
+        "name": "Specialization & mastery"
+      },
+      "week": {
+        "number": 39,
+        "title": "Portfolio & proof"
+      },
+      "marker": "39.2",
+      "name": "Artifacts & writeups",
+      "curriculumBullets": [
+        "Sanitized corpus, threat model, detection-quality report, runbook",
+        "Three polished articles"
+      ],
+      "exercise": [
+        "Assemble every artifact; each résumé claim points to public evidence"
+      ],
+      "currentResources": [
+        {
+          "t": "do",
+          "l": "Portfolio checklist",
+          "u": ""
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/portfolio-artifacts-writeups.html",
+      "assignedBatch": "P6-B03",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p6",
+        "label": "Phase 6",
+        "name": "Specialization & mastery"
+      },
+      "week": {
+        "number": 39,
+        "title": "Portfolio & proof"
+      },
+      "marker": "39.3",
+      "name": "Presentations",
+      "curriculumBullets": [
+        "5-minute executive + 20-minute technical"
+      ],
+      "exercise": [
+        "Deliver both presentations; a reviewer finds setup/decisions/results/limits fast"
+      ],
+      "currentResources": [
+        {
+          "t": "do",
+          "l": "Rehearse both",
+          "u": ""
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/executive-technical-presentations.html",
+      "assignedBatch": "P6-B03",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p6",
+        "label": "Phase 6",
+        "name": "Specialization & mastery"
+      },
+      "week": {
+        "number": 40,
+        "title": "Interview mastery & final consolidation"
+      },
+      "marker": "40.1",
+      "name": "Coding & DSA",
+      "curriculumBullets": [
+        "Timed, no-AI, with tests & complexity"
+      ],
+      "exercise": [
+        "Timed unassisted exercises with tests and complexity analysis"
+      ],
+      "currentResources": [
+        {
+          "t": "repo",
+          "l": "jwasham/coding-interview-university",
+          "u": "https://github.com/jwasham/coding-interview-university"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/coding-dsa-interview-practice.html",
+      "assignedBatch": "P6-B04",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p6",
+        "label": "Phase 6",
+        "name": "Specialization & mastery"
+      },
+      "week": {
+        "number": 40,
+        "title": "Interview mastery & final consolidation"
+      },
+      "marker": "40.2",
+      "name": "System design for detection",
+      "curriculumBullets": [
+        "Design a bot-detection system end to end",
+        "Generic distributed-systems patterns (for standard SWE rounds)",
+        "Fraud/abuse-specific patterns: real-time scoring vs async investigation, feature stores, feedback loops (for domain rounds)"
+      ],
+      "exercise": [
+        "Whiteboard a full detection system: telemetry → features → rules/ML → eval → serving → adaptation",
+        "Sketch a fraud-scoring pipeline distinguishing real-time block from async investigation"
+      ],
+      "currentResources": [
+        {
+          "t": "repo",
+          "l": "donnemartin/system-design-primer (generic rounds)",
+          "u": "https://github.com/donnemartin/system-design-primer"
+        },
+        {
+          "t": "read",
+          "l": "Stripe — How we built it: Stripe Radar",
+          "u": "https://stripe.dev/blog/how-we-built-it-stripe-radar"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/system-design-for-detection.html",
+      "assignedBatch": "P6-B04",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p6",
+        "label": "Phase 6",
+        "name": "Specialization & mastery"
+      },
+      "week": {
+        "number": 40,
+        "title": "Interview mastery & final consolidation"
+      },
+      "marker": "40.3",
+      "name": "SQL & domain deep-dives",
+      "curriculumBullets": [
+        "SQL schema/query/plan exercises",
+        "The detection stack from memory, both sides"
+      ],
+      "exercise": [
+        "SQL plan exercises; explain the full stack from a blank page"
+      ],
+      "currentResources": [
+        {
+          "t": "tool",
+          "l": "PGExercises",
+          "u": "https://pgexercises.com/"
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/sql-domain-deep-dives.html",
+      "assignedBatch": "P6-B04",
+      "validationStatus": "passed"
+    },
+    {
+      "phase": {
+        "id": "p6",
+        "label": "Phase 6",
+        "name": "Specialization & mastery"
+      },
+      "week": {
+        "number": 40,
+        "title": "Interview mastery & final consolidation"
+      },
+      "marker": "40.4",
+      "name": "Behavioral / STAR",
+      "curriculumBullets": [
+        "Six stories: ambiguity, debugging, security trade-off, false positive, incident, learning from failure"
+      ],
+      "exercise": [
+        "Write & rehearse the six stories, grounded in real work"
+      ],
+      "currentResources": [
+        {
+          "t": "do",
+          "l": "STAR method",
+          "u": ""
+        }
+      ],
+      "guideStatus": "created-and-linked",
+      "target": "topics/behavioral-star-stories.html",
+      "assignedBatch": "P6-B04",
+      "validationStatus": "passed"
+    }
+  ]
+}

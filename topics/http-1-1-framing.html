@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Defensive HTTP/1.1 message framing for detection engineers.">
+<title>HTTP/1.1 Framing — Detection Engineering Learning Console</title>
+<link rel="stylesheet" href="assets/guide.css">
+<script src="assets/guide.js" defer>
+</script>
+</head>
+<body>
+<div class="topbar">
+<div class="topbar-inner">
+<a class="back" href="../index.html#w8">
+<span>←</span> Back to curriculum</a>
+<span class="topic-id">Week 8 · Topic 8.3</span>
+</div>
+</div>
+<div class="shell">
+<header class="hero">
+<p class="eyebrow">Practical field guide · HTTP/1.1</p>
+<h1>Know where one message <span>ends.</span>
+</h1>
+<p class="lede">HTTP/1.1 connections can carry multiple messages. Framing rules prevent one component from treating bytes as a different request than another.</p>
+<div class="hero-grid">
+<div class="hero-stat">
+<b>7 concepts</b>
+<span>Framing rules</span>
+</div>
+<div class="hero-stat">
+<b>4 scenarios</b>
+<span>Detection work</span>
+</div>
+<div class="hero-stat">
+<b>3 drills</b>
+<span>Saved evidence</span>
+</div>
+</div>
+</header>
+<div class="layout">
+<nav class="toc">
+<p class="toc-title">On this page</p>
+<a href="#why">Why</a>
+<a href="#model">Model</a>
+<a href="#length">Content-Length</a>
+<a href="#chunked">Chunked</a>
+<a href="#precedence">Precedence</a>
+<a href="#parser">Lab parser</a>
+<a href="#connections">Connections</a>
+<a href="#smuggling">Defensive concept</a>
+<a href="#safety">Safety</a>
+<a href="#scenarios">Scenarios</a>
+<a class="toc-practice" href="#drills">Drills</a>
+<a href="#cheatsheet">Cheat sheet</a>
+<a href="#pass">Ready?</a>
+<a href="#resources">Resources</a>
+</nav>
+<main>
+<section id="why">
+<p class="section-kicker">01 · Purpose</p>
+<h2>Framing is a security boundary</h2>
+<p class="intro">A persistent connection is a byte stream. Sender and recipient must agree on request/response boundaries before method, route, and body telemetry means anything.</p>
+<div class="cards">
+<article class="card">
+<span class="num">CORRECTNESS</span>
+<h4>Exact body length</h4>
+<p>Read neither too few nor unbounded bytes.</p>
+</article>
+<article class="card">
+<span class="num">PROXY</span>
+<h4>Multiple hops</h4>
+<p>Each parser must reject ambiguity consistently.</p>
+</article>
+<article class="card">
+<span class="num">RESILIENCE</span>
+<h4>Caps</h4>
+<p>Headers/body/chunks need limits and timeouts.</p>
+</article>
+<article class="card">
+<span class="num">FORENSICS</span>
+<h4>Record rejection</h4>
+<p>Keep reason/category, not hostile raw payload.</p>
+</article>
+</div>
+</section>
+<section id="model">
+<p class="section-kicker">02 · HTTP/1.1 byte model</p>
+<pre>
+<code>start-line\r\n
+field-name: value\r\n
+\r\n
+message content bytes...</code>
+</pre>
+<p>HTTP/1.1 uses CRLF-delimited start/header lines and specified message-body length. Connection reuse/keep-alive means the next message may follow immediately after current content. RFC 9112 defines the recipient algorithm; implementers should use mature servers/proxies, not a learning parser for Internet traffic.</p>
+</section>
+<section id="length">
+<p class="section-kicker">03 · Content-Length</p>
+<p>
+<code>Content-Length</code> declares decimal content length when applicable. Reject invalid values, conflicting repeated values, unsupported overflow, and content beyond a configured cap. A recipient must not “read until socket close” when a length/transfer coding rules the message; connection closure is not a general safe delimiter for all messages.</p>
+</section>
+<section id="chunked">
+<p class="section-kicker">04 · Transfer-Encoding: chunked</p>
+<pre>
+<code>4\r\nWiki\r\n
+5\r\npedia\r\n
+0\r\n\r\n</code>
+</pre>
+<p>Chunked coding sends hex chunk size, chunk bytes, CRLF, then zero-size terminator/trailer section. It is HTTP/1.1 transfer coding, not application JSON framing. A bounded parser must validate hex, CRLF, total decoded bytes, chunk count, trailer policy, and EOF/timeouts.</p>
+</section>
+<section id="precedence">
+<p class="section-kicker">05 · Framing precedence and rejection</p>
+<p>RFC 9112 specifies message-body length precedence. Transfer-Encoding overrides Content-Length for framing; messages containing both require defensive handling because ambiguity across components is dangerous. Servers/proxies should reject invalid/malformed/ambiguous framing rather than guess or normalize it into a different request. Exact recipient obligations depend on role and version; consult RFC 9112 for implementation work.</p>
+</section>
+<section id="parser">
+<p class="section-kicker">06 · Bounded local parser exercise</p>
+<pre>
+<code>def read_exact(data: bytes, length: int, max_body=1_048_576) -&gt; bytes:
+    if not 0 &lt;= length &lt;= max_body: raise ValueError("body limit")
+    if len(data) != length: raise ValueError("truncated/extra lab body")
+    return data
+
+def decode_chunked(data: bytes, max_body=1_048_576, max_chunks=1024) -&gt; bytes:
+    body, pos, chunks = bytearray(), 0, 0
+    while True:
+        line_end = data.find(b"\r\n", pos)
+        if line_end &lt; 0 or line_end - pos &gt; 16:
+            raise ValueError("missing/oversized chunk-size line")
+        size_text = data[pos:line_end].split(b";", 1)[0]
+        if not size_text or any(c not in b"0123456789abcdefABCDEF" for c in size_text):
+            raise ValueError("invalid chunk size")
+        size, pos = int(size_text, 16), line_end + 2
+        if size == 0:
+            if data[pos:] != b"\r\n":
+                raise ValueError("trailers/extra bytes unsupported in this lab")
+            return bytes(body)
+        chunks += 1
+        if chunks &gt; max_chunks or size &gt; max_body - len(body):
+            raise ValueError("chunk/body limit")
+        end = pos + size
+        if end + 2 &gt; len(data) or data[end:end + 2] != b"\r\n":
+            raise ValueError("truncated chunk or missing CRLF")
+        body.extend(data[pos:end])
+        pos = end + 2
+# Lab primitive only: no production HTTP parser claim.</code>
+</pre>
+<p>
+<strong>Use:</strong> unit-test fixed-length and final-chunked framing invariants against synthetic byte strings, including <code>b"0\r\n\r\n"</code> for an empty chunked body. This intentionally rejects trailers/extensions beyond ignoring an extension on the size line; extending policy requires new tests. <strong>Risk:</strong> these are learning primitives, not a complete recipient: start-line/header parsing, field combination, role/status semantics, network timeouts, and every RFC rule remain outside them. Never expose this parser as an Internet service.</p>
+</section>
+<section id="connections">
+<p class="section-kicker">07 · Keep-alive and intermediaries</p>
+<p>HTTP/1.1 persistent connections save handshakes but make framing correctness essential. Connection-specific fields and hop-by-hop behavior differ from end-to-end fields; a proxy may parse, strip, add, or reserialize. Capture which component generated telemetry before comparing header/body facts across hops.</p>
+</section>
+<section id="smuggling">
+<p class="section-kicker">08 · Defensive request-smuggling concept</p>
+<p>Request smuggling is a class of desynchronization where front-end and back-end components disagree about boundaries. Treat it as a configuration/parser consistency problem: patch supported servers, use one well-tested edge parser, reject ambiguous framing, and test only authorized local staging with benign fixtures. This guide intentionally provides no exploit payloads or third-party testing instructions.</p>
+</section>
+<section id="safety">
+<p class="section-kicker">09 · Safety</p>
+<div class="callout danger">
+<b>Never parse unbounded streams in a lab script</b>Set header/body/chunk/time limits and reject malformed input. Static synthetic bytes cover malformed cases; the raw-client drill may connect only to the learner-owned loopback fixture and must not send malformed framing to any third-party or production system.</div>
+</section>
+<section id="scenarios">
+<p class="section-kicker">10 · Detection scenarios</p>
+<article class="scenario">
+<div class="scenario-head">
+<span class="tag">EDGE</span>
+<div>
+<h4>Proxy logs body-size mismatch</h4>
+</div>
+</div>
+<p>Correlate component, parsed framing decision, status, and connection outcome; do not reconstruct body content into logs.</p>
+</article>
+<article class="scenario">
+<div class="scenario-head">
+<span class="tag">OUTAGE</span>
+<div>
+<h4>Clients hang on reused connections</h4>
+</div>
+</div>
+<p>Inspect server/proxy versions and bounded rejection metrics; a framing bug can poison subsequent connection messages.</p>
+</article>
+<article class="scenario">
+<div class="scenario-head">
+<span class="tag">ABUSE</span>
+<div>
+<h4>Malformed request spike</h4>
+</div>
+</div>
+<p>Count rejection categories and source provenance, rate-limit at edge, and retain sanitized samples under policy.</p>
+</article>
+<article class="scenario">
+<div class="scenario-head">
+<span class="tag">DEPLOY</span>
+<div>
+<h4>Two hops parse differently</h4>
+</div>
+</div>
+<p>Compare supported configuration/version behavior in an authorized staging environment; remediate consistency rather than probing live targets.</p>
+</article>
+</section>
+<section id="drills">
+<p class="section-kicker">11 · Practice</p>
+<h2>Hands-on drills</h2>
+<article class="drill">
+<div class="drill-head">
+<h3>1. Build the bounded loopback raw client</h3>
+<span class="time">45 min</span>
+</div>
+<p>Against a learner-owned loopback HTTP/1.1 fixture, build a one-response raw client with connect/read timeouts, a 16 KiB header cap, the body/chunk caps above, and deterministic choice between validated Content-Length and final chunked coding. Save source and <code>artifacts/8.3-framing-tests.txt</code>. Exercise malformed framing only as static bytes, never across a network.</p>
+<ul class="checklist">
+<li>Parse headers through <code>\r\n\r\n</code>; reject TE+CL, conflicting/invalid lengths, unsupported transfer codings, EOF, and cap violations.</li>
+<li>Test Content-Length exact/empty/truncated/extra and chunked normal/empty/bad-hex/missing-CRLF/oversized cases.</li>
+<li>Connect only to <code>127.0.0.1</code>/<code>::1</code>, record timeouts/caps, close the socket, and state why the result is not production-ready.</li>
+</ul>
+</article>
+<article class="drill">
+<div class="drill-head">
+<h3>2. Hand-label chunked content</h3>
+<span class="time">20 min</span>
+</div>
+<p>Save a benign chunk sequence annotation in <code>artifacts/8.3-chunks.md</code>.</p>
+<ul class="checklist">
+<li>Identify hex sizes/terminator.</li>
+<li>State decoded length.</li>
+<li>Explain why cap is required.</li>
+</ul>
+</article>
+<article class="drill">
+<div class="drill-head">
+<h3>3. Rejection policy</h3>
+<span class="time">20 min</span>
+</div>
+<p>Write local AbuseGuard ingress limits and log fields.</p>
+<ul class="checklist">
+<li>Save <code>artifacts/8.3-policy.md</code>.</li>
+<li>Reject ambiguity, do not normalize.</li>
+<li>State authorized test boundary.</li>
+</ul>
+</article>
+</section>
+<section id="cheatsheet">
+<p class="section-kicker">12 · Recall</p>
+<h2>Cheat sheet</h2>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Need</th>
+<th>Rule</th>
+<th>Risk</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fixed content</td>
+<td>validated Content-Length</td>
+<td>caps/truncation</td>
+</tr>
+<tr>
+<td>Streaming content</td>
+<td>validated chunked coding</td>
+<td>chunk/total limits</td>
+</tr>
+<tr>
+<td>TE + CL</td>
+<td>RFC precedence + defensive rejection</td>
+<td>desynchronization</td>
+</tr>
+<tr>
+<td>Learning parser</td>
+<td>static bounded bytes</td>
+<td>not production server</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="pass">
+<p class="section-kicker">13 · Completion</p>
+<h2>Ready to pass Topic 8.3?</h2>
+<div class="exit-grid">
+<div class="exit-item">
+<b>Draw</b>Show HTTP/1.1 headers/body boundary from memory.</div>
+<div class="exit-item">
+<b>Parse</b>Build bounded static CL/chunk validation tests.</div>
+<div class="exit-item">
+<b>Explain</b>State TE/CL ambiguity and defensive rejection.</div>
+<div class="exit-item">
+<b>Protect</b>Explain why no live malformed-request testing is needed.</div>
+</div>
+</section>
+<section id="resources">
+<p class="section-kicker">14 · Primary resources</p>
+<h2>Primary resources</h2>
+<div class="resources">
+<a class="resource" href="https://www.rfc-editor.org/rfc/rfc9112">
+<b>RFC 9112</b>
+<span>HTTP/1.1 framing.</span>
+</a>
+<a class="resource" href="https://www.rfc-editor.org/rfc/rfc9110">
+<b>RFC 9110</b>
+<span>HTTP semantics.</span>
+</a>
+</div>
+</section>
+</main>
+</div>
+<footer class="footer">Detection Engineering Learning Console · Week 8 · Topic 8.3 · Reject ambiguity at the edge.</footer>
+</div>
+</body>
+</html>

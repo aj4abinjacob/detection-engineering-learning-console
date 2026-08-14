@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Trace one AbuseGuard input through parsing, transformations, validation, authorization, and context-specific sinks, then convert threats into tests.">
+<title>Source-to-Sink Review — Detection Engineering Learning Console</title>
+<link rel="stylesheet" href="assets/guide.css">
+<script src="assets/guide.js" defer>
+</script>
+</head>
+<body>
+<div class="topbar">
+<div class="topbar-inner">
+<a class="back" href="../index.html#w12">Back</a>
+<span class="topic-id">Week 12 · Topic 12.4</span>
+</div>
+</div>
+<div class="shell">
+<header class="hero">
+<h1>Trace untrusted input until its <span>last security-sensitive sink.</span>
+</h1>
+<p class="lede">Manual review follows source, transformations, validation, authorization, encoding, and sinks. Five concrete threats should become regression tests, not merely notes.</p>
+<div class="hero-grid">
+<div class="hero-stat">
+<b>10 concepts</b>
+<span>Review</span>
+</div>
+<div class="hero-stat">
+<b>4 scenarios</b>
+<span>Defense</span>
+</div>
+<div class="hero-stat">
+<b>3 drills</b>
+<span>Artifacts</span>
+</div>
+</div>
+</header>
+<div class="layout">
+<nav class="toc">
+<a href="#why">Why</a>
+<a href="#source">Sources</a>
+<a href="#transform">Transform</a>
+<a href="#validate">Validate</a>
+<a href="#authz">Authorize</a>
+<a href="#sinks">Sinks</a>
+<a href="#encoding">Encoding</a>
+<a href="#tests">Threat tests</a>
+<a href="#review">Workflow</a>
+<a href="#scenarios">Scenarios</a>
+<a href="#drills">Drills</a>
+<a href="#cheatsheet">Cheat sheet</a>
+<a href="#exit">Exit</a>
+</nav>
+<main>
+<section id="why">
+<h2>Why it matters</h2>
+<p>Security bugs hide in a path, not only a line. A source-to-sink trace identifies where untrusted values become a query, HTML, file, redirect, command, log, or authorization decision.</p>
+</section>
+<section id="source">
+<h2>Identify sources</h2>
+<p>Sources include path/query/body/form/header/cookie/file/env/config/database records from less trusted systems. Record trust level and whether upstream validation can be bypassed.</p>
+</section>
+<section id="transform">
+<h2>Follow transformations</h2>
+<p>Trace parsing, normalization, defaulting, serialization, ORM mapping, template context, and logging. A value can become dangerous after decoding or concatenation, even when initial validation looked safe.</p>
+</section>
+<section id="validate">
+<h2>Validate by contract</h2>
+<p>Use typed allowlists/ranges/schema at boundary; reject unexpected data. Validation is context-specific: a valid display string is not automatically a SQL identifier or HTML-safe value.</p>
+</section>
+<section id="authz">
+<h2>Authorize objects</h2>
+<p>Before sensitive sink/action, derive tenant/principal from server-authenticated state and check object/action policy. Never use client-supplied tenant/role as authority.</p>
+</section>
+<section id="sinks">
+<h2>Classify sinks</h2>
+<p>SQL requires parameters; HTML/template requires context-aware escaping; URL redirect requires destination allowlist; filesystem requires fixed base/validated path; logs require redaction and newline-safe structure. Avoid shell command sinks entirely where possible.</p>
+</section>
+<section id="encoding">
+<h2>Encode at final context</h2>
+<p>Output encoding belongs at the final sink/context, not blanket early escaping. Avoid double decoding/encoding and do not confuse sanitization for one context with authorization.</p>
+</section>
+<section id="tests">
+<h2>Convert threats to tests</h2>
+<p>For each threat, write a minimal synthetic test: cross-tenant object denied, parameter value stays data, privileged field rejected, unsafe redirect rejected, secret absent from log. Assert behavior and safe error output.</p>
+</section>
+<section id="review">
+<h2>Review worksheet</h2>
+<pre>
+<code>source; trust; transformations; validation; authz; sink/context; encoding; test; residual risk</code>
+</pre>
+<p>Keep scope bounded to one route/path. Record code version and review date; use local synthetic payload shapes, not real attack traffic.</p>
+<h3>Worked trace: report search</h3>
+<ol class="steps">
+<li><strong>Source:</strong> authenticated <code>GET /reports?q=failed</code>; query text is untrusted, principal comes from a verified server session.</li>
+<li><strong>Parse/normalize:</strong> decode once under framework rules, require a string, bound it to 100 characters; do not mutate it into SQL syntax.</li>
+<li><strong>Authorize:</strong> derive <code>tenant_id</code> from the principal, never a query parameter.</li>
+<li><strong>SQL sink:</strong> repository binds both values as parameters and scopes by tenant; the query value remains data.</li>
+<li><strong>HTML sink:</strong> template applies context-aware escaping to the echoed search label; do not reuse SQL quoting.</li>
+<li><strong>Log sink:</strong> emit route template, length bucket, outcome, and pseudonymous tenant—not the raw search value.</li>
+</ol>
+<p>Tests should prove cross-tenant denial, quote/metacharacter treatment as data, bounded input, HTML escaping in rendered output, and absence of the raw value from broad logs.</p>
+</section>
+<section id="scenarios">
+<h2>Defensive scenarios</h2>
+<article class="scenario">
+<h4>Search query to SQL</h4>
+<p>Trace request to repository; verify parameters and tenant filter.</p>
+</article>
+<article class="scenario">
+<h4>Profile field to template</h4>
+<p>Trace normalization to rendering; rely on context-aware template escaping.</p>
+</article>
+<article class="scenario">
+<h4>Export ID</h4>
+<p>Trace object lookup; test cross-tenant denial before file response.</p>
+</article>
+<article class="scenario">
+<h4>Error detail to log</h4>
+<p>Trace exception formatter; redact token/secret and prevent log injection.</p>
+</article>
+</section>
+<section id="drills">
+<h2>Artifact drills</h2>
+<article class="drill">
+<h3>1. One route trace</h3>
+<p>Save <code>artifacts/review/source-sink.md</code>.</p>
+<ul class="checklist">
+<li>List transformations/validation/sink.</li>
+<li>State trust boundary.</li>
+</ul>
+</article>
+<article class="drill">
+<h3>2. Five threat tests</h3>
+<p>Save <code>security_tests.py</code>.</p>
+<ul class="checklist">
+<li>Five distinct paths.</li>
+<li>Synthetic inputs only.</li>
+</ul>
+</article>
+<article class="drill">
+<h3>3. Sink inventory</h3>
+<p>Save <code>sink-inventory.md</code>.</p>
+<ul class="checklist">
+<li>Context-specific control.</li>
+<li>Residual risk.</li>
+</ul>
+</article>
+</section>
+<section id="cheatsheet">
+<h2>Cheat sheet</h2>
+<div class="table-wrap"><table><thead><tr><th>Sink</th><th>Boundary control</th><th>Do not rely on</th></tr></thead><tbody>
+<tr><td>SQL value</td><td>Driver parameters plus tenant-scoped query</td><td>Manual escaping/string concatenation</td></tr>
+<tr><td>HTML</td><td>Context-aware output encoding</td><td>SQL/URL escaping</td></tr>
+<tr><td>Redirect</td><td>Parsed local destination allowlist</td><td>Substring/prefix coincidence</td></tr>
+<tr><td>Filesystem</td><td>Fixed base, canonicalization, allowed operation</td><td>Removing <code>..</code> text</td></tr>
+<tr><td>Log</td><td>Structured schema, redaction, newline handling</td><td>Raw input interpolation</td></tr>
+</tbody></table></div>
+</section>
+<section id="exit">
+<h2>Ready to pass Topic 12.4 without AI?</h2>
+<div class="exit-grid">
+<div class="exit-item">
+<b>Trace</b>Source to sink.</div>
+<div class="exit-item">
+<b>Classify</b>Validation/authz/encoding.</div>
+<div class="exit-item">
+<b>Test</b>Five threats.</div>
+<div class="exit-item">
+<b>Bound</b>Residual risk.</div>
+</div>
+<h3>Primary sources</h3>
+<div class="resources">
+<a class="resource" href="https://portswigger.net/web-security">
+<b>Web Security Academy</b>
+<span>Review concepts</span>
+</a>
+<a class="resource" href="https://cheatsheetseries.owasp.org/">
+<b>OWASP Cheat Sheets</b>
+<span>Sink controls</span>
+</a>
+</div>
+</section>
+<footer class="footer">
+<a href="../index.html#w12">Week 12 Topic 12.4</a>
+</footer>
+</main>
+</div>
+</div>
+</body>
+</html>

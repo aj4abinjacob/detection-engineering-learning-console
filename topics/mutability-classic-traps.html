@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="A practical Python mutability, defaults, and copy-semantics field guide for detection engineers." />
+<title>Mutability &amp; Classic Traps — Detection Engineering Learning Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/guide.css" />
+<script src="assets/guide.js" defer>
+</script>
+</head>
+<body>
+<div class="topbar">
+<div class="topbar-inner">
+<a class="back" href="../index.html#w2">
+<span>←</span> Back to curriculum</a>
+<span class="topic-id">Week 2 · Topic 2.2</span>
+</div>
+</div>
+<div class="shell">
+<header class="hero">
+<p class="eyebrow">Practical field guide · Python data model</p>
+<h1>Make state ownership <span>deliberate.</span>
+</h1>
+<p class="lede">Mutability controls who can change an object. Default values and copy boundaries decide whether one alert, tenant, or retry contaminates the next.</p>
+<div class="hero-grid">
+<div class="hero-stat">
+<b>7 concepts</b>
+<span>State choices</span>
+</div>
+<div class="hero-stat">
+<b>4 scenarios</b>
+<span>Detection work</span>
+</div>
+<div class="hero-stat">
+<b>3 drills</b>
+<span>Saved evidence</span>
+</div>
+</div>
+</header>
+<div class="layout">
+<nav class="toc" aria-label="On this page">
+<p class="toc-title">On this page</p>
+<a href="#why">Why it matters</a>
+<a href="#model">Mental model</a>
+<a href="#types">Mutable or immutable</a>
+<a href="#defaults">Default trap</a>
+<a href="#copies">Copy boundaries</a>
+<a href="#safety">Safety &amp; performance</a>
+<a href="#scenarios">Work scenarios</a>
+<a class="toc-practice" href="#drills">Hands-on drills</a>
+<a href="#cheatsheet">Cheat sheet</a>
+<a href="#pass">Ready to pass?</a>
+<a href="#resources">Resources</a>
+</nav>
+<main>
+<section id="why">
+<p class="section-kicker">01 · Purpose</p>
+<h2>Why mutability is an operational concern</h2>
+<p class="intro">A detector often builds nested event structures, queues them, enriches them, and sends them to multiple sinks. Shared mutable state turns those stages into hidden writers of the same evidence.</p>
+<div class="cards">
+<article class="card">
+<span class="num">ISOLATION</span>
+<h4>No cross-alert state</h4>
+<p>Each invocation must get its own accumulator, labels, and context.</p>
+</article>
+<article class="card">
+<span class="num">PROVENANCE</span>
+<h4>Raw stays raw</h4>
+<p>Copy only at explicit normalization/redaction boundaries.</p>
+</article>
+<article class="card">
+<span class="num">SECURITY</span>
+<h4>Secrets do not leak sideways</h4>
+<p>A reused mutable default can carry a token or tenant field into another record.</p>
+</article>
+<article class="card">
+<span class="num">SCALE</span>
+<h4>Copies have a cost</h4>
+<p>Deep copying large event trees can consume CPU and memory under load.</p>
+</article>
+</div>
+</section>
+<section id="model">
+<p class="section-kicker">02 · Mental model</p>
+<h2>Immutability is about changing the object, not its neighbors</h2>
+<div class="model">
+<div class="model-track">
+<div class="model-box">
+<b>Container</b>
+<span>A tuple can be immutable: its slots cannot be reassigned.</span>
+<code>(headers, status)</code>
+</div>
+<div class="arrow">contains →</div>
+<div class="model-box">
+<b>Nested object</b>
+<span>A list inside it may still be mutable.</span>
+<code>["suspicious"]</code>
+</div>
+<div class="arrow">changed by →</div>
+<div class="model-box">
+<b>Alias</b>
+<span>Any holder of the nested list sees the edit.</span>
+<code>tags.append(...)</code>
+</div>
+</div>
+<p class="model-caption">“Immutable container” does not mean “deeply immutable graph.” State safety requires examining every reachable mutable object that may be shared.</p>
+</div>
+<pre>
+<code>tags = ["new"]
+event = ("r-7", tags)     # tuple slots cannot change
+tags.append("review")     # nested list can change
+print(event)               # ('r-7', ['new', 'review'])</code>
+</pre>
+<p>
+<strong>Use:</strong> choose immutable values for stable keys, configuration, and value objects. <strong>Assumption:</strong> callers will not reach mutable nested members. <strong>Risk:</strong> treating a tuple as a deep snapshot can still alter historical evidence.</p>
+</section>
+<section id="types">
+<p class="section-kicker">03 · Choose the right state holder</p>
+<h2>Common mutable and immutable types</h2>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Usually immutable</th>
+<th>Usually mutable</th>
+<th>Practical implication</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>int</code>, <code>float</code>, <code>bool</code>, <code>str</code>, <code>bytes</code>
+</td>
+<td>
+<code>list</code>, <code>dict</code>, <code>set</code>, <code>bytearray</code>
+</td>
+<td>“Changes” to immutable values make/rebind a value; mutating methods edit shared objects.</td>
+</tr>
+<tr>
+<td>
+<code>tuple</code>, <code>frozenset</code>
+</td>
+<td>Most user instances (unless designed otherwise)</td>
+<td>Tuple/frozenset are hashable only if their contents are hashable.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="callout">
+<b>Recommendation, not magic</b>Use immutable scalar identifiers and replace whole values when feasible. Use mutable collections for intentional accumulation inside one clearly owned scope. Do not confuse a type annotation such as <code>Mapping</code> with a runtime guarantee that nobody else mutates its underlying dictionary.</div>
+</section>
+<section id="defaults">
+<p class="section-kicker">04 · The classic trap</p>
+<h2>Function default expressions run once, at definition time</h2>
+<pre>
+<code>def add_indicator(indicator: str, seen: list[str] = []):
+    seen.append(indicator)
+    return seen
+
+print(add_indicator("ip"))      # ['ip']
+print(add_indicator("domain"))  # ['ip', 'domain'] — surprising shared list</code>
+</pre>
+<p>The list expression is evaluated when Python executes the <code>def</code>, not for each call. Every call that omits <code>seen</code> receives the same list. This is deterministic, not a Python bug.</p>
+<pre>
+<code>from typing import Final, TypeAlias, cast
+
+class _Unset:
+    __slots__ = ()
+
+_UNSET: Final = _Unset()
+Limit: TypeAlias = int | None
+
+def add_indicator(indicator: str, seen: list[str] | None = None) -> list[str]:
+    if seen is None:
+        seen = []
+    seen.append(indicator)
+    return seen
+
+def read_limit(limit: Limit | _Unset = _UNSET) -&gt; Limit:
+    if limit is _UNSET:
+        return 100
+    return cast(Limit, limit)  # narrow away the private sentinel type</code>
+</pre>
+<p>
+<strong>Use:</strong> <code>None</code> when it cannot be a legitimate supplied value; use a private sentinel when “not supplied” must differ from meaningful <code>None</code>. The named union and explicit narrowing preserve that distinction for a static checker instead of collapsing the annotation to <code>object</code>. <strong>Assumption:</strong> callers do not need to share a list intentionally. <strong>Risk:</strong> do not expose or compare a private sentinel by equality; retain its identity semantics.</p>
+<pre>
+<code>from dataclasses import dataclass, field
+
+@dataclass
+class Alert:
+    indicator: str
+    tags: list[str] = field(default_factory=list)  # calls list per instance</code>
+</pre>
+<p>
+<strong>Use:</strong> <code>default_factory</code> for dataclass mutable defaults. <strong>Risk:</strong> <code>tags: list[str] = []</code> is rejected by modern dataclasses because it would be shared; a factory must not itself return a global mutable object.</p>
+</section>
+<section id="copies">
+<p class="section-kicker">05 · Copy boundaries</p>
+<h2>Shallow copy duplicates one layer; deep copy recursively duplicates reachable state</h2>
+<pre>
+<code>import copy
+
+raw = {"request": {"headers": {"authorization": "secret"}}, "tags": ["auth"]}
+shallow = raw.copy()       # or {**raw}; nested dict/list are shared
+deep = copy.deepcopy(raw)  # recursively copies normal nested objects
+
+shallow["tags"].append("review")
+print(raw["tags"])        # ['auth', 'review']
+deep["tags"].append("isolated")</code>
+</pre>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>What it makes</th>
+<th>When appropriate</th>
+<th>Risk</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>list(x)</code>, <code>dict(x)</code>, <code>x.copy()</code>
+</td>
+<td>New outer container</td>
+<td>Top-level metadata change</td>
+<td>Nested state remains shared.</td>
+</tr>
+<tr>
+<td>
+<code>copy.copy(x)</code>
+</td>
+<td>Shallow copy via protocol</td>
+<td>Generic code with documented types</td>
+<td>User types can customize it.</td>
+</tr>
+<tr>
+<td>
+<code>copy.deepcopy(x)</code>
+</td>
+<td>Recursive copy with memo for cycles</td>
+<td>Small, known, in-memory data snapshots</td>
+<td>Costly; may copy too much or invoke custom hooks.</td>
+</tr>
+<tr>
+<td>Explicit reconstruction</td>
+<td>Only selected fields</td>
+<td>Telemetry/schema boundaries</td>
+<td>Must deliberately cover required fields.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>
+<code>deepcopy</code> does not copy every external resource meaningfully: modules, sockets, files, database connections, locks, and framework objects may be returned unchanged, fail, or have custom behavior. It honors <code>__copy__</code>, <code>__deepcopy__</code>, and pickling-related hooks on custom classes. Treat it as an API contract review, never as a generic security scrubber.</p>
+</section>
+<section id="safety">
+<p class="section-kicker">06 · Safety and performance</p>
+<h2>Copy only the data you mean to own</h2>
+<div class="command-list">
+<div class="command">
+<code>new_event = {**raw, "source": "edge"}</code>
+<p>
+<b>Copy an outer event mapping.</b>Use for a top-level enrichment. Assumes nested fields will not be mutated; otherwise rebuild those fields explicitly.</p>
+</div>
+<div class="command">
+<code>field(default_factory=list)</code>
+<p>
+<b>Allocate per dataclass instance.</b>Use for intentional per-alert collections. Assumes the factory returns a fresh value every time.</p>
+</div>
+<div class="command">
+<code>copy.deepcopy(value)</code>
+<p>
+<b>Request recursive duplication.</b>Use only with a bounded, understood value graph. It can expose sensitive data in a duplicate, trigger custom code, and amplify memory use.</p>
+</div>
+<div class="command">
+<code>python3 -m timeit -s 'import copy; x=...' 'copy.deepcopy(x)'</code>
+<p>
+<b>Measure a representative copy in a local lab.</b>Use sanitized bounded fixtures; timing varies by machine and does not predict production queues alone.</p>
+</div>
+</div>
+<div class="callout danger">
+<b>Security boundary warning</b>Copying a record is not redaction. A deep-copied authorization header remains a secret in another object, potentially another queue or log. Select and transform allowed fields; do not duplicate then hope every downstream sink filters them.</div>
+</section>
+<section id="scenarios">
+<p class="section-kicker">07 · On the job</p>
+<h2>Detection-engineering scenarios</h2>
+<article class="scenario">
+<div class="scenario-head">
+<span class="tag">MULTI-TENANT</span>
+<div>
+<h4>One tenant inherits another tenant’s label</h4>
+</div>
+</div>
+<p>An alert builder uses <code>tags=[]</code> as a default. A high-risk tag from the first event appears in the next tenant’s alert. Reproduce with two calls, replace the default with <code>None</code> or <code>default_factory</code>, then add a regression test.</p>
+</article>
+<article class="scenario">
+<div class="scenario-head">
+<span class="tag">FORENSICS</span>
+<div>
+<h4>A normalized event changes nested raw headers</h4>
+</div>
+</div>
+<p>A shallow copy is redacted by editing <code>normalized["headers"]</code>. The nested map is shared, so raw evidence changes too. Explicitly rebuild the header map and retain the unmodified source under access controls.</p>
+</article>
+<article class="scenario">
+<div class="scenario-head">
+<span class="tag">THROUGHPUT</span>
+<div>
+<h4>A batch worker deep-copies every large event</h4>
+</div>
+</div>
+<p>Recursive copies turn a traffic spike into memory pressure and higher queue latency. Profile with sanitized representative payloads, then use immutable parsing or an explicit, minimal output schema instead.</p>
+</article>
+<article class="scenario">
+<div class="scenario-head">
+<span class="tag">INTEGRATION</span>
+<div>
+<h4>A framework object refuses to deep-copy</h4>
+</div>
+</div>
+<p>A request or client object contains sockets, locks, and lazy state. Do not fight its copy protocol; extract the documented primitive fields needed for a detection event, then close/handle resources through their intended lifecycle.</p>
+</article>
+</section>
+<section id="drills">
+<p class="section-kicker">08 · Practice</p>
+<h2>Hands-on drills</h2>
+<article class="drill">
+<div class="drill-head">
+<h3>1. Reproduce and fix a mutable default</h3>
+<span class="time">20 min</span>
+</div>
+<pre>
+<code># Write the broken add_indicator(), call it twice, then fix it:
+def add_indicator(indicator, seen=None):
+    if seen is None: seen = []
+    seen.append(indicator)
+    return seen</code>
+</pre>
+<ul class="checklist">
+<li>Save broken and fixed output in <code>artifacts/2.2-defaults.txt</code>.</li>
+<li>Explain exactly when the broken list was created.</li>
+<li>Implement a second fix with a dataclass <code>default_factory</code>.</li>
+</ul>
+</article>
+<article class="drill">
+<div class="drill-head">
+<h3>2. Map shallow versus deep behavior</h3>
+<span class="time">20 min</span>
+</div>
+<pre>
+<code>import copy
+original = {"tags": ["new"], "meta": {"source": "lab"}}
+shallow = original.copy(); deep = copy.deepcopy(original)
+shallow["tags"].append("shared"); deep["meta"]["source"] = "copy"
+print(original, shallow, deep)</code>
+</pre>
+<ul class="checklist">
+<li>Save output as <code>artifacts/2.2-copy-map.txt</code>.</li>
+<li>Mark each nested object that is shared or isolated.</li>
+<li>Explain why a deep copy is not automatically safe for a socket or client object.</li>
+</ul>
+</article>
+<article class="drill">
+<div class="drill-head">
+<h3>3. Build a safe alert factory</h3>
+<span class="time">25 min</span>
+</div>
+<pre>
+<code>from dataclasses import dataclass, field
+@dataclass
+class Alert:
+    event_id: str
+    tags: list[str] = field(default_factory=list)
+
+a = Alert("a"); b = Alert("b"); a.tags.append("review")
+print(a, b)</code>
+</pre>
+<ul class="checklist">
+<li>Save the output proving <code>b.tags</code> is empty.</li>
+<li>Add a nested raw-event field and state its copy policy.</li>
+<li>Write one assertion that prevents cross-instance tag leakage.</li>
+</ul>
+</article>
+</section>
+<section id="cheatsheet">
+<p class="section-kicker">09 · Recall</p>
+<h2>Cheat sheet</h2>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Intent</th>
+<th>Use</th>
+<th>Caveat</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Per-call list</td>
+<td>
+<code>arg=None</code>, allocate inside</td>
+<td>Use a sentinel if <code>None</code> is valid input.</td>
+</tr>
+<tr>
+<td>Per-instance dataclass list</td>
+<td>
+<code>field(default_factory=list)</code>
+</td>
+<td>Factory must be fresh.</td>
+</tr>
+<tr>
+<td>Copy top level</td>
+<td>
+<code>{**d}</code> / <code>d.copy()</code>
+</td>
+<td>Nested members shared.</td>
+</tr>
+<tr>
+<td>Duplicate known graph</td>
+<td>
+<code>copy.deepcopy(d)</code>
+</td>
+<td>Review custom/external objects and cost.</td>
+</tr>
+<tr>
+<td>Protect evidence</td>
+<td>Explicit output schema</td>
+<td>Copying is not redaction.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="pass">
+<p class="section-kicker">10 · Completion</p>
+<h2>Ready to pass Topic 2.2?</h2>
+<div class="exit-grid">
+<div class="exit-item">
+<b>Explain</b>Classify mutable versus immutable containers, including a tuple containing a list.</div>
+<div class="exit-item">
+<b>Demonstrate</b>Reproduce the mutable-default bug and fix it with both <code>None</code> and <code>default_factory</code>.</div>
+<div class="exit-item">
+<b>Diagnose</b>Show why a shallow copy mutated a nested raw event.</div>
+<div class="exit-item">
+<b>Choose</b>Justify an explicit copy/redaction boundary for a high-volume, sensitive event pipeline without AI.</div>
+</div>
+</section>
+<section id="resources">
+<p class="section-kicker">11 · Primary resources</p>
+<h2>Authoritative follow-up</h2>
+<div class="resources">
+<a class="resource" href="https://docs.python.org/3/library/copy.html">
+<b>copy module</b>
+<span>Official shallow/deep copy semantics and limitations.</span>
+</a>
+<a class="resource" href="https://docs.python.org/3/library/dataclasses.html">
+<b>dataclasses</b>
+<span>Official <code>default_factory</code> guidance.</span>
+</a>
+<a class="resource" href="https://docs.python.org/3/tutorial/controlflow.html#default-argument-values">
+<b>Default arguments</b>
+<span>Official tutorial explanation of evaluation time.</span>
+</a>
+</div>
+</section>
+</main>
+</div>
+<footer class="footer">Detection Engineering Learning Console · Week 2 · Topic 2.2 · Use sanitized, disposable lab data in all exercises.</footer>
+</div>
+</body>
+</html>

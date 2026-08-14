@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="A practical Git branching, merging, remote, and rebase field guide for detection engineers." />
+<title>Git Branching, Merging &amp; Remotes — Detection Engineering Learning Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/guide.css" />
+<script src="assets/guide.js" defer></script>
+</head>
+<body>
+<div class="topbar"><div class="topbar-inner">
+  <a class="back" href="../index.html#w1"><span>←</span> Back to Week 1</a>
+  <span class="topic-id">Week 1 · Topic 1.7</span>
+</div></div>
+
+<div class="shell">
+  <header class="hero">
+    <p class="eyebrow">Practical field guide · Git collaboration</p>
+    <h1>Make parallel work <span>converge safely.</span></h1>
+    <p class="lede">Branches are movable names for commits; remotes are other repositories. Read the graph and the references before integrating a rule change, and a merge, rebase, or push becomes an explicit engineering choice rather than a ritual.</p>
+    <div class="hero-grid" aria-label="Guide summary">
+      <div class="hero-stat"><b>24 commands</b><span>Core working set</span></div>
+      <div class="hero-stat"><b>4 scenarios</b><span>Detection work</span></div>
+      <div class="hero-stat"><b>3 drills</b><span>Disposable repos</span></div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <a href="#why">Why it matters</a>
+      <a href="#model">Graph &amp; refs</a>
+      <a href="#merge">Merge mechanics</a>
+      <a href="#conflicts">Conflicts</a>
+      <a href="#remotes">Fetch, pull, push</a>
+      <a href="#upstream">Upstreams</a>
+      <a href="#rebase">Rebase or merge</a>
+      <a href="#scenarios">Work scenarios</a>
+      <a href="#safety">Safety &amp; platforms</a>
+      <a class="toc-practice" href="#drills">Hands-on drills</a>
+      <a href="#cheatsheet">Cheat sheet</a>
+    </nav>
+
+    <main>
+      <section id="why">
+        <p class="section-kicker">01 · Purpose</p>
+        <h2>Why collaboration mechanics matter in detection engineering</h2>
+        <p class="intro">A change to a parser, enrichment source, or detection threshold is production behavior. Git’s graph records how independently tested changes meet, while remote references let a team exchange work without guessing whose copy is current.</p>
+        <div class="cards">
+          <article class="card"><span class="num">REVIEW</span><h4>Keep intent visible</h4><p>A focused branch and small commits make a threshold change reviewable alongside its positive and negative fixtures.</p></article>
+          <article class="card"><span class="num">REPRODUCIBILITY</span><h4>Pin an exact graph point</h4><p>An incident note can name the commit that shipped a rule bundle, even after later work lands.</p></article>
+          <article class="card"><span class="num">CONCURRENCY</span><h4>Expose collisions early</h4><p>Git detects incompatible edits instead of silently picking a value for a critical correlation window.</p></article>
+          <article class="card"><span class="num">SAFETY</span><h4>Protect shared history</h4><p>Remote tracking and leases reveal divergence before a push overwrites another engineer’s reachable commits.</p></article>
+        </div>
+        <div class="callout"><b>Scope</b>This guide assumes you already understand working tree → index → commit → branch → HEAD from Topic 1.6. A branch is not a copy of files; it is a local ref that names one commit. A remote-tracking ref such as <code>origin/main</code> is your local record of a remote branch after the last fetch.</div>
+      </section>
+
+      <section id="model">
+        <p class="section-kicker">02 · Mental model</p>
+        <h2>Integrate commit graphs, not folders</h2>
+        <p class="intro">Every commit names parent commit(s). To integrate a branch, Git compares the current tip, the incoming tip, and—when they diverged—their best common ancestor (merge base).</p>
+        <div class="branch-map" role="img" aria-label="Fast-forward and three-way merge commit graphs">Fast-forward:                 Three-way merge:
+A──B──C  main                  A──B──C──M  main
+      ╲                              ╲    ╱
+       D──E  feature                   D──E  feature
+
+main can move C → E.            merge base B + both tips C/E → M</div>
+        <div class="model">
+          <div class="model-track">
+            <div class="model-box"><b>Local branch</b><span><code>main</code> is a movable ref at a local commit.</span><code>refs/heads/main</code></div>
+            <div class="arrow">↔</div>
+            <div class="model-box"><b>Remote-tracking ref</b><span><code>origin/main</code> is updated by fetch; it is not the remote itself.</span><code>refs/remotes/origin/main</code></div>
+            <div class="arrow">↔</div>
+            <div class="model-box"><b>Remote branch</b><span>The server’s branch changes only when a permitted push succeeds.</span><code>origin</code></div>
+          </div>
+          <p class="model-caption">Fetch moves your remote-tracking knowledge. Merge or rebase changes local history or files. Push asks the remote to advance one of its refs. They are separate operations.</p>
+        </div>
+        <pre><code># Orient before any integration or publication.
+git status
+git log --oneline --graph --decorate --all -12
+git branch -vv
+git remote -v
+git merge-base main feature/login-rule</code></pre>
+        <p><code>git merge-base</code> prints the common ancestor Git would use for a three-way merge. It assumes both revisions name commits available locally. It changes nothing and is useful when the graph is surprising.</p>
+      </section>
+
+      <section id="merge">
+        <p class="section-kicker">03 · Integration</p>
+        <h2>Fast-forward versus a true three-way merge</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Graph condition</th><th>What <code>git merge feature</code> does</th><th>Consequence</th></tr></thead>
+            <tbody>
+              <tr><td>Current tip is an ancestor of <code>feature</code></td><td>Fast-forward: move the current branch pointer to feature’s tip.</td><td>No merge commit; graph remains linear. It does not combine competing changes because none exist on the current line.</td></tr>
+              <tr><td>Both branches have commits after their merge base</td><td>Three-way merge: compute a result from base + current tip + incoming tip, then create a commit with two parents.</td><td>The merge commit records that the histories joined and may need a human conflict decision.</td></tr>
+              <tr><td>Current tip already contains feature</td><td>Usually “Already up to date.”</td><td>No new commit or file change.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <pre><code># From the branch that should receive the work.
+git switch main                 # Git 2.23+; legacy: git checkout main
+git merge --ff-only feature/login-rule
+
+# If a merge commit is intentional even when a fast-forward is possible:
+git merge --no-ff feature/login-rule
+
+# Normal merge permits a fast-forward or a three-way merge as the graph requires.
+git merge feature/login-rule</code></pre>
+        <div class="command-list">
+          <div class="command"><code>git merge --ff-only &lt;branch&gt;</code><p><b>Integrate only without a merge commit.</b>Use when a linear policy is required. It assumes the receiving branch has no unique commits; it fails safely if histories diverged and never manufactures a merge.</p></div>
+          <div class="command"><code>git merge --no-ff &lt;branch&gt;</code><p><b>Record an integration event.</b>Use when a team wants the feature branch visible as a merge commit. It changes local history and working files; resolve/test any conflict before completion.</p></div>
+          <div class="command"><code>git merge --abort</code><p><b>Stop an in-progress conflicted merge.</b>Use only while <code>git status</code> says a merge is in progress. It tries to restore the pre-merge state, but pre-existing uncommitted edits can prevent a perfect restoration—inspect first.</p></div>
+        </div>
+        <div class="callout warn"><b>Do not confuse the two</b><code>--no-ff</code> forces a merge commit even when Git could simply move a pointer. A true three-way merge is required only when both lines have diverged. Whether a merge commit is “better” is a team history policy, not a correctness rule.</div>
+      </section>
+
+      <section id="conflicts">
+        <p class="section-kicker">04 · Human decision point</p>
+        <h2>Resolve conflicts by deciding the final artifact</h2>
+        <p class="intro">Git can combine non-overlapping changes. When two changes affect the same hunk, it cannot know whether a login rule needs a 5-minute or 15-minute window. It stops and records both candidates in the working tree.</p>
+        <pre><code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+window_minutes: 5       # current branch (“ours” during merge)
+&#61;&#61;&#61;&#61;&#61;&#61;&#61;
+window_minutes: 15      # incoming branch (“theirs” during merge)
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature/geo-tuning</code></pre>
+        <p>In this merge context, the first label (<code>HEAD</code>) is the branch you had checked out; the second is the branch supplied to <code>git merge</code>. During a rebase, “ours” and “theirs” are easy to misread because Git is replaying your commit onto a new base. Read the labels and actual content, not the nickname.</p>
+        <ol class="steps">
+          <li><b>Read the operation and every path.</b> Run <code>git status</code>; do not edit only the first file it prints.</li>
+          <li><b>Find the intent behind both sides.</b> Inspect the commits with <code>git log --oneline --left-right HEAD...feature</code> and the surrounding tests or rule fixtures.</li>
+          <li><b>Write one valid final file.</b> Remove all <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>, <code>=======</code>, and <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code> lines. Never leave markers in a parser, configuration, or rule.</li>
+          <li><b>Validate the semantic decision.</b> Run the project’s lint/test/replay commands, then use <code>git diff --check</code> to catch whitespace errors.</li>
+          <li><b>Stage and finish the stated operation.</b> <code>git add &lt;path&gt;</code> declares resolution. Finish a merge with <code>git commit</code>; finish a rebase with <code>git rebase --continue</code>.</li>
+        </ol>
+        <pre><code>git status
+git diff --name-only --diff-filter=U     # unmerged paths only
+# edit and test the final content
+git add rules/impossible_travel.yml
+git diff --staged
+git commit                              # completes a merge
+# Or, if status says rebase in progress: git rebase --continue</code></pre>
+        <div class="callout danger"><b>Conflict-marker safety</b>Conflict markers are valid text, so a YAML, JSON, or source parser may report a later, misleading error—or an unvalidated artifact may be deployed. Treat marker removal as necessary but not sufficient: verify the resulting behavior.</div>
+      </section>
+
+      <section id="remotes">
+        <p class="section-kicker">05 · Exchange</p>
+        <h2>Fetch, pull, and push are distinct moves</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Action</th><th>What changes</th><th>When to use / assumptions</th></tr></thead>
+            <tbody>
+              <tr><td><code>git fetch origin</code></td><td>Downloads objects and updates remote-tracking refs such as <code>origin/main</code>; does not alter your current branch, index, or working tree.</td><td>Use first to see remote state. Assumes network access and credentials authorized for read.</td></tr>
+              <tr><td><code>git pull --ff-only</code></td><td>Fetches then fast-forwards the current local branch only if possible.</td><td>Use on a clean local <code>main</code> when you want an update without an automatic merge. Fails when local commits diverged.</td></tr>
+              <tr><td><code>git pull --rebase</code></td><td>Fetches then rebases local, unpushed commits onto the fetched upstream.</td><td>Use only when rewriting your own local commits is acceptable; conflict resolution may be required.</td></tr>
+              <tr><td><code>git push origin branch</code></td><td>Offers local commits and asks remote <code>branch</code> to advance.</td><td>Use after review/test policy is satisfied. A normal push rejects non-fast-forward updates instead of overwriting remote work.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <pre><code># A deliberate update-and-publish loop.
+git fetch origin
+git log --oneline --left-right --graph main...origin/main
+git switch main
+git pull --ff-only
+git switch -c fix/parser-null-user
+# edit, test, git add, git commit
+git push -u origin fix/parser-null-user</code></pre>
+        <p><code>git pull</code> is shorthand for fetch plus an integration strategy. Its behavior depends on configuration and supplied flags; do not use it as a synonym for “download.” <code>git fetch</code> is the inspection-friendly primitive. A successful push affects a remote system and may trigger CI, review automation, or deployment; inspect the target branch before pressing Enter.</p>
+      </section>
+
+      <section id="upstream">
+        <p class="section-kicker">06 · Relationships</p>
+        <h2>Upstream is a default pairing, not a privilege boundary</h2>
+        <p class="intro">A local branch can track one remote branch. Git uses that relationship to define the default for status ahead/behind, <code>git pull</code>, and a plain <code>git push</code>. The server still enforces its own permissions and branch protection.</p>
+        <pre><code>git branch -vv                         # local branch + configured upstream
+git rev-parse --abbrev-ref --symbolic-full-name @{upstream}
+git status -sb                         # shows ahead/behind after fetch
+git push -u origin fix/parser-null-user # create remote branch and set upstream
+git branch --set-upstream-to=origin/main main</code></pre>
+        <div class="command-list">
+          <div class="command"><code>git push -u origin &lt;branch&gt;</code><p><b>Publish and establish tracking.</b>Use for a newly created feature branch. It assumes the remote name and target branch are correct; subsequent plain push/pull may use this pairing, so verify it with <code>git branch -vv</code>.</p></div>
+          <div class="command"><code>git branch --set-upstream-to=origin/main main</code><p><b>Set a local branch’s default remote partner.</b>Use to repair or establish an existing relationship. It changes local configuration, not remote refs or files; it does not prove your branch is up to date.</p></div>
+          <div class="command"><code>git log main..origin/main</code><p><b>See commits remote has that local main lacks.</b>Use after fetch. Reverse the order (<code>origin/main..main</code>) to see local-only commits before deciding how to integrate.</p></div>
+        </div>
+      </section>
+
+      <section id="rebase">
+        <p class="section-kicker">07 · History shape</p>
+        <h2>Rebase copies commits onto a new base; merge joins existing histories</h2>
+        <div class="branch-map" role="img" aria-label="A branch rebased from old main C to new main F">Before:                         After git rebase main:
+A──B──C  main                   A──B──C──F  main
+      ╲                                ╲
+       D──E  feature                     D'──E' feature
+
+D' and E' have new parents and IDs; D/E are not moved.</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Choice</th><th>Mechanism</th><th>Best fit / consequence</th></tr></thead>
+            <tbody>
+              <tr><td><code>git merge main</code> while on feature</td><td>Creates a merge commit if histories diverged; original commits keep their IDs.</td><td>Safe for already-shared history and preserves the actual integration event. Graph may be non-linear.</td></tr>
+              <tr><td><code>git rebase main</code> while on feature</td><td>Temporarily removes feature-only commits then replays equivalent patches onto <code>main</code>, creating new commits.</td><td>Good for your unshared branch before review. Rewrites commit IDs; a previously pushed branch needs a guarded force push.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <pre><code># On your own feature branch; first update your view of main.
+git fetch origin
+git switch fix/parser-null-user
+git rebase origin/main
+
+# If a conflict occurs: resolve, test, then continue or abort.
+git add &lt;resolved-path&gt;
+git rebase --continue
+# git rebase --abort       # return to the pre-rebase branch when possible
+
+# Only after confirming remote branch ownership and reviewing the graph:
+git push --force-with-lease origin fix/parser-null-user</code></pre>
+        <div class="callout danger"><b>Rewrite boundary</b>Never casually rebase or force-push a branch that others may have based work on. <code>--force-with-lease</code> refuses to overwrite the remote ref if it changed from the value your local repository last observed; fetch first, but understand that a lease reduces—not eliminates—coordination risk. Do not use bare <code>--force</code> for collaborative work.</div>
+      </section>
+
+      <section id="scenarios">
+        <p class="section-kicker">08 · Field decisions</p>
+        <h2>Four collaboration scenarios</h2>
+        <article class="scenario"><div class="scenario-head"><span class="tag">RULE TUNING</span><h3>Two analysts change the same correlation window</h3></div><p>Fetch and compare the graph before integration. A conflict is evidence of a policy decision, not a syntax chore: examine both experiment reports, choose a final threshold, replay fixtures, then make the merge commit. The final commit should explain the evidence behind the number.</p></article>
+        <article class="scenario"><div class="scenario-head"><span class="tag">INCIDENT FIX</span><h3>Production needs an auditable hotfix</h3></div><p>Branch from the deployed baseline, commit the narrow correction plus regression test, and push a named branch for review. Merge keeps the approval and integration point visible; avoid rebasing the shared release branch during an incident unless the established release process directs it.</p></article>
+        <article class="scenario"><div class="scenario-head"><span class="tag">STALE BRANCH</span><h3>Your local branch is behind the repository</h3></div><p>Run <code>git fetch</code>, inspect <code>origin/main</code>, then rebase only your unshared feature commits onto it. Resolve and test conflicts locally. If you previously published that branch, coordinate with consumers and use <code>--force-with-lease</code> after review—not a blind force push.</p></article>
+        <article class="scenario"><div class="scenario-head"><span class="tag">COLLECTOR CHANGE</span><h3>A parser change and schema update must land together</h3></div><p>Use one branch and coherent commits that pair the parser with schema fixtures and downstream expectations. A fast-forward does not reduce review quality; a true merge signals independent lines joined. In either case, CI must validate the final integrated snapshot, not just each branch in isolation.</p></article>
+      </section>
+
+      <section id="safety">
+        <p class="section-kicker">09 · Boundaries</p>
+        <h2>Safety, failure modes, and platform notes</h2>
+        <div class="cards">
+          <article class="card"><span class="num">CLEAN TREE</span><h4>Do not switch through unknown edits</h4><p>Branch switches, merges, and rebases rewrite tracked files. Commit or intentionally stash relevant work first; Git may refuse a risky switch, but that is not a backup plan.</p></article>
+          <article class="card"><span class="num">REMOTE ≠ BACKUP</span><h4>Fetch before assuming</h4><p><code>origin/main</code> may be stale until fetch. A clone may also omit inaccessible refs, and local work is not shared until push succeeds.</p></article>
+          <article class="card"><span class="num">SECRETS</span><h4>History replicates data</h4><p>Never put raw customer logs, tokens, or credentials in a branch “temporarily.” A pushed commit can be copied, cached, or reviewed even if later rewritten.</p></article>
+          <article class="card"><span class="num">POLICY</span><h4>Server rules win</h4><p>Protected branches, signed-commit rules, required reviews, and CI can reject a push. That is a collaboration control, not a Git error to work around.</p></article>
+        </div>
+        <div class="callout warn"><b>Version and shell differences</b><code>git switch</code> was introduced in Git 2.23 (2019); use <code>git checkout &lt;branch&gt;</code> on older installations, with extra care because legacy <code>checkout</code> also restores paths. <code>git init -b main</code> needs Git 2.28+; older Git requires <code>git init</code> then <code>git branch -M main</code> before the first push. The commands shown use POSIX shell syntax. In PowerShell, use <code>Set-Content rule.yml 'value'</code> rather than <code>printf ... &gt; rule.yml</code>, and use <code>cd C:\Temp\detection-git-branching-1-7</code> for the drill path.</div>
+      </section>
+
+      <section id="drills">
+        <p class="section-kicker">10 · Practice</p>
+        <h2>Hands-on drills: make the graph observable</h2>
+        <p class="intro">Run these in the exact disposable path <code>/tmp/detection-git-branching-1-7</code> on macOS/Linux, or <code>C:\Temp\detection-git-branching-1-7</code> in Windows PowerShell. Do not run setup commands inside a repository containing real work. Save each graph or status output as your artifact.</p>
+        <article class="drill">
+          <div class="drill-head"><h3>1. Prove fast-forward and true merge mechanics</h3><span class="time">20 min</span></div>
+          <pre><code>mkdir /tmp/detection-git-branching-1-7
+cd /tmp/detection-git-branching-1-7
+git init -b main
+git config user.name "Drill User"
+git config user.email "drill@example.invalid"
+printf 'version: 1\n' &gt; rule.yml
+git add rule.yml &amp;&amp; git commit -m "Baseline"
+git switch -c feature
+printf 'feature: true\n' &gt; feature.yml
+git add feature.yml &amp;&amp; git commit -m "Add feature"
+git switch main &amp;&amp; git merge --ff-only feature
+git switch -c divergent
+printf 'owner: detections\n' &gt; ownership.yml
+git add ownership.yml &amp;&amp; git commit -m "Add owner"
+git switch main
+printf 'version: 2\n' &gt; rule.yml
+git commit -am "Advance main"
+git merge divergent
+git log --oneline --graph --decorate --all | tee graph.txt</code></pre>
+          <ul class="checklist"><li>Mark the pointer-only fast-forward in <code>graph.txt</code> and explain why it created no merge commit.</li><li>Identify the merge base and both parents of the later merge commit with <code>git show --no-patch --pretty=raw HEAD</code>.</li><li>Explain why the same command, <code>git merge</code>, produced different graph operations.</li></ul>
+        </article>
+        <article class="drill">
+          <div class="drill-head"><h3>2. Manufacture, resolve, and abort a conflict</h3><span class="time">20 min</span></div>
+          <pre><code>git switch -c short-window
+printf 'window_minutes: 5\n' &gt; rule.yml
+git commit -am "Use short window"
+git switch main
+printf 'window_minutes: 15\n' &gt; rule.yml
+git commit -am "Use longer window"
+git merge short-window
+# Inspect markers and status. First, prove abort works:
+git merge --abort
+git merge short-window
+# Choose a justified final value, remove markers, then:
+git add rule.yml &amp;&amp; git commit -m "Resolve window policy"
+git status | tee conflict-resolution-status.txt</code></pre>
+          <ul class="checklist"><li>Label which marker region came from <code>HEAD</code> and which came from <code>short-window</code>.</li><li>Explain why <code>git add</code> is a resolution declaration rather than merely a file upload.</li><li>Show that abort restored the pre-merge tip, then show the completed merge has two parents.</li></ul>
+        </article>
+        <article class="drill">
+          <div class="drill-head"><h3>3. Simulate a remote and compare rebase with merge</h3><span class="time">25 min</span></div>
+          <pre><code>git init --bare /tmp/detection-git-branching-1-7-remote.git
+git remote add origin /tmp/detection-git-branching-1-7-remote.git
+git push -u origin main
+git switch -c rebase-demo
+printf 'test: added\n' &gt; fixture.yml
+git add fixture.yml &amp;&amp; git commit -m "Add fixture"
+git switch main
+printf 'baseline: updated\n' &gt; baseline.yml
+git add baseline.yml &amp;&amp; git commit -m "Update baseline"
+git push origin main
+git switch rebase-demo
+git fetch origin
+git rebase origin/main
+git log --oneline --graph --decorate --all | tee rebase-graph.txt
+git push -u origin rebase-demo</code></pre>
+          <ul class="checklist"><li>Explain why <code>origin/main</code> did not move until fetch/push and why fetch did not alter the checked-out file.</li><li>Find the pre-rebase and post-rebase commit IDs in the reflog; explain why the replayed commit has a new ID.</li><li>Show <code>git branch -vv</code> and explain what <code>-u</code> configured. State why an already-pushed rewrite would need <code>--force-with-lease</code>.</li></ul>
+        </article>
+      </section>
+
+      <section id="cheatsheet">
+        <p class="section-kicker">11 · Desk reference</p>
+        <h2>Branching, merging, and remotes cheat sheet</h2>
+        <div class="table-wrap"><table><thead><tr><th>Intent</th><th>Command / decision</th></tr></thead><tbody>
+          <tr><td>See all lines of work</td><td><code>git log --oneline --graph --decorate --all</code></td></tr>
+          <tr><td>Find the common ancestor</td><td><code>git merge-base main feature</code></td></tr>
+          <tr><td>Require linear update</td><td><code>git merge --ff-only feature</code></td></tr>
+          <tr><td>Force a visible merge commit</td><td><code>git merge --no-ff feature</code></td></tr>
+          <tr><td>Resolve a merge</td><td>Edit final content → test → <code>git add path</code> → <code>git commit</code></td></tr>
+          <tr><td>Cancel current integration</td><td><code>git merge --abort</code> or <code>git rebase --abort</code>, only for that operation</td></tr>
+          <tr><td>Update remote knowledge only</td><td><code>git fetch origin</code></td></tr>
+          <tr><td>Update clean main without merge</td><td><code>git pull --ff-only</code></td></tr>
+          <tr><td>Publish and track a new branch</td><td><code>git push -u origin branch</code></td></tr>
+          <tr><td>Refresh private feature history</td><td><code>git rebase origin/main</code></td></tr>
+          <tr><td>Publish a reviewed rewritten branch</td><td><code>git push --force-with-lease origin branch</code></td></tr>
+        </tbody></table></div>
+        <h3>Ready to pass Topic 1.7?</h3>
+        <div class="exit-grid"><div class="exit-item"><b>Draw</b>From memory, draw a fast-forward graph and a three-way merge with its merge base and two-parent commit.</div><div class="exit-item"><b>Demonstrate</b>Manufacture a conflict, explain every marker, test the final artifact, and complete or abort the operation.</div><div class="exit-item"><b>Explain</b>Without notes or AI, distinguish fetch, pull, push, local refs, remote-tracking refs, and an upstream.</div><div class="exit-item"><b>Choose</b>Explain why rebase changes commit IDs and when a merge is safer; state why bare force push is risky.</div></div>
+        <h3>Primary resources</h3>
+        <div class="resources"><a class="resource" href="https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging" target="_blank" rel="noopener"><b>Pro Git: branching &amp; merging</b><span>Commit-graph fundamentals</span></a><a class="resource" href="https://git-scm.com/docs/git-merge" target="_blank" rel="noopener"><b>git-merge reference</b><span>Merge and conflict semantics</span></a><a class="resource" href="https://git-scm.com/docs/git-fetch" target="_blank" rel="noopener"><b>git-fetch reference</b><span>Remote-tracking behavior</span></a><a class="resource" href="https://git-scm.com/docs/git-rebase" target="_blank" rel="noopener"><b>git-rebase reference</b><span>Rewrite mechanics and options</span></a></div>
+      </section>
+      <footer class="footer">Part of the Detection Engineering Learning Console · <a href="../index.html#w1">Week 1: Shell, OS, and Git</a></footer>
+    </main>
+  </div>
+</div>
+</body>
+</html>
